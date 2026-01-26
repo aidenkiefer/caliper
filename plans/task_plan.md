@@ -62,20 +62,20 @@ This document outlines the planning phase deliverables for building a quantitati
 
 ### `/plans` Folder
 - [x] `task_plan.md` (this file)
-- [ ] `findings.md`
-- [ ] `progress.md`
-- [ ] `milestones.md`
+- [x] `findings.md`
+- [x] `progress.md`
+- [x] `milestones.md`
 
 ### `/docs` Folder
-- [ ] `architecture.md`
-- [ ] `api-contracts.md`
-- [ ] `data-contracts.md`
-- [ ] `risk-policy.md`
-- [ ] `security.md`
-- [ ] `dashboard-spec.md`
+- [x] `architecture.md`
+- [x] `api-contracts.md`
+- [x] `data-contracts.md`
+- [x] `risk-policy.md`
+- [x] `security.md`
+- [x] `dashboard-spec.md`
 
 ### `/adr` Folder
-- [ ] ADRs as needed for key decisions
+- [x] ADRs as needed for key decisions
 
 ## Phase Gates
 
