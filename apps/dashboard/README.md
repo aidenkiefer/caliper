@@ -1,6 +1,6 @@
-# Quant Dashboard
+# Caliper Dashboard
 
-A modern monitoring dashboard for the quantitative ML trading platform. Built with Next.js 14, Tailwind CSS, and Shadcn/UI.
+A modern monitoring dashboard for Caliper. Built with Next.js 14, Tailwind CSS, and Shadcn/UI.
 
 ## Features
 

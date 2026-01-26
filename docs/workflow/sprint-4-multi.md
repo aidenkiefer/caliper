@@ -262,7 +262,7 @@
 1. **FastAPI Application (`services/api/`)**
    ```python
    # services/api/main.py
-   app = FastAPI(title="Quant Platform API", version="1.0.0")
+   app = FastAPI(title="Caliper API", version="1.0.0")
    
    # Routers
    app.include_router(metrics_router, prefix="/v1/metrics")

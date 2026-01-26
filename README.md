@@ -1,4 +1,4 @@
-# Quant ML Trading Platform
+# Caliper
 
 A modular quantitative ML trading platform for stocks and options with risk management, backtesting, and live execution capabilities.
 

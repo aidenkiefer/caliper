@@ -1,4 +1,4 @@
-# Design Refinements — Quant Trading Dashboard
+# Design Refinements — Caliper Dashboard
 
 This document identifies specific improvements to evolve the dashboard from a functional MVP into a polished, production-ready trading interface.
 

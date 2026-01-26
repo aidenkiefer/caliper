@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "api"
 version = "0.1.0"
-description = "FastAPI backend service for the quant trading platform"
-authors = ["Quant Platform"]
+description = "FastAPI backend service for Caliper"
+authors = ["Caliper"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

@@ -3,7 +3,7 @@
 **Last Updated:** 2026-01-26  
 **Status:** Sprint 6 Complete
 
-This document provides a comprehensive overview of all implemented features, capabilities, and components in the Quant ML Trading Platform.
+This document provides a comprehensive overview of all implemented features, capabilities, and components in Caliper.
 
 ---
 

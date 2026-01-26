@@ -1,4 +1,4 @@
-# Design Guidelines — Quant Trading Dashboard
+# Design Guidelines — Caliper Dashboard
 
 **Purpose:**  
 Define a clear, intentional, and consistent visual system for the quantitative trading dashboard. This document ensures all design and UI decisions support clarity, rapid comprehension, and operational reliability.

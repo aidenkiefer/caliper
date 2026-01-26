@@ -18,7 +18,7 @@
 Paste this prompt:
 
 ```
-You are the Sprint Orchestrator for the Quant ML Trading Platform.
+You are the Sprint Orchestrator for Caliper.
 
 Read:
 - docs/WORKFLOW.md

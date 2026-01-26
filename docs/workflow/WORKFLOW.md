@@ -245,7 +245,7 @@ Each agent must provide:
 **Orchestrator Prompt Template:**
 
 ```
-You are the Sprint Orchestrator for the Quant ML Trading Platform.
+You are the Sprint Orchestrator for Caliper.
 
 Read:
 - docs/WORKFLOW.md (this file)

@@ -1,4 +1,4 @@
-# Quant ML Trading Platform - Task Plan
+# Caliper - Task Plan
 
 ## Overview
 This document outlines the planning phase deliverables for building a quantitative ML trading platform. This is a **planning and system design** task only - no implementation code will be written.

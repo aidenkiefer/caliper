@@ -1,4 +1,4 @@
-# System Architecture - Quant ML Trading Platform
+# System Architecture - Caliper
 
 ## Summary
 
