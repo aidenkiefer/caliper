@@ -4,7 +4,10 @@ A modular quantitative ML trading platform for stocks and options with risk mana
 
 ## Project Status
 
-**Current Phase:** Implementation - Sprint 1 (Infrastructure & Data)
+**Current Phase:** Implementation - Sprint 2 (Feature Pipeline & Strategy Core)
+
+**Sprint 1:** ✅ Complete (Infrastructure & Data)  
+**Sprint 2:** 🟡 In Progress (Verification pending)
 
 ## Architecture
 
@@ -22,7 +25,7 @@ This is a monorepo containing:
 - **Database:** PostgreSQL with TimescaleDB extension
 - **Cache:** Redis
 - **Frontend:** Next.js 14 (App Router), React, TypeScript
-- **ML:** scikit-learn, XGBoost, pandas-ta
+- **ML:** scikit-learn, XGBoost (planned), pandas/numpy for indicators
 
 ## Getting Started
 
@@ -54,14 +57,14 @@ This is a monorepo containing:
 
 4. **Set up environment variables:**
    ```bash
-   cp configs/environments/.env.example .env.local
-   # Edit .env.local with your configuration
+   cp configs/environments/.env.example configs/environments/.env
+   # Edit configs/environments/.env with your Alpaca API keys
    ```
 
 5. **Run database migrations:**
    ```bash
    cd services/data
-   alembic upgrade head
+   poetry run alembic upgrade head
    ```
 
 6. **Install Node dependencies:**
@@ -110,12 +113,21 @@ quant/
 
 See [`plans/task_plan.md`](plans/task_plan.md) for the full implementation plan.
 
-**Sprint 1 (Current):** Infrastructure & Data
+**Sprint 1:** ✅ Infrastructure & Data (Complete)
 - [x] Monorepo setup
-- [ ] Docker Compose with Postgres & Redis
-- [ ] Shared Pydantic schemas
-- [ ] Data service with AlpacaProvider
-- [ ] Database migrations
+- [x] Docker Compose with Postgres (TimescaleDB) & Redis
+- [x] Shared Pydantic schemas (`packages/common/schemas.py`)
+- [x] Data service with AlpacaProvider
+- [x] Database migrations with Alembic
+- [x] Fetch 1 year AAPL data verified in DB (250 bars)
+
+**Sprint 2:** 🟡 Feature Pipeline & Strategy Core (In Progress)
+- [x] Feature engineering pipeline (`services/features`)
+- [x] Technical indicators (SMA, EMA, RSI, MACD, Bollinger, ATR, Stochastic)
+- [x] Strategy base class (`packages/strategies/base.py`)
+- [x] SMA Crossover strategy implementation
+- [ ] Feature engine verification
+- [ ] Strategy signal verification
 
 ## Security Notice
 

@@ -191,9 +191,9 @@ class Order(BaseModel):
     created_at: datetime = Field(..., description="When order was created")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
-    @field_validator('timestamp', 'submitted_at', 'filled_at', 'cancelled_at', 'created_at', 'updated_at')
+    @field_validator('submitted_at', 'filled_at', 'cancelled_at', 'created_at', 'updated_at')
     @classmethod
-    def timestamp_must_be_utc(cls, v: Optional[datetime]) -> Optional[datetime]:
+    def timestamps_must_be_utc(cls, v: Optional[datetime]) -> Optional[datetime]:
         """Ensure timestamps are timezone-aware (UTC)."""
         if v is not None and v.tzinfo is None:
             raise ValueError('timestamp must be timezone-aware (UTC)')

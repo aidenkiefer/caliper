@@ -1,0 +1,9 @@
+[tool.poetry]
+name = "strategies"
+version = "0.1.0"
+description = "Trading strategy plugins"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pandas = "^2.1.4"
+numpy = "^1.26.3"

@@ -12,8 +12,11 @@ dist/
 # Env / secrets
 .env
 .env.*
+.env.local
 *.key
 *.pem
+configs/environments/.env
+!configs/environments/.env.example
 
 # OS / editor
 .DS_Store

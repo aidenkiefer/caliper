@@ -13,7 +13,7 @@ This document outlines the planning phase deliverables for building a quantitati
 ## Specialist Agent Coordination
 
 ### 🧠 Agent A — Architecture Lead
-**Status:** Not Started  
+**Status:** ✅ Complete  
 **Deliverable:** `docs/architecture.md`  
 **Focus:**
 - System components and boundaries  
@@ -22,7 +22,7 @@ This document outlines the planning phase deliverables for building a quantitati
 - Deployment topology
 
 ### 🗄️ Agent B — Data & DB Lead
-**Status:** Not Started  
+**Status:** ✅ Complete  
 **Deliverable:** `docs/data-contracts.md`  
 **Focus:**
 - Price bar (OHLCV) schema
@@ -32,7 +32,7 @@ This document outlines the planning phase deliverables for building a quantitati
 - Data versioning and lifecycle
 
 ### 🔐 Agent C — API & Security Lead
-**Status:** Not Started  
+**Status:** ✅ Complete  
 **Deliverables:** `docs/api-contracts.md`, `docs/security.md`  
 **Focus:**
 - FastAPI backend endpoints
@@ -41,7 +41,7 @@ This document outlines the planning phase deliverables for building a quantitati
 - Rate limits and circuit breakers
 
 ### 🤖 Agent D — Agent Systems Lead
-**Status:** Not Started  
+**Status:** ✅ Complete  
 **Deliverable:** Tool definitions in `docs/architecture.md`  
 **Focus:**
 - Agent roles (Data Agent, Strategy Agent, Risk Agent, etc.)
@@ -50,7 +50,7 @@ This document outlines the planning phase deliverables for building a quantitati
 - Human-in-the-loop checkpoints (paper trading approval, risk limits)
 
 ### 📊 Agent E — Dashboard Planning Lead
-**Status:** Not Started  
+**Status:** ✅ Complete  
 **Deliverable:** `docs/dashboard-spec.md`  
 **Focus:**
 - Pages: Overview, Strategies, Positions, Runs/Backtests, Controls, System Health
@@ -113,17 +113,17 @@ This section guides the Cursor Agents for the build phase.
    - [x] Implement `services/data` skeleton.
    - [x] Build `AlpacaProvider` class for historical/live data.
    - [x] Create Postgres tables using Alembic migrations.
-   - [ ] **Verification:** Fetch 1 year of AAPL data and verify in DB.
+   - [x] **Verification:** Fetch 1 year of AAPL data and verify in DB.
 
 ### Sprint 2: Feature Pipeline & Strategy Core (Days 4-6)
 1. **Feature Engine:**
-   - [ ] Implement `services/features`.
-   - [ ] Create SMA, RSI, MACD calculators using pandas-ta.
+   - [x] Implement `services/features`.
+   - [x] Create SMA, RSI, MACD calculators (manual implementation for Python 3.11 compatibility).
    - [ ] **Verification:** Compare computed properties against known-good values.
 
 2. **Strategy Core:**
-   - [ ] Implement `packages/strategies/base.py` (Abstract Base Class).
-   - [ ] Create "Starter Strategy" (Simple Moving Average Crossover).
+   - [x] Implement `packages/strategies/base.py` (Abstract Base Class).
+   - [x] Create "Starter Strategy" (Simple Moving Average Crossover).
    - [ ] **Verification:** Run strategy on static dataset, log signals.
 
 ### Sprint 3: Backtesting & Reporting (Days 7-9)

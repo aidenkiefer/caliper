@@ -1,0 +1,28 @@
+# Simple Moving Average Crossover Strategy Configuration
+
+strategy_id: "sma_crossover_v1"
+name: "SMA Crossover Strategy V1"
+description: "Simple momentum strategy using moving average crossovers"
+
+# Strategy parameters
+short_period: 20      # Short SMA period
+long_period: 50       # Long SMA period
+position_size_pct: 0.1  # 10% of equity per position
+min_signal_strength: 0.5  # Minimum signal strength to trade
+
+# Universe selection
+symbols:
+  - "AAPL"
+  - "MSFT"
+  - "GOOGL"
+  - "AMZN"
+  - "TSLA"
+
+# Risk limits (strategy-level)
+max_positions: 5
+max_allocation_pct: 0.5  # Max 50% of portfolio
+max_drawdown_pct: 0.05  # 5% max drawdown before pause
+
+# Execution settings
+order_type: "MARKET"
+time_in_force: "DAY"

@@ -12,56 +12,56 @@
 - [x] `progress.md` created for tracking
 - [x] `milestones.md` created (this file)
 
-### Milestone 2: Parallel Agent Documentation
+### Milestone 2: Parallel Agent Documentation ✅ COMPLETE
 **Target:** Day 2-3  
-**Status:** 🔜 Not Started  
+**Status:** ✅ Complete  
 **Deliverables:**
-- [ ] `docs/architecture.md` - System architecture and component design
-- [ ] `docs/data-contracts.md` - Schema definitions and data lifecycle
-- [ ] `docs/api-contracts.md` - API endpoint specifications
-- [ ] `docs/security.md` - Security policies and safeguards
-- [ ] `docs/dashboard-spec.md` - Dashboard UI/UX specifications
-- [ ] Tool definitions section in `architecture.md`
+- [x] `docs/architecture.md` - System architecture and component design
+- [x] `docs/data-contracts.md` - Schema definitions and data lifecycle
+- [x] `docs/api-contracts.md` - API endpoint specifications
+- [x] `docs/security.md` - Security policies and safeguards
+- [x] `docs/dashboard-spec.md` - Dashboard UI/UX specifications
+- [x] Tool definitions section in `architecture.md`
 
-### Milestone 3: Integration & Validation
+### Milestone 3: Integration & Validation ✅ COMPLETE
 **Target:** Day 4  
-**Status:** 🔜 Not Started  
+**Status:** ✅ Complete  
 **Deliverables:**
-- [ ] All docs reviewed for internal consistency
-- [ ] Conflicts resolved via ADRs in `/adr`
-- [ ] Open questions addressed or documented
-- [ ] Risk gates validated
+- [x] All docs reviewed for internal consistency
+- [x] Conflicts resolved via ADRs in `/adr`
+- [x] Open questions addressed or documented
+- [x] Risk gates validated
 
-### Milestone 4: Cursor Handoff Preparation
+### Milestone 4: Cursor Handoff Preparation ✅ COMPLETE
 **Target:** Day 5  
-**Status:** 🔜 Not Started  
+**Status:** ✅ Complete  
 **Deliverables:**
-- [ ] Cursor Implementation Sprint section added to `task_plan.md`
-- [ ] Implementation task breakdown created
-- [ ] Final planning review complete
-- [ ] Handoff documentation ready
+- [x] Cursor Implementation Sprint section added to `task_plan.md`
+- [x] Implementation task breakdown created
+- [x] Final planning review complete
+- [x] Handoff documentation ready
 
 ---
 
 ## Implementation Phase Milestones (Cursor Execution)
 
-### Days 1–2: Foundations
+### Days 1–2: Foundations ✅ COMPLETE (Sprint 1)
 **Objective:** Set up infrastructure and data ingestion  
 **Deliverables:**
-- [ ] Monorepo structure scaffolded
-- [ ] Docker + docker-compose for local dev
-- [ ] Data ingestion service for 1 provider (historical + live)
-- [ ] Postgres database with schema
-- [ ] Data validation pipelines
+- [x] Monorepo structure scaffolded
+- [x] Docker + docker-compose for local dev
+- [x] Data ingestion service for 1 provider (Alpaca - historical)
+- [x] Postgres database with TimescaleDB schema
+- [x] Data validation via Pydantic schemas
 
-### Days 3–5: First Strategy End-to-End (Stocks)
+### Days 3–5: First Strategy End-to-End (Stocks) 🟡 IN PROGRESS (Sprint 2)
 **Objective:** Complete vertical slice - data → model → backtest → report  
 **Deliverables:**
-- [ ] Baseline feature pipeline (technical indicators)
-- [ ] XGBoost classification model (1-5 day horizon)
-- [ ] Backtesting with realistic costs
-- [ ] Report generation + artifact storage
-- [ ] Strategy plugin framework established
+- [x] Baseline feature pipeline (technical indicators)
+- [ ] XGBoost classification model (1-5 day horizon) - Sprint 3
+- [ ] Backtesting with realistic costs - Sprint 3
+- [ ] Report generation + artifact storage - Sprint 3
+- [x] Strategy plugin framework established (SMA Crossover)
 
 ### Days 6–8: Second Strategy (Mean Reversion or Volatility)
 **Objective:** Validate plugin architecture with second strategy  
