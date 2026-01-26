@@ -241,15 +241,15 @@ This document provides a comprehensive overview of all implemented features, cap
 - **Service READMEs** - Per-service documentation
 
 ### Multi-Agent Workflow
-- **Workflow Guide** (`docs/WORKFLOW.md`) - Multi-agent development protocol
-- **Agent Briefs** - Role-specific instructions
-- **Sprint Prompts** - Agent prompts for Sprint 3
+- **Workflow Guide** (`docs/workflow/WORKFLOW.md`) - Multi-agent development protocol
+- **Agent Briefs** (`agents/briefs/`) - Role-specific instructions
+- **Sprint Prompts** (`docs/workflow/`) - Agent prompts for Sprints 3-4
 
 ---
 
 ## 🔄 Data Flow
 
-### Current Workflow (Sprints 1-3)
+### Current Workflow (Sprints 1-4)
 
 ```
 1. Data Ingestion (Sprint 1)
@@ -266,18 +266,24 @@ This document provides a comprehensive overview of all implemented features, cap
    
 5. Reporting (Sprint 3)
    Results → ReportGenerator → JSON/HTML Reports
+
+6. API Layer (Sprint 4)
+   Results → FastAPI → REST Endpoints
+
+7. Dashboard (Sprint 4)
+   API → Next.js Dashboard → User Interface
 ```
 
 ---
 
-## 🚧 Planned Features (Sprints 4-5)
+## 🚧 Planned Features (Sprint 5)
 
-### Sprint 4: Dashboard & API
-- FastAPI backend endpoints
-- Next.js dashboard UI
-- Backtest results visualization
-- Strategy management interface
-- API integration tests
+### Sprint 4: Dashboard & API ✅ COMPLETE
+- ✅ FastAPI backend with 10 REST endpoints
+- ✅ Next.js 14 dashboard UI
+- ✅ Backtest results visualization
+- ✅ Strategy management interface
+- ✅ 160 API tests (135 unit + 25 integration)
 
 ### Sprint 5: Execution & Risk
 - Paper trading execution

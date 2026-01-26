@@ -4,17 +4,18 @@ A modular quantitative ML trading platform for stocks and options with risk mana
 
 ## Project Status
 
-**Current Phase:** Implementation - Sprint 3 ✅ COMPLETE
+**Current Phase:** Implementation - Sprint 4 ✅ COMPLETE
 
 **Sprint 1:** ✅ Complete (Infrastructure & Data)  
 **Sprint 2:** ✅ Complete (Feature Pipeline & Strategy Core)  
-**Sprint 3:** ✅ Complete (Backtesting & Reporting)
+**Sprint 3:** ✅ Complete (Backtesting & Reporting)  
+**Sprint 4:** ✅ Complete (Dashboard & API)
 
 ## Architecture
 
 This is a monorepo containing:
 
-- **`apps/dashboard`** - Next.js dashboard (Vercel deployment)
+- **`apps/dashboard`** - ✅ Next.js dashboard (Sprint 4)
 - **`services/`** - Python microservices (data, features, backtest, execution, risk, monitoring, api)
 - **`packages/`** - Shared libraries (common schemas, strategies, models)
 - **`docs/`** - Architecture and design documentation
@@ -73,10 +74,51 @@ This is a monorepo containing:
    npm install
    ```
 
-7. **Start the dashboard (when implemented):**
-   ```bash
-   npm run dev
-   ```
+### Quick Start: API Server
+
+Start the FastAPI backend:
+
+```bash
+# Option 1: Using uvicorn directly
+cd services/api
+poetry run uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+# Option 2: Using Makefile
+make dev-api
+```
+
+The API will be available at:
+- **API Base:** http://localhost:8000
+- **OpenAPI Docs:** http://localhost:8000/docs
+- **ReDoc:** http://localhost:8000/redoc
+
+### Quick Start: Dashboard
+
+Start the Next.js dashboard:
+
+```bash
+# Option 1: Using npm directly
+cd apps/dashboard
+npm install
+npm run dev
+
+# Option 2: Using Makefile
+make dev-dashboard
+```
+
+The dashboard will be available at http://localhost:3000
+
+### Quick Start: All Services
+
+Start everything with Docker Compose:
+
+```bash
+# Start all services (database, redis, api)
+docker-compose up -d
+
+# Or use Makefile
+make dev
+```
 
 ## Project Structure
 
@@ -88,7 +130,7 @@ quant/
 │   ├── data/               # ✅ Data ingestion service (Sprint 1)
 │   ├── features/           # ✅ Feature engineering (Sprint 2)
 │   ├── backtest/           # ✅ Backtesting engine (Sprint 3)
-│   ├── api/                # FastAPI backend (Sprint 4)
+│   ├── api/                # ✅ FastAPI backend (Sprint 4)
 │   ├── execution/          # Trade execution (Sprint 5)
 │   ├── risk/               # Risk management (Sprint 5)
 │   └── monitoring/         # Metrics & alerts (planned)
@@ -115,17 +157,20 @@ quant/
 - **Dashboard Spec:** [`docs/dashboard-spec.md`](docs/dashboard-spec.md)
 
 ### Sprint Summaries
-- **Sprint 1:** [`SPRINT1_SUMMARY.md`](SPRINT1_SUMMARY.md) - Infrastructure & Data
-- **Sprint 2:** [`SPRINT2_SUMMARY.md`](SPRINT2_SUMMARY.md) - Feature Pipeline & Strategy Core
-- **Sprint 3:** [`SPRINT3_SUMMARY.md`](SPRINT3_SUMMARY.md) - Backtesting & Reporting
+- **Sprint 1:** [`plans/SPRINT1_SUMMARY.md`](plans/SPRINT1_SUMMARY.md) - Infrastructure & Data
+- **Sprint 2:** [`plans/SPRINT2_SUMMARY.md`](plans/SPRINT2_SUMMARY.md) - Feature Pipeline & Strategy Core
+- **Sprint 3:** [`plans/SPRINT3_SUMMARY.md`](plans/SPRINT3_SUMMARY.md) - Backtesting & Reporting
+- **Sprint 4:** [`plans/SPRINT4_SUMMARY.md`](plans/SPRINT4_SUMMARY.md) - Dashboard & API
 
 ### Multi-Agent Workflow
-- **Workflow Guide:** [`docs/WORKFLOW.md`](docs/WORKFLOW.md) - Multi-agent development protocol
-- **Quick Start:** [`docs/MULTI_AGENT_QUICKSTART.md`](docs/MULTI_AGENT_QUICKSTART.md)
-- **Sprint 3 Prompts:** [`docs/SPRINT3_AGENT_PROMPTS.md`](docs/SPRINT3_AGENT_PROMPTS.md)
+- **Workflow Guide:** [`docs/workflow/WORKFLOW.md`](docs/workflow/WORKFLOW.md) - Multi-agent development protocol
+- **Quick Start:** [`docs/workflow/MULTI_AGENT_QUICKSTART.md`](docs/workflow/MULTI_AGENT_QUICKSTART.md)
+- **Sprint 3 Prompts:** [`docs/workflow/SPRINT3_AGENT_PROMPTS.md`](docs/workflow/SPRINT3_AGENT_PROMPTS.md)
+- **Sprint 4 Prompts:** [`docs/workflow/SPRINT4_AGENT_PROMPTS.md`](docs/workflow/SPRINT4_AGENT_PROMPTS.md)
 
 ### Runbooks
 - **Backtest Verification:** [`docs/runbooks/backtest-verification.md`](docs/runbooks/backtest-verification.md)
+- **API Verification:** [`docs/runbooks/api-verification.md`](docs/runbooks/api-verification.md)
 
 ### Features Overview
 - **Platform Features:** [`docs/FEATURES.md`](docs/FEATURES.md) - Comprehensive feature list and capabilities
@@ -160,6 +205,18 @@ See [`plans/task_plan.md`](plans/task_plan.md) for the full implementation plan.
 - [x] Unit tests (60+ tests)
 - [x] Integration test (SMA Crossover backtest)
 - [x] Documentation (README, runbook, architecture updates, ADR)
+
+**Sprint 4:** ✅ Dashboard & API (Complete)
+- [x] FastAPI backend with 10 REST endpoints (`services/api/`)
+- [x] Pydantic response models (`packages/common/api_schemas.py`)
+- [x] OpenAPI documentation at `/docs`
+- [x] Next.js 14 dashboard (`apps/dashboard/`)
+- [x] Overview, Strategies, Runs, Health, Settings pages
+- [x] Shadcn/UI components + Tailwind CSS
+- [x] SWR hooks for data fetching
+- [x] Dark mode and responsive design
+- [x] Docker configuration for API service
+- [x] 160 tests (135 unit + 25 integration)
 
 ## Security Notice
 

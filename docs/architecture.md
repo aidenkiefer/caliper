@@ -460,14 +460,126 @@ class BrokerClient(ABC):
 - Admin controls (enable/disable strategies, adjust risk parameters)
 - System health dashboard
 
-**Pages:** (See `dashboard-spec.md` for details)
-- Overview, Strategies, Positions, Runs, Controls, System Health
+**Next.js App Router Structure:**
 
-**Technology:**
-- Next.js 14 (App Router), React, TypeScript
-- TradingView Lightweight Charts or Recharts
-- NextAuth.js for authentication
-- Deployed on Vercel
+```
+apps/dashboard/
+├── app/
+│   ├── layout.tsx                    # Root layout (providers, auth)
+│   ├── page.tsx                      # Overview page (/)
+│   ├── (auth)/
+│   │   └── signin/
+│   │       └── page.tsx              # Login page
+│   ├── (dashboard)/
+│   │   ├── layout.tsx                # Dashboard layout (sidebar, header)
+│   │   ├── page.tsx                  # Overview page (equity curve, stats)
+│   │   ├── strategies/
+│   │   │   ├── page.tsx              # Strategy list
+│   │   │   └── [id]/
+│   │   │       └── page.tsx          # Strategy detail
+│   │   ├── positions/
+│   │   │   └── page.tsx              # Positions list
+│   │   ├── runs/
+│   │   │   ├── page.tsx              # Backtest runs list
+│   │   │   └── [id]/
+│   │   │       └── page.tsx          # Run detail with charts
+│   │   ├── health/
+│   │   │   └── page.tsx              # System health
+│   │   └── settings/
+│   │       └── page.tsx              # Settings page
+│   └── api/
+│       └── auth/
+│           └── [...nextauth]/
+│               └── route.ts          # NextAuth.js API route
+├── components/
+│   ├── ui/                           # Shadcn/UI components (button, card, table, etc.)
+│   ├── equity-chart.tsx              # Equity curve chart component
+│   ├── stats-card.tsx                # Metric display card
+│   ├── alerts-widget.tsx             # Alerts display widget
+│   ├── header.tsx                    # Top navigation header
+│   └── sidebar.tsx                    # Sidebar navigation
+├── lib/
+│   ├── api.ts                        # API client (fetch wrapper with error handling)
+│   ├── hooks/                        # React hooks for data fetching
+│   │   ├── use-metrics.ts            # Metrics polling hook (SWR)
+│   │   ├── use-strategies.ts         # Strategies hook
+│   │   ├── use-positions.ts          # Positions hook
+│   │   ├── use-runs.ts               # Backtest runs hook
+│   │   ├── use-alerts.ts             # Alerts hook
+│   │   └── use-health.ts             # Health check hook
+│   ├── types.ts                      # TypeScript types from API contracts
+│   └── utils.ts                      # Utility functions
+└── tailwind.config.ts                # Tailwind CSS configuration
+```
+
+**Data Fetching Pattern (Polling):**
+
+The dashboard uses **polling** (not WebSockets) for data updates:
+
+**Pattern:** SWR (stale-while-revalidate) with automatic refetch
+- **Polling Interval:** 5 seconds for critical data (metrics, positions, alerts)
+- **Polling Interval:** 10 seconds for less critical data (strategies, runs)
+- **Stale Time:** 0 (always refetch on focus/interval)
+- **Cache Time:** 30 seconds
+- **Error Handling:** Graceful fallback to mock data during development
+
+**Example Hook Implementation:**
+```typescript
+// lib/hooks/use-metrics.ts
+export function useMetrics(period: string = "1m") {
+  const { data, error, isLoading, mutate } = useSWR<ApiResponse<MetricsSummary>>(
+    `/metrics/summary?period=${period}`,
+    () => fetchMetricsSummary(period),
+    {
+      refreshInterval: 5000,  // Poll every 5 seconds
+      fallbackData: { data: mockMetrics },  // Development fallback
+      onError: () => {
+        // Silently fail and use mock data
+      },
+    }
+  );
+
+  return {
+    metrics: data?.data ?? mockMetrics,
+    isLoading,
+    isError: error,
+    mutate,
+  };
+}
+```
+
+**Data Flow:**
+1. **Server Components** fetch initial data (SSR/SSG) for faster initial load
+2. **Client Components** use SWR hooks for polling (`"use client"` directive)
+3. **API Client** (`lib/api.ts`) wraps fetch calls with:
+   - Base URL configuration (`NEXT_PUBLIC_API_URL`)
+   - Content-Type headers
+   - Error handling and status code checking
+4. **Error Handling** shows toast notifications for API failures (future enhancement)
+5. **Loading States** display skeleton loaders during refetch
+6. **Mock Data** provides fallback during development when API is unavailable
+
+**Pages:** (See `dashboard-spec.md` for details)
+- `/` - Overview (equity curve, summary stats, alerts)
+- `/strategies` - Strategy list with status and performance
+- `/strategies/[id]` - Strategy detail (performance chart, positions, config editor)
+- `/positions` - Current open positions across all strategies
+- `/runs` - Backtest run history with filters
+- `/runs/[id]` - Run detail with interactive charts (equity curve, trades)
+- `/health` - System health status (services, API usage)
+- `/settings` - Settings and configuration
+
+**Technology Stack:**
+- **Framework:** Next.js 14 (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS + Shadcn/UI components
+- **Charts:** TradingView Lightweight Charts (equity curves) + Recharts (metrics)
+- **Data Fetching:** SWR (stale-while-revalidate) for polling
+- **Authentication:** NextAuth.js (Credentials Provider, JWT exchange with FastAPI) - *Planned*
+- **State Management:** SWR cache (no Redux/Zustand needed)
+- **Deployment:** Vercel (serverless functions, edge runtime)
+- **Build:** Turbopack (Next.js 14 default)
+- **Icons:** Lucide React
 
 ---
 
@@ -477,17 +589,257 @@ class BrokerClient(ABC):
 - Serve dashboard with REST API
 - Aggregate data from services
 - Handle authentication and authorization
+- Provide unified interface for dashboard queries
 
-**Endpoints:** (See `api-contracts.md` for details)
-- `/metrics/summary`, `/strategies`, `/positions`, `/runs`, `/alerts`, `/controls`
+**Service Structure:**
+
+```
+services/api/
+├── __init__.py                       # Package initialization
+├── main.py                           # FastAPI app entry point
+├── dependencies.py                   # Shared dependencies (DB, auth, request context)
+├── pyproject.toml                    # Poetry dependencies
+├── README.md                         # Service documentation
+└── routers/
+    ├── __init__.py                   # Router exports
+    ├── health.py                     # Health check endpoints
+    ├── metrics.py                    # Metrics aggregation endpoints
+    ├── strategies.py                 # Strategy CRUD endpoints
+    ├── runs.py                       # Backtest run endpoints
+    └── positions.py                  # Position endpoints
+```
+
+**FastAPI Endpoints Summary:**
+
+**Authentication:** *(Planned - not yet implemented)*
+- `POST /v1/auth/login` - User login, returns JWT token
+- `POST /v1/auth/refresh` - Refresh access token
+
+**Metrics & Summary:**
+- `GET /v1/metrics/summary` - Aggregate metrics across all strategies
+  - Query params: `period` (1d/1w/1m/3m/1y/all), `mode` (PAPER/LIVE)
+  - Returns: Total PnL, Sharpe ratio, max drawdown, win rate, equity curve
+  - **Status:** ✅ Implemented (mock data)
+
+**Strategies:**
+- `GET /v1/strategies` - List all configured strategies
+  - Query params: `status` (active/inactive/all), `mode` (BACKTEST/PAPER/LIVE)
+  - **Status:** ✅ Implemented (mock data)
+- `GET /v1/strategies/{strategy_id}` - Get strategy details with performance
+  - **Status:** ✅ Implemented (mock data)
+- `PATCH /v1/strategies/{strategy_id}` - Update strategy config (admin only)
+  - **Status:** ✅ Implemented (mock data)
+
+**Positions:**
+- `GET /v1/positions` - List current open positions
+  - Query params: `strategy_id`, `symbol`, `mode`, `page`, `per_page`
+  - **Status:** ✅ Implemented (mock data)
+- `GET /v1/positions/{position_id}` - Get position details with entry orders
+  - **Status:** ✅ Implemented (mock data)
+
+**Orders:** *(Planned - not yet implemented)*
+- `GET /v1/orders` - List orders (recent first)
+  - Query params: `strategy_id`, `status`, `mode`, `from_date`, `to_date`, pagination
+
+**Runs (Backtests & Live Sessions):**
+- `GET /v1/runs` - List strategy runs
+  - Query params: `strategy_id`, `run_type`, `status`, pagination
+  - **Status:** ✅ Implemented (mock data)
+- `POST /v1/runs` - Trigger new backtest (returns 202 Accepted, async)
+  - **Status:** ✅ Implemented (mock data)
+- `GET /v1/runs/{run_id}` - Get detailed run results with metrics and trades
+  - **Status:** ✅ Implemented (mock data)
+
+**Alerts:** *(Planned - not yet implemented)*
+- `GET /v1/alerts` - List recent alerts
+  - Query params: `severity`, `acknowledged`, date range, pagination
+- `PATCH /v1/alerts/{alert_id}/acknowledge` - Mark alert as acknowledged
+
+**Controls (Admin):** *(Planned - not yet implemented)*
+- `POST /v1/controls/kill-switch` - Activate/deactivate kill switch
+- `POST /v1/controls/mode-transition` - Transition strategy between PAPER/LIVE
+
+**System Health:**
+- `GET /v1/health` - Overall system health check
+  - **Status:** ✅ Implemented (mock data)
+
+**Request/Response Flow:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         API REQUEST FLOW                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Dashboard Request (HTTP GET/POST)
+    ↓
+CORS Middleware (allow localhost:3000, *.vercel.app)
+    ↓
+FastAPI Router (versioned: /v1/*)
+    ├── /v1/health → health.router
+    ├── /v1/metrics → metrics.router
+    ├── /v1/strategies → strategies.router
+    ├── /v1/runs → runs.router
+    └── /v1/positions → positions.router
+    ↓
+Authentication Middleware (JWT validation) - *Planned*
+    ↓
+Rate Limiting Middleware (slowapi) - *Planned*
+    ↓
+Controller/Handler Function (router endpoint)
+    ↓
+Service Layer (business logic) - *Planned*
+    ↓
+Repository Layer (database queries) - *Planned*
+    ↓
+Postgres Database (TimescaleDB)
+    ↓
+Response Serialization (Pydantic models)
+    ↓
+JSON Response to Dashboard
+```
+
+**Current Implementation Status:**
+
+**✅ Implemented:**
+- FastAPI app structure with CORS middleware
+- Router-based organization (health, metrics, strategies, runs, positions)
+- Pydantic response models (`packages/common/api_schemas.py`)
+- Mock data responses for all endpoints
+- OpenAPI documentation at `/docs`
+
+**🚧 In Progress:**
+- Database connection (SQLAlchemy/asyncpg)
+- Authentication middleware (JWT)
+- Rate limiting (slowapi)
+
+**📋 Planned:**
+- Service layer (business logic abstraction)
+- Repository layer (database queries)
+- Real database queries (currently using mock data)
+- Error handling middleware
+- Request ID tracking
+- Logging middleware
+
+**Database Queries:**
+
+The API service will query Postgres tables directly:
+- `strategies` - Strategy configurations and metadata
+- `positions` - Current open positions (from execution service)
+- `orders` - Order history (from execution service)
+- `runs` - Backtest and live session records (from backtest service)
+- `trades` - Trade history (from backtest/execution services)
+- `metrics` - Aggregated performance metrics (from monitoring service)
+- `alerts` - System alerts and notifications (from monitoring service)
+
+**Query Patterns:**
+- **Aggregation:** `GET /metrics/summary` aggregates across multiple strategies using SQL GROUP BY and window functions
+- **Filtering:** Most list endpoints support filtering by `strategy_id`, `mode`, date ranges
+- **Pagination:** List endpoints use offset/limit pagination (`page`, `per_page` params)
+- **Joins:** Position and order queries join with strategy and trade tables for complete context
+- **Time-series:** TimescaleDB hypertables for efficient time-range queries on equity curves and metrics
 
 **Technology:**
-- FastAPI, Python 3.11+
-- Pydantic for request/response validation
+- **Framework:** FastAPI (Python 3.11+)
+- **Validation:** Pydantic models for request/response validation
+- **Database:** SQLAlchemy (async) or asyncpg for database access
+- **Rate Limiting:** slowapi library for FastAPI
+- **Authentication:** python-jose for JWT token handling
+- **Documentation:** Auto-generated OpenAPI docs at `/docs` (Swagger UI) and `/redoc`
+- **CORS:** FastAPI CORS middleware for dashboard access
 
 ---
 
 ## Data Flow Diagrams
+
+### Dashboard → API → Database Flow
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         DASHBOARD DATA FLOW                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────┐
+│  Dashboard   │  Next.js App (Vercel)
+│  (Next.js)   │
+│              │
+│  Polling     │  Every 5-10 seconds
+│  (SWR)       │
+└──────┬───────┘
+       │ HTTP GET/POST
+       │ Authorization: Bearer {JWT} (planned)
+       │
+       ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    API Service (FastAPI)                                │
+│                    services/api                                        │
+│                                                                          │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  Endpoints:                                                        │ │
+│  │  - GET /v1/metrics/summary                                        │ │
+│  │  - GET /v1/strategies                                              │ │
+│  │  - GET /v1/positions                                               │ │
+│  │  - GET /v1/runs                                                    │ │
+│  │  - POST /v1/runs (trigger backtest)                                │ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+│                                                                          │
+│  ┌────────────────────────────────────────────────────────────────────┐ │
+│  │  Request Flow:                                                     │ │
+│  │  1. CORS Middleware                                                │ │
+│  │  2. Router (versioned: /v1/*)                                      │ │
+│  │  3. JWT Authentication Middleware (planned)                        │ │
+│  │  4. Rate Limiting (slowapi, planned)                               │ │
+│  │  5. Controller Handler                                             │ │
+│  │  6. Service Layer (business logic, planned)                       │ │
+│  │  7. Repository Layer (database queries, planned)                  │ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+└──────┬──────────────────────────────────────────────────────────────────┘
+       │ SQL Queries (SQLAlchemy/asyncpg, planned)
+       │
+       ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    Database (Postgres + TimescaleDB)                    │
+│                                                                          │
+│  Tables:                                                                 │
+│  - strategies (config, metadata)                                         │
+│  - positions (current open positions)                                    │
+│  - orders (order history)                                                │
+│  - runs (backtest/live session records)                                 │
+│  - trades (trade history)                                                │
+│  - metrics (aggregated performance)                                      │
+│  - alerts (system alerts)                                                │
+└──────┬──────────────────────────────────────────────────────────────────┘
+       │
+       │ (Backtest Service writes results)
+       │
+       ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    Backtest Service                                      │
+│                    services/backtest                                     │
+│                                                                          │
+│  - Executes strategies on historical data                                │
+│  - Generates performance metrics                                         │
+│  - Creates trade records                                                 │
+│  - Writes results to database                                           │
+└──────┬──────────────────────────────────────────────────────────────────┘
+       │
+       │ (Report Generation)
+       │
+       ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                    Reports                                               │
+│                                                                          │
+│  - JSON reports (machine-readable)                                       │
+│  - HTML reports (Plotly charts)                                         │
+│  - Stored in database (runs table)                                       │
+│  - Served via API: GET /v1/runs/{run_id}                                │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+### Simplified Data Flow Diagram
+```
+Dashboard (Next.js) → API (FastAPI) → Database (Postgres)
+                   ↓
+            Backtest Service → Reports
+```
 
 ### Strategy Execution Flow
 ```

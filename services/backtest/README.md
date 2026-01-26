@@ -420,6 +420,6 @@ For large datasets:
 
 ## See Also
 
-- `docs/sprint-3-multi.md` - Sprint 3 requirements and verification
+- `docs/workflow/sprint-3-multi.md` - Sprint 3 requirements and verification
 - `packages/strategies/base.py` - Strategy interface
 - `packages/common/schemas.py` - Data schemas

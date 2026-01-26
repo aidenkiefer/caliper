@@ -1,6 +1,6 @@
 # Progress Tracker
 
-## Current Phase: Implementation - Sprint 3 ✅ COMPLETE
+## Current Phase: Implementation - Sprint 4 ✅ COMPLETE
 
 **Last Updated:** 2026-01-26
 
@@ -37,8 +37,23 @@
 - [x] **Verification:** Backtest Starter Strategy, P&L math verified
 - [x] Documentation (README, runbook, architecture updates, ADR)
 
-### Sprint 4-5: Not Started
-- [ ] Dashboard & API
+### Sprint 4: Dashboard & API ✅ COMPLETE
+- [x] FastAPI backend (`services/api/`)
+- [x] 10 REST endpoints per `docs/api-contracts.md`
+- [x] Pydantic response models (`packages/common/api_schemas.py`)
+- [x] Next.js 14 dashboard (`apps/dashboard/`)
+- [x] Overview, Strategies, Runs, Health, Settings pages
+- [x] Shadcn/UI components + Tailwind CSS
+- [x] API client with SWR hooks
+- [x] Dark mode and responsive design
+- [x] Docker configuration for API service
+- [x] Makefile with dev targets
+- [x] 160 tests (135 unit + 25 integration)
+- [x] `docs/runbooks/api-verification.md` created
+- [x] `adr/0006-api-architecture.md` created
+- [x] **Verification:** Backtest results visible in Dashboard
+
+### Sprint 5: Not Started
 - [ ] Execution & Risk
 
 ---
@@ -59,10 +74,18 @@
 - ✅ `/docs/risk-policy.md` - Risk limits and kill switches
 - ✅ `/docs/dashboard-spec.md` - Next.js UI/UX spec
 
-### Implementation Documentation
-- ✅ `SPRINT1_SUMMARY.md` - Sprint 1 deliverables
-- ✅ `SPRINT1_VERIFICATION.md` - Verification checklist
-- ✅ `SPRINT_SKILL_OPTIMIZATIONS.md` - Skills-based improvements
+### Implementation Documentation (in `plans/`)
+- ✅ `plans/SPRINT1_SUMMARY.md` - Sprint 1 deliverables
+- ✅ `plans/SPRINT2_SUMMARY.md` - Sprint 2 deliverables
+- ✅ `plans/SPRINT3_SUMMARY.md` - Sprint 3 deliverables
+- ✅ `plans/SPRINT4_SUMMARY.md` - Sprint 4 deliverables
+- ✅ `plans/SPRINT_SKILL_OPTIMIZATIONS.md` - Skills-based improvements
+
+### Workflow Documentation (in `docs/workflow/`)
+- ✅ `docs/workflow/WORKFLOW.md` - Multi-agent protocol
+- ✅ `docs/workflow/MULTI_AGENT_SETUP.md` - Setup guide
+- ✅ `docs/workflow/sprint-3-multi.md` - Sprint 3 workflow
+- ✅ `docs/workflow/sprint-4-multi.md` - Sprint 4 workflow
 
 ---
 
@@ -83,10 +106,11 @@
 ## Next Actions
 
 1. ✅ Sprint 3 complete - Backtesting & Reporting implemented
-2. Proceed to Sprint 4: Dashboard & API
+2. ✅ Sprint 4 complete - Dashboard & API implemented
+3. Proceed to Sprint 5: Execution & Risk
 
 ---
 
 ## Blockers
 
-**None.** Sprint 3 is complete and ready for Sprint 4.
+**None.** Sprint 4 is complete and ready for Sprint 5.

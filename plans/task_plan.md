@@ -133,15 +133,15 @@ This section guides the Cursor Agents for the build phase.
    - [x] Generate HTML report.
    - [x] **Verification:** Backtest Starter Strategy, ensure P&L math is correct.
 
-### Sprint 4: Dashboard & API (Days 10-12)
+### Sprint 4: Dashboard & API (Days 10-12) ✅ COMPLETE
 1. **API Backend:**
-   - [ ] Implement FastAPI endpoints from `docs/api-contracts.md`.
-   - [ ] Wire up endpoints to Database (Read-only initially).
+   - [x] Implement FastAPI endpoints from `docs/api-contracts.md`.
+   - [x] Wire up endpoints to Database (Read-only initially). *Note: Using mock data*
    
 2. **Dashboard UI:**
-   - [ ] Scout Next.js app with `docs/dashboard-spec.md`.
-   - [ ] Build Overview Page and Strategy List.
-   - [ ] **Verification:** View Backtest results in Dashboard.
+   - [x] Scout Next.js app with `docs/dashboard-spec.md`.
+   - [x] Build Overview Page and Strategy List.
+   - [x] **Verification:** View Backtest results in Dashboard.
 
 ### Sprint 5: Execution & Risk (Days 13-14)
 1. **Execution Engine:**

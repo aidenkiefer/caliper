@@ -35,6 +35,34 @@ services:
     networks:
       - quant-network
 
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: quant-api
+    working_dir: /app/services/api
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://quant_user:quant_password@postgres:5432/quant_trading
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/v1/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - quant-network
+
 volumes:
   postgres_data:
   redis_data:

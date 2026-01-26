@@ -80,7 +80,18 @@
 - [ ] Risk exposure calculations (delta, gamma)
 - [ ] Options backtest evaluation
 
-### Days 12–14: Execution + Dashboard + Hardening
+### Days 10-12: Dashboard & API ✅ COMPLETE (Sprint 4)
+**Objective:** Build REST API and monitoring dashboard  
+**Deliverables:**
+- [x] FastAPI backend with 10 endpoints
+- [x] Next.js 14 dashboard with App Router
+- [x] Overview, Strategies, Runs, Health pages
+- [x] API client with SWR data fetching
+- [x] Docker configuration for API service
+- [x] 160 tests (135 unit + 25 integration)
+- [x] Documentation and runbooks
+
+### Days 13-14: Execution + Risk Hardening
 **Objective:** Complete system with paper trading and monitoring  
 **Deliverables:**
 - [ ] Broker adapter (Alpaca/IB) for paper trading
