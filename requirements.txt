@@ -1,0 +1,43 @@
+# Core dependencies for the trading platform
+# This is a fallback if Poetry has issues
+
+# Web Framework
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+
+# Data Validation
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# Database
+sqlalchemy>=2.0.25
+alembic>=1.13.0
+asyncpg>=0.29.0
+psycopg2-binary>=2.9.9
+
+# Data Processing
+pandas>=2.1.4
+numpy>=1.26.3
+pandas-ta>=0.3.14b
+
+# HTTP Client
+httpx>=0.26.0
+
+# Caching
+redis[hiredis]>=5.0.1
+
+# Environment
+python-dotenv>=1.0.0
+
+# Logging
+structlog>=24.1.0
+
+# Trading API
+alpaca-trade-api>=3.1.1
+
+# Development dependencies (optional)
+# pytest>=7.4.4
+# pytest-asyncio>=0.23.3
+# black>=23.12.1
+# ruff>=0.1.11
+# mypy>=1.8.0

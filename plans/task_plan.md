@@ -105,14 +105,14 @@ This section guides the Cursor Agents for the build phase.
 
 ### Sprint 1: Infrastructure & Data (Days 1-3)
 1. **Repo Setup:**
-   - [ ] Initialize git, poetry (Python), and npm (Node).
-   - [ ] Setup `docker-compose.yml` with Postgres (TimescaleDB) and Redis.
-   - [ ] Define shared Pydantic models in `packages/common/schemas.py` from `docs/data-contracts.md`.
+   - [x] Initialize git, poetry (Python), and npm (Node).
+   - [x] Setup `docker-compose.yml` with Postgres (TimescaleDB) and Redis.
+   - [x] Define shared Pydantic models in `packages/common/schemas.py` from `docs/data-contracts.md`.
 
 2. **Data Service:**
-   - [ ] Implement `services/data` skeleton.
-   - [ ] Build `AlpacaProvider` class for historical/live data.
-   - [ ] Create Postgres tables using Alembic migrations.
+   - [x] Implement `services/data` skeleton.
+   - [x] Build `AlpacaProvider` class for historical/live data.
+   - [x] Create Postgres tables using Alembic migrations.
    - [ ] **Verification:** Fetch 1 year of AAPL data and verify in DB.
 
 ### Sprint 2: Feature Pipeline & Strategy Core (Days 4-6)

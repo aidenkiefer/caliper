@@ -1,0 +1,8 @@
+[tool.poetry]
+name = "common"
+version = "0.1.0"
+description = "Shared schemas and utilities"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^2.5.0"

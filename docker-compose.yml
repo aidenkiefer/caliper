@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: quant-postgres
+    environment:
+      POSTGRES_USER: quant_user
+      POSTGRES_PASSWORD: quant_password
+      POSTGRES_DB: quant_trading
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quant_user -d quant_trading"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quant-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: quant-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quant-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  quant-network:
+    driver: bridge
