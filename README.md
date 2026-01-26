@@ -11,7 +11,9 @@ A modular quantitative ML trading platform for stocks and options with risk mana
 **Sprint 3:** ✅ Complete (Backtesting & Reporting)  
 **Sprint 4:** ✅ Complete (Dashboard & API)  
 **Sprint 5:** ✅ Complete (Execution & Risk)  
-**Sprint 6:** ✅ Complete (ML Safety & Interpretability)
+**Sprint 6:** ✅ Complete (ML Safety & Interpretability)  
+**Sprint 7:** ⬜ Planned (MLOps & Advanced Analysis)  
+**Sprint 8:** ⬜ Planned (Model Observatory Dashboard)
 
 ## Architecture
 
@@ -248,6 +250,25 @@ See [`plans/task_plan.md`](plans/task_plan.md) for the full implementation plan.
 - [x] Vercel deployment configuration
 - [x] ML schemas (`packages/common/ml_schemas.py`)
 - [x] 70+ tests (unit + integration)
+
+**Sprint 7:** ⬜ MLOps & Advanced Analysis (Planned)
+- [ ] Feature registry & lineage tracking
+- [ ] Experiment registry & research traceability
+- [ ] Model registry backend (CRUD API, lifecycle states)
+- [ ] Dynamic capital allocation policy
+- [ ] Failure mode & stress simulation framework
+- [ ] Model drift & health visualization API
+
+**Sprint 8:** ⬜ Model Observatory Dashboard (Planned)
+- [ ] Model registry UI (list view, sorting/filtering)
+- [ ] Model detail page (overview, training summary, performance)
+- [ ] ML performance visualization (prediction vs actual, calibration curves)
+- [ ] Model comparison & ranking view
+- [ ] Hyperparameter & threshold tuning interface
+- [ ] Model lifecycle controls (activate, pause, retire)
+- [ ] Model drift & health visualization UI
+- [ ] Human-in-the-loop review mode (model-centric)
+- [ ] Model sandbox / what-if testing
 
 ## Security Notice
 
