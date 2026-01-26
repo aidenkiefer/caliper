@@ -23,11 +23,20 @@ export function FeatureImportanceChart({
     .slice(0, maxFeatures);
   
   // Prepare data for chart
-  const chartData = sortedFeatures.map(f => ({
+  type ChartDataPoint = {
+    name: string;
+    contribution: number;
+    absContribution: number;
+    direction: 'positive' | 'negative';
+    fill: string;
+  };
+  
+  const chartData: ChartDataPoint[] = sortedFeatures.map(f => ({
     name: f.feature_name,
     contribution: f.contribution,
     absContribution: Math.abs(f.contribution),
     direction: f.direction,
+    fill: f.direction === 'positive' ? '#22c55e' : '#ef4444',
   }));
   
   return (
@@ -67,8 +76,12 @@ export function FeatureImportanceChart({
           />
           <Bar 
             dataKey="contribution" 
-            fill={(entry: any) => entry.direction === 'positive' ? '#22c55e' : '#ef4444'}
             radius={[0, 4, 4, 0]}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            cell={(props: any) => {
+              const fillColor = props.payload?.fill || '#8884d8';
+              return <rect {...props} fill={fillColor} />;
+            }}
           />
         </BarChart>
       </ResponsiveContainer>

@@ -21,7 +21,7 @@ interface ExplanationCardProps {
 }
 
 export function ExplanationCard({ 
-  tradeId, 
+  tradeId: _tradeId, 
   signal, 
   confidence, 
   topFeatures,

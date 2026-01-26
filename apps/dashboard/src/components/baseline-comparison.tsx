@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface BaselineComparisonProps {
@@ -31,26 +31,32 @@ export function BaselineComparison({
   outperforms,
 }: BaselineComparisonProps) {
   // Prepare chart data
-  const chartData = [
+  type ChartDataPoint = {
+    name: string;
+    return: number;
+    fill: string;
+  };
+  
+  const chartData: ChartDataPoint[] = [
     {
       name: 'Strategy',
       return: strategyReturn * 100,
-      type: 'strategy',
+      fill: '#3b82f6',
     },
     {
       name: 'Hold Cash',
       return: baselineReturns.hold_cash * 100,
-      type: 'baseline',
+      fill: '#6b7280',
     },
     {
       name: 'Buy & Hold',
       return: baselineReturns.buy_and_hold * 100,
-      type: 'baseline',
+      fill: '#6b7280',
     },
     ...(baselineReturns.random !== undefined ? [{
       name: 'Random',
       return: baselineReturns.random * 100,
-      type: 'baseline',
+      fill: '#6b7280',
     }] : []),
   ];
   
@@ -73,7 +79,7 @@ export function BaselineComparison({
                 />
                 <Bar 
                   dataKey="return" 
-                  fill={(entry: any) => entry.type === 'strategy' ? '#3b82f6' : '#6b7280'}
+                  fill="#3b82f6"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>
