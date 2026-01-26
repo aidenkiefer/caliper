@@ -4,10 +4,11 @@ A modular quantitative ML trading platform for stocks and options with risk mana
 
 ## Project Status
 
-**Current Phase:** Implementation - Sprint 2 (Feature Pipeline & Strategy Core)
+**Current Phase:** Implementation - Sprint 3 ✅ COMPLETE
 
 **Sprint 1:** ✅ Complete (Infrastructure & Data)  
-**Sprint 2:** 🟡 In Progress (Verification pending)
+**Sprint 2:** ✅ Complete (Feature Pipeline & Strategy Core)  
+**Sprint 3:** ✅ Complete (Backtesting & Reporting)
 
 ## Architecture
 
@@ -82,32 +83,52 @@ This is a monorepo containing:
 ```
 quant/
 ├── apps/
-│   └── dashboard/          # Next.js dashboard
+│   └── dashboard/          # Next.js dashboard (planned)
 ├── services/
-│   ├── api/                # FastAPI backend
-│   ├── data/               # Data ingestion service
-│   ├── features/           # Feature engineering
-│   ├── backtest/           # Backtesting engine
-│   ├── execution/          # Trade execution
-│   ├── risk/               # Risk management
-│   └── monitoring/        # Metrics & alerts
+│   ├── data/               # ✅ Data ingestion service (Sprint 1)
+│   ├── features/           # ✅ Feature engineering (Sprint 2)
+│   ├── backtest/           # ✅ Backtesting engine (Sprint 3)
+│   ├── api/                # FastAPI backend (Sprint 4)
+│   ├── execution/          # Trade execution (Sprint 5)
+│   ├── risk/               # Risk management (Sprint 5)
+│   └── monitoring/         # Metrics & alerts (planned)
 ├── packages/
-│   ├── common/             # Shared schemas & utilities
-│   ├── strategies/         # Strategy plugins
-│   └── models/             # ML model utilities
+│   ├── common/             # ✅ Shared schemas & utilities
+│   ├── strategies/         # ✅ Strategy plugins (Sprint 2)
+│   └── models/             # ML model utilities (planned)
 ├── docs/                    # Documentation
 ├── configs/                 # Configuration files
-└── tests/                   # Test suites
+├── tests/                   # Test suites
+└── adr/                     # Architecture Decision Records
 ```
+
+**Legend:** ✅ = Implemented | 🟡 = In Progress | ⬜ = Planned
 
 ## Documentation
 
+### Core Documentation
 - **Architecture:** [`docs/architecture.md`](docs/architecture.md)
 - **Data Contracts:** [`docs/data-contracts.md`](docs/data-contracts.md)
 - **API Contracts:** [`docs/api-contracts.md`](docs/api-contracts.md)
 - **Risk Policy:** [`docs/risk-policy.md`](docs/risk-policy.md)
 - **Security:** [`docs/security.md`](docs/security.md)
 - **Dashboard Spec:** [`docs/dashboard-spec.md`](docs/dashboard-spec.md)
+
+### Sprint Summaries
+- **Sprint 1:** [`SPRINT1_SUMMARY.md`](SPRINT1_SUMMARY.md) - Infrastructure & Data
+- **Sprint 2:** [`SPRINT2_SUMMARY.md`](SPRINT2_SUMMARY.md) - Feature Pipeline & Strategy Core
+- **Sprint 3:** [`SPRINT3_SUMMARY.md`](SPRINT3_SUMMARY.md) - Backtesting & Reporting
+
+### Multi-Agent Workflow
+- **Workflow Guide:** [`docs/WORKFLOW.md`](docs/WORKFLOW.md) - Multi-agent development protocol
+- **Quick Start:** [`docs/MULTI_AGENT_QUICKSTART.md`](docs/MULTI_AGENT_QUICKSTART.md)
+- **Sprint 3 Prompts:** [`docs/SPRINT3_AGENT_PROMPTS.md`](docs/SPRINT3_AGENT_PROMPTS.md)
+
+### Runbooks
+- **Backtest Verification:** [`docs/runbooks/backtest-verification.md`](docs/runbooks/backtest-verification.md)
+
+### Features Overview
+- **Platform Features:** [`docs/FEATURES.md`](docs/FEATURES.md) - Comprehensive feature list and capabilities
 
 ## Development Roadmap
 
@@ -121,13 +142,24 @@ See [`plans/task_plan.md`](plans/task_plan.md) for the full implementation plan.
 - [x] Database migrations with Alembic
 - [x] Fetch 1 year AAPL data verified in DB (250 bars)
 
-**Sprint 2:** 🟡 Feature Pipeline & Strategy Core (In Progress)
+**Sprint 2:** ✅ Feature Pipeline & Strategy Core (Complete)
 - [x] Feature engineering pipeline (`services/features`)
 - [x] Technical indicators (SMA, EMA, RSI, MACD, Bollinger, ATR, Stochastic)
 - [x] Strategy base class (`packages/strategies/base.py`)
 - [x] SMA Crossover strategy implementation
-- [ ] Feature engine verification
-- [ ] Strategy signal verification
+- [x] Feature engine verification
+- [x] Strategy signal verification
+
+**Sprint 3:** ✅ Backtesting & Reporting (Complete)
+- [x] Backtest engine (`services/backtest/engine.py`)
+- [x] Strategy integration with backtest engine
+- [x] P&L calculation with accurate math
+- [x] Performance metrics (Sharpe, drawdown, win rate, profit factor)
+- [x] Report generation (JSON + HTML with Plotly charts)
+- [x] Walk-forward optimization engine (bonus feature)
+- [x] Unit tests (60+ tests)
+- [x] Integration test (SMA Crossover backtest)
+- [x] Documentation (README, runbook, architecture updates, ADR)
 
 ## Security Notice
 

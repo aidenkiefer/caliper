@@ -54,14 +54,14 @@
 - [x] Postgres database with TimescaleDB schema
 - [x] Data validation via Pydantic schemas
 
-### Days 3–5: First Strategy End-to-End (Stocks) 🟡 IN PROGRESS (Sprint 2)
+### Days 3–5: First Strategy End-to-End (Stocks) ✅ COMPLETE (Sprint 2)
 **Objective:** Complete vertical slice - data → model → backtest → report  
 **Deliverables:**
 - [x] Baseline feature pipeline (technical indicators)
-- [ ] XGBoost classification model (1-5 day horizon) - Sprint 3
-- [ ] Backtesting with realistic costs - Sprint 3
-- [ ] Report generation + artifact storage - Sprint 3
 - [x] Strategy plugin framework established (SMA Crossover)
+- [x] Backtesting with realistic costs (Sprint 3)
+- [x] Report generation + artifact storage (Sprint 3)
+- [ ] XGBoost classification model (1-5 day horizon) - Future enhancement
 
 ### Days 6–8: Second Strategy (Mean Reversion or Volatility)
 **Objective:** Validate plugin architecture with second strategy  

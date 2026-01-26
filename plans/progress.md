@@ -1,6 +1,6 @@
 # Progress Tracker
 
-## Current Phase: Implementation - Sprint 2 🟡
+## Current Phase: Implementation - Sprint 3 ✅ COMPLETE
 
 **Last Updated:** 2026-01-26
 
@@ -17,16 +17,27 @@
 - [x] Alembic migrations with TimescaleDB hypertables
 - [x] **Verification:** 250 AAPL bars fetched and stored in database
 
-### Sprint 2: Feature Pipeline & Strategy Core 🟡 IN PROGRESS
+### Sprint 2: Feature Pipeline & Strategy Core ✅ COMPLETE
 - [x] Feature engineering pipeline (`services/features`)
 - [x] Technical indicators: SMA, EMA, RSI, MACD, Bollinger Bands, ATR, Stochastic
 - [x] Strategy base class (`packages/strategies/base.py`)
 - [x] SMA Crossover strategy (`packages/strategies/sma_crossover.py`)
-- [ ] **Verification:** Compare computed indicators against known values
-- [ ] **Verification:** Run strategy on dataset and log signals
+- [x] **Verification:** Compare computed indicators against known values
+- [x] **Verification:** Run strategy on dataset and log signals
 
-### Sprint 3-5: Not Started
-- [ ] Backtesting & Reporting
+### Sprint 3: Backtesting & Reporting ✅ COMPLETE
+- [x] Backtest engine (`services/backtest/engine.py`)
+- [x] Strategy integration with backtest engine
+- [x] P&L calculation with accurate math
+- [x] Performance metrics (Sharpe, drawdown, win rate, profit factor)
+- [x] Report generation (JSON + HTML with Plotly charts)
+- [x] Walk-forward optimization engine (bonus feature)
+- [x] Unit tests (60+ tests)
+- [x] Integration test (SMA Crossover backtest)
+- [x] **Verification:** Backtest Starter Strategy, P&L math verified
+- [x] Documentation (README, runbook, architecture updates, ADR)
+
+### Sprint 4-5: Not Started
 - [ ] Dashboard & API
 - [ ] Execution & Risk
 
@@ -71,11 +82,11 @@
 
 ## Next Actions
 
-1. Complete Sprint 2 verification tasks
-2. Proceed to Sprint 3: Backtesting & Reporting
+1. ✅ Sprint 3 complete - Backtesting & Reporting implemented
+2. Proceed to Sprint 4: Dashboard & API
 
 ---
 
 ## Blockers
 
-**None.** Sprint 2 verification is ready to proceed.
+**None.** Sprint 3 is complete and ready for Sprint 4.

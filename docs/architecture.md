@@ -151,15 +151,233 @@ class TradingModel(ABC):
 - Simulate strategy on historical data
 - Model realistic fills, fees, slippage
 - Generate performance reports (Sharpe, max drawdown, win rate, etc.)
-- Support walk-forward evaluation
+- Walk-forward optimization with parameter search ✅
+
+**Implementation Status:** ✅ Complete (Sprint 3, Walk-Forward added)
 
 **Key Interfaces:**
-- `BacktestEngine.run(strategy, data, config)` → BacktestResult
-- `BacktestResult` includes: equity curve, trades, metrics, run metadata
+
+```python
+class BacktestEngine:
+    """Execute strategies on historical price data."""
+    def run(
+        strategy: Strategy,
+        data: List[PriceBar],
+        config: BacktestConfig
+    ) -> BacktestResult
+
+class BacktestConfig:
+    """Configuration for backtest runs."""
+    initial_capital: Decimal       # Starting capital
+    commission_per_trade: Decimal  # Commission per trade (default: $1.00)
+    slippage_bps: Decimal          # Slippage in basis points (default: 10 bps)
+    start_date: Optional[datetime] # Filter start date (UTC)
+    end_date: Optional[datetime]   # Filter end date (UTC)
+
+class BacktestResult:
+    """Complete backtest results."""
+    backtest_id: UUID
+    strategy_id: str
+    config: BacktestConfig
+    equity_curve: List[EquityPoint]
+    trades: List[Trade]
+    metrics: PerformanceMetrics
+    start_time: datetime
+    end_time: datetime
+    metadata: Dict[str, Any]
+
+class PerformanceMetrics:
+    """Calculated performance metrics."""
+    total_return: Decimal
+    total_return_pct: Decimal
+    sharpe_ratio: Optional[Decimal]  # Annualized
+    max_drawdown: Decimal
+    max_drawdown_pct: Decimal
+    win_rate: Decimal
+    total_trades: int
+    winning_trades: int
+    losing_trades: int
+    avg_win: Optional[Decimal]
+    avg_loss: Optional[Decimal]
+    profit_factor: Optional[Decimal]
+
+class ReportGenerator:
+    """Generate machine and human-readable reports."""
+    def generate_json(result: BacktestResult) -> Dict[str, Any]
+    def generate_html(result: BacktestResult) -> str
+
+# Walk-Forward Optimization (added Sprint 3)
+class WalkForwardEngine:
+    """Walk-forward optimization with parameter grid search."""
+    def run(
+        strategy_factory: StrategyFactory,  # Callable[[str, Dict], Strategy]
+        base_config: Dict[str, Any],
+        data: List[PriceBar],
+        wf_config: WalkForwardConfig,
+        backtest_config: BacktestConfig
+    ) -> WalkForwardResult
+
+class WalkForwardConfig:
+    """Configuration for walk-forward analysis."""
+    in_sample_days: int            # Training period (e.g., 252 = 1 year)
+    out_of_sample_days: int        # Test period (e.g., 63 = 3 months)
+    step_days: int                 # Step forward each iteration
+    window_type: WindowType        # ROLLING or ANCHORED
+    parameter_grid: ParameterGrid  # Parameters to optimize (optional)
+    objective: OptimizationObjective  # SHARPE_RATIO, TOTAL_RETURN, etc.
+    min_trades_required: int       # Minimum trades for valid optimization
+
+class WalkForwardResult:
+    """Complete walk-forward results."""
+    walk_forward_id: UUID
+    strategy_id: str
+    config: WalkForwardConfig
+    windows: List[WalkForwardWindowResult]
+    aggregated_metrics: PerformanceMetrics  # Combined OOS performance
+    aggregated_trades: List[Trade]
+    aggregated_equity_curve: List[EquityPoint]
+    parameter_stability: List[ParameterStability]  # Stability analysis
+```
+
+**Walk-Forward Data Flow:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      WALK-FORWARD OPTIMIZATION FLOW                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────┐
+│  Historical Data │
+│   (3+ years)     │
+└────────┬─────────┘
+         │
+         ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                        WalkForwardEngine                                 │
+│                                                                          │
+│  ┌─────────────────────────────────────────────────────────────────────┐ │
+│  │ Window 1                                                            │ │
+│  │  ┌──────────────────────┐  ┌──────────────────┐                     │ │
+│  │  │ In-Sample (1 year)   │─▶│ Out-of-Sample    │                     │ │
+│  │  │ Optimize parameters  │  │ Test best params │                     │ │
+│  │  └──────────────────────┘  └──────────────────┘                     │ │
+│  └─────────────────────────────────────────────────────────────────────┘ │
+│  ┌─────────────────────────────────────────────────────────────────────┐ │
+│  │ Window 2 (step forward)                                             │ │
+│  │  ┌──────────────────────┐  ┌──────────────────┐                     │ │
+│  │  │ In-Sample            │─▶│ Out-of-Sample    │                     │ │
+│  │  │ Re-optimize          │  │ Test best params │                     │ │
+│  │  └──────────────────────┘  └──────────────────┘                     │ │
+│  └─────────────────────────────────────────────────────────────────────┘ │
+│  ... (repeat for all windows)                                            │
+└─────────────────────────────────────────────────────────────────────────┬┘
+                                                                          │
+                                                                          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         WalkForwardResult                                   │
+│                                                                             │
+│  ┌──────────────────────┐  ┌─────────────────────┐  ┌──────────────────┐   │
+│  │ Aggregated Metrics   │  │ Aggregated Trades   │  │ Parameter        │   │
+│  │ (OOS only - realistic)│  │ (All OOS trades)   │  │ Stability        │   │
+│  └──────────────────────┘  └─────────────────────┘  └──────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Data Flow Diagram:**
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                        BACKTEST DATA FLOW                           │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌──────────────┐      ┌──────────────┐      ┌─────────────────────────┐
+│  Historical  │      │   Strategy   │      │     BacktestEngine      │
+│    Data      │ ───▶ │   Instance   │ ───▶ │                         │
+│ (PriceBar[]) │      │ (implements  │      │  1. _reset_state()      │
+└──────────────┘      │  Strategy)   │      │  2. strategy.init()     │
+                      └──────────────┘      │  3. For each bar:       │
+                                            │     a. on_market_data() │
+┌──────────────┐                            │     b. generate_signals │
+│  Backtest    │                            │     c. risk_check()     │
+│   Config     │ ──────────────────────────▶│     d. execute_order()  │
+│              │                            │     e. update_equity()  │
+└──────────────┘                            │  4. calculate_metrics() │
+                                            └───────────┬─────────────┘
+                                                        │
+                           ┌────────────────────────────┴────────────────────────────┐
+                           │                                                         │
+                           ▼                                                         ▼
+               ┌───────────────────┐                                   ┌─────────────────────┐
+               │  BacktestResult   │                                   │   ReportGenerator   │
+               │                   │                                   │                     │
+               │ - equity_curve    │ ─────────────────────────────────▶│  - generate_json()  │
+               │ - trades          │                                   │  - generate_html()  │
+               │ - metrics         │                                   │                     │
+               └───────────────────┘                                   └─────────────────────┘
+                                                                                  │
+                                                                                  ▼
+                                                                       ┌─────────────────────┐
+                                                                       │   Report Output     │
+                                                                       │                     │
+                                                                       │ - JSON (machine)    │
+                                                                       │ - HTML (Plotly)     │
+                                                                       └─────────────────────┘
+```
+
+**Order Execution Flow:**
+
+```
+Signal → risk_check() → Order → _execute_order() → Fill Simulation
+                                      │
+                         ┌────────────┴────────────┐
+                         │                         │
+                         ▼                         ▼
+                    BUY Order                 SELL Order
+                         │                         │
+                         ▼                         ▼
+              Calculate fill price      Calculate fill price
+              (close × (1 + slippage))  (close × (1 - slippage))
+                         │                         │
+                         ▼                         ▼
+              Deduct cost from cash     Add proceeds to cash
+              Create/Update Position    Close Position → Record Trade
+                         │                         │
+                         └────────────┬────────────┘
+                                      ▼
+                            Update Equity Curve
+```
 
 **Technology:**
-- Backtrader or vectorbt
-- Custom reporting module for JSON + HTML/PDF reports
+- **Custom Implementation** - Lightweight, purpose-built engine (see ADR-0005)
+- **No External Libraries** - Avoids Backtrader/vectorbt complexity for v1
+- **Plotly** - Interactive HTML charts for report visualization
+- **Pydantic** - Type-safe configuration and result models
+- **NumPy** - Performance metrics calculations (Sharpe ratio, statistics)
+
+**P&L Calculation:**
+
+Trade-level P&L:
+```
+P&L = (exit_price - entry_price) × quantity - total_commission
+```
+
+Fill Price with Slippage:
+```
+BUY:  fill_price = bar.close × (1 + slippage_bps / 10000)
+SELL: fill_price = bar.close × (1 - slippage_bps / 10000)
+```
+
+**Current Limitations:**
+- Single symbol backtesting only (multi-symbol planned for v2)
+- Market orders only (limit/stop orders planned for v2)
+- Fixed basis points slippage (volume-based slippage planned for v2)
+- No partial fills simulation
+
+**Extension Points:**
+- Strategy interface (`packages/strategies/base.py`) allows any strategy implementation
+- Config is Pydantic model - easily extensible with new parameters
+- Metrics calculation is modular - new metrics can be added
+- Report generator supports custom templates
 
 ---
 

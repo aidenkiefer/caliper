@@ -5,6 +5,18 @@
 You are about to begin the **Implementation Phase** of the Quant ML Trading Platform.
 A comprehensive planning phase has already been completed by the **Planning Orchestrator (Antigravity)**. Your job is to **execute** this plan.
 
+### 🚀 Multi-Agent Workflow (NEW)
+
+**If you are working in a multi-agent setup (multiple Composer instances):**
+1. **Read `docs/WORKFLOW.md` FIRST** - This defines the multi-agent workflow, skill invocation rules, and file ownership boundaries.
+2. **Read your agent brief** - `agents/briefs/[YOUR_ROLE].md` (ARCHITECT, BACKEND, DATA, DEVOPS, QA)
+3. **Follow the workflow protocol** - Skills are mandatory, file boundaries are strict, acceptance tests are required.
+
+**If you are working solo (single Composer instance):**
+- Still read `docs/WORKFLOW.md` for skill invocation rules
+- Follow the same skill-first approach
+- Work sequentially through sprints
+
 ---
 
 ## 1. 🧠 Critical Context & Onboarding
@@ -47,11 +59,21 @@ The Planning Orchestrator has created a detailed roadmap for you.
 
 Your goal is to build the platform in **5 Sprints** as defined in `plans/task_plan.md`.
 
-**Sprint 1 (Immediate Focus):**
-1.  **repo-setup**: Initialize the Monorepo (Git, Poetry, Node).
-2.  **infra-setup**: Create `docker-compose.yml` with Postgres (TimescaleDB) & Redis.
-3.  **db-migrations**: Apply the schemas from `data-contracts.md` using Alembic.
-4.  **data-ingestion**: Build the `AlpacaProvider` in `services/data`.
+**Current Status:** Sprints 1-3 are ✅ COMPLETE
+
+**Completed Sprints:**
+- ✅ **Sprint 1:** Infrastructure & Data (Monorepo, Docker, Data Service, AlpacaProvider)
+- ✅ **Sprint 2:** Feature Pipeline & Strategy Core (Indicators, Strategy Framework, SMA Crossover)
+- ✅ **Sprint 3:** Backtesting & Reporting (Backtest Engine, P&L, Reports, Walk-Forward)
+
+**Next Sprint:**
+- 🟡 **Sprint 4:** Dashboard & API (FastAPI endpoints, Next.js dashboard)
+
+**Sprint 4 Focus:**
+1. **API Backend**: Implement FastAPI endpoints from `docs/api-contracts.md`
+2. **Dashboard UI**: Build Next.js dashboard from `docs/dashboard-spec.md`
+3. **Integration**: Connect API to backtest results
+4. **Testing**: API integration tests
 
 ### Rules of Engagement
 

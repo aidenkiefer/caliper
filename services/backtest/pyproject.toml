@@ -1,13 +1,16 @@
 [tool.poetry]
-name = "features-service"
+name = "backtest-service"
 version = "0.1.0"
-description = "Feature engineering service"
+description = "Backtesting engine for trading strategies"
 
 [tool.poetry.dependencies]
 python = "^3.11"
 pandas = "^2.1.4"
 numpy = "^1.26.3"
-sqlalchemy = "^2.0.25"
+pydantic = "^2.5.0"
+matplotlib = "^3.8.2"
+plotly = "^5.18.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.4"
+pytest-asyncio = "^0.21.1"

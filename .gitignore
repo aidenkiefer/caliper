@@ -1,13 +1,25 @@
 # Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
 .venv/
 venv/
+env/
+ENV/
+*.egg-info/
+.eggs/
+dist/
+build/
+*.egg
 
 # Node / Next.js
 node_modules/
 .next/
-dist/
+.nuxt/
+.output/
+.cache/
 
 # Env / secrets
 .env
@@ -15,18 +27,92 @@ dist/
 .env.local
 *.key
 *.pem
+*.p12
+*.pfx
 configs/environments/.env
 !configs/environments/.env.example
 
 # OS / editor
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE / Editor
 .vscode/
 .idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+*.iml
 
 # Data / artifacts
 data/
 models/
 logs/
+*.db
+*.sqlite
+*.sqlite3
+*.log
 
-.agents/*
-.agents
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+.coverage.*
+coverage.xml
+*.cover
+
+# Reports / outputs (exclude generated reports, allow docs)
+reports/
+backtest_results/
+# Exclude HTML/CSV reports but allow documentation
+*.html
+!docs/**/*.html
+*.csv
+!docs/**/*.csv
+!tests/**/*.csv
+
+# Local documentation (not for GitHub)
+CURSOR_INSTRUCTIONS.md
+DOCUMENTATION_UPDATE_SUMMARY.md
+SPRINT_SKILL_OPTIMIZATIONS.md
+SETUP_ALTERNATIVE.md
+SPRINT*_VERIFICATION.md
+
+# Multi-agent workflow docs (local development)
+docs/WORKFLOW.md
+docs/MULTI_AGENT_QUICKSTART.md
+docs/MULTI_AGENT_SETUP.md
+docs/SPRINT3_AGENT_PROMPTS.md
+docs/sprint-3-multi.md
+
+# Agents / skills (local development tools)
+agents/
+.agents/
+
+# Jupyter Notebooks checkpoints (notebooks themselves can be committed)
+.ipynb_checkpoints/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+
+# Docker overrides (base docker-compose.yml should be committed)
+docker-compose.override.yml
+
+# Misc
+*.orig
+*.rej
+.cache/
+.tmp/

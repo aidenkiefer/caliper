@@ -126,12 +126,12 @@ This section guides the Cursor Agents for the build phase.
    - [x] Create "Starter Strategy" (Simple Moving Average Crossover).
    - [ ] **Verification:** Run strategy on static dataset, log signals.
 
-### Sprint 3: Backtesting & Reporting (Days 7-9)
+### Sprint 3: Backtesting & Reporting (Days 7-9) ✅ COMPLETE
 1. **Backtest Service:**
-   - [ ] Implement `services/backtest` using Backtrader or vectorbt.
-   - [ ] Connect `Strategy` output to Backtest engine.
-   - [ ] Generate HTML report.
-   - [ ] **Verification:** Backtest Starter Strategy, ensure P&L math is correct.
+   - [x] Implement `services/backtest` using Backtrader or vectorbt. (Custom lightweight engine chosen - see ADR-0005)
+   - [x] Connect `Strategy` output to Backtest engine.
+   - [x] Generate HTML report.
+   - [x] **Verification:** Backtest Starter Strategy, ensure P&L math is correct.
 
 ### Sprint 4: Dashboard & API (Days 10-12)
 1. **API Backend:**
