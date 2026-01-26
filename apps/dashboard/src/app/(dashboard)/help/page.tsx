@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { glossaryTerms, getTermsByCategory, searchTerms, type GlossaryTerm } from '@/lib/glossary';
 import { Search } from 'lucide-react';
 
-const categories = [
+const categories: Array<{ id: GlossaryTerm['category']; label: string; icon: string }> = [
   { id: 'performance', label: 'Performance Metrics', icon: '📊' },
   { id: 'risk', label: 'Risk Metrics', icon: '⚠️' },
   { id: 'position', label: 'Position Terms', icon: '📈' },

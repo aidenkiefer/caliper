@@ -58,8 +58,8 @@ export function FeatureImportanceChart({
           />
           <Tooltip
             content={({ active, payload }) => {
-              if (active && payload && payload.length) {
-                const data = payload[0].payload;
+              if (active && payload && payload.length && payload[0]) {
+                const data = payload[0].payload as ChartDataPoint;
                 return (
                   <div className="bg-background border rounded-lg p-3 shadow-lg">
                     <p className="font-medium">{data.name}</p>

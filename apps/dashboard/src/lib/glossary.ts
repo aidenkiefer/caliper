@@ -115,7 +115,7 @@ export const glossaryTerms: GlossaryTerm[] = [
   }
 ];
 
-export function getTermsByCategory(category: string): GlossaryTerm[] {
+export function getTermsByCategory(category: GlossaryTerm['category']): GlossaryTerm[] {
   return glossaryTerms.filter(t => t.category === category);
 }
 

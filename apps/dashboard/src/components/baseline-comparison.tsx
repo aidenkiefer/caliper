@@ -75,7 +75,7 @@ export function BaselineComparison({
                 <XAxis dataKey="name" />
                 <YAxis label={{ value: 'Return (%)', angle: -90, position: 'insideLeft' }} />
                 <Tooltip
-                  formatter={(value: number) => `${value.toFixed(2)}%`}
+                  formatter={(value: number | undefined) => value !== undefined ? `${value.toFixed(2)}%` : ''}
                 />
                 <Bar 
                   dataKey="return" 
@@ -104,13 +104,15 @@ export function BaselineComparison({
                 regret={regretMetrics.regret_vs_buy_hold}
                 outperforms={outperforms.buy_and_hold}
               />
-              {baselineReturns.random !== undefined && (
+              {baselineReturns.random !== undefined && 
+               regretMetrics.regret_vs_random !== undefined &&
+               outperforms.random !== undefined && (
                 <ComparisonRow
                   label="Random"
                   strategyReturn={strategyReturn}
                   baselineReturn={baselineReturns.random}
-                  regret={regretMetrics.regret_vs_random!}
-                  outperforms={outperforms.random!}
+                  regret={regretMetrics.regret_vs_random}
+                  outperforms={outperforms.random}
                 />
               )}
             </div>
