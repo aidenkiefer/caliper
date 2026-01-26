@@ -13,7 +13,6 @@ interface FeatureContribution {
 }
 
 interface ExplanationCardProps {
-  tradeId: string;
   signal: 'BUY' | 'SELL' | 'ABSTAIN';
   confidence: number;
   topFeatures: FeatureContribution[];
@@ -21,7 +20,6 @@ interface ExplanationCardProps {
 }
 
 export function ExplanationCard({ 
-  tradeId: _tradeId, 
   signal, 
   confidence, 
   topFeatures,

@@ -225,7 +225,6 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
         <TabsContent value="explanations" className="space-y-4">
           {/* Mock explanation data - in production, fetch from API */}
           <ExplanationCard
-            tradeId="trade-123"
             signal="BUY"
             confidence={0.82}
             topFeatures={[
