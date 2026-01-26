@@ -14,16 +14,18 @@
 2. Click "Add New..." → "Project"
 3. Import your Git repository
 4. Select the `quant` repository
-5. **Important:** Set root directory to `apps/dashboard`
+5. **Important:** Leave root directory as repository root (`.`)
 
 ### 2. Configure Build Settings
 
-Vercel should auto-detect Next.js, but verify:
-- **Framework Preset:** Next.js
-- **Root Directory:** `apps/dashboard`
-- **Build Command:** `npm run build` (default)
-- **Output Directory:** `.next` (default)
-- **Install Command:** `npm install` (default)
+The `vercel.json` at the repository root will automatically configure:
+- **Framework Preset:** Next.js (auto-detected)
+- **Root Directory:** `.` (repository root)
+- **Build Command:** `cd apps/dashboard && npm run build` (configured in vercel.json)
+- **Output Directory:** `apps/dashboard/.next` (configured in vercel.json)
+- **Install Command:** `cd apps/dashboard && npm install` (configured in vercel.json)
+
+**Note:** The `vercel.json` file handles the monorepo structure by navigating to `apps/dashboard` for all commands.
 
 ### 3. Configure Environment Variables
 

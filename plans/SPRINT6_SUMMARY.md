@@ -150,7 +150,7 @@ Transform the platform from a functional ML trading system into a **trustworthy 
 
 | File | Description |
 |------|-------------|
-| `apps/dashboard/vercel.json` | Vercel configuration with rewrites and security headers |
+| `vercel.json` | Vercel configuration with rewrites and security headers (repo root) |
 | `apps/dashboard/.env.example` | Environment variables documentation |
 | `apps/dashboard/next.config.mjs` | API rewrites configuration |
 | `docs/runbooks/vercel-deployment.md` | Comprehensive deployment runbook |
@@ -321,8 +321,9 @@ apps/dashboard/
 │   ├── help/page.tsx
 │   ├── recommendations/page.tsx
 │   └── strategies/[id]/page.tsx (updated)
-├── vercel.json
 └── next.config.mjs (updated)
+
+vercel.json (repo root)
 
 tests/
 ├── unit/
