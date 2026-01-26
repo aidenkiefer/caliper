@@ -65,7 +65,7 @@ export function Sidebar() {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                 <LineChart className="h-5 w-5" />
               </div>
-              <span className="text-lg font-semibold">Quant</span>
+              <span className="text-lg font-semibold">Caliper</span>
             </Link>
           </div>
 

@@ -16,8 +16,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Quant Dashboard",
-  description: "Quantitative ML Trading Platform Dashboard",
+  title: "Caliper Dashboard",
+  description: "Caliper - Quantitative ML Trading Platform Dashboard",
 };
 
 export default function RootLayout({
