@@ -47,6 +47,18 @@ services:
     environment:
       - DATABASE_URL=postgresql://quant_user:quant_password@postgres:5432/quant_trading
       - REDIS_URL=redis://redis:6379/0
+      # Alpaca Broker API Configuration
+      # These should be set via .env.local or secrets manager (Doppler)
+      # Paper Trading: Use paper API keys with paper-api.alpaca.markets
+      # Live Trading: Use live API keys with api.alpaca.markets
+      - ALPACA_API_KEY=${ALPACA_API_KEY:-}
+      - ALPACA_SECRET_KEY=${ALPACA_SECRET_KEY:-}
+      - ALPACA_BASE_URL=${ALPACA_BASE_URL:-https://paper-api.alpaca.markets}
+      # Trading Mode: PAPER or LIVE
+      # System validates TRADING_MODE matches API key type on startup
+      - TRADING_MODE=${TRADING_MODE:-PAPER}
+    env_file:
+      - configs/environments/.env.local
     volumes:
       - .:/app
     depends_on:
@@ -55,6 +67,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
+      # Health check includes broker connection status (see /v1/health endpoint)
       test: ["CMD-SHELL", "curl -f http://localhost:8000/v1/health || exit 1"]
       interval: 30s
       timeout: 10s

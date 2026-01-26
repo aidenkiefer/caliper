@@ -143,15 +143,124 @@ This section guides the Cursor Agents for the build phase.
    - [x] Build Overview Page and Strategy List.
    - [x] **Verification:** View Backtest results in Dashboard.
 
-### Sprint 5: Execution & Risk (Days 13-14)
+### Sprint 5: Execution & Risk (Days 13-14) ✅ COMPLETE
 1. **Execution Engine:**
-   - [ ] Implement `services/execution`.
-   - [ ] Connect `BrokerClient` to Alpaca Paper API.
+   - [x] Implement `services/execution` with OMS.
+   - [x] Connect `BrokerClient` to Alpaca Paper API.
+   - [x] Order lifecycle management (submit, fill, cancel).
+   - [x] Position reconciliation with broker.
    
 2. **Risk Guardrails:**
-   - [ ] Implement `services/risk` limits from `docs/risk-policy.md`.
-   - [ ] Middleware to block orders if risk check fails.
-   - [ ] **Verification:** Attempt to place order > 5% risk, verify rejection.
+   - [x] Implement `services/risk` limits from `docs/risk-policy.md`.
+   - [x] Kill switch (global and per-strategy).
+   - [x] Circuit breaker for consecutive losses.
+   - [x] Position size limits, drawdown controls.
+   - [x] Middleware to block orders if risk check fails.
+   - [x] **Verification:** Attempt to place order > 5% risk, verify rejection.
+
+### Sprint 6: ML Safety & Interpretability Core (Days 15-18)
+*Goal: Enable explicit model behavior under uncertainty, build trust through interpretability.*
+
+1. **Model Drift & Decay Detection:**
+   - [ ] Feature distribution drift tracking (mean, std, PSI, KL divergence).
+   - [ ] Prediction confidence drift monitoring.
+   - [ ] Error drift tracking when ground truth becomes available.
+   - [ ] Threshold-based alerts for drift.
+   - [ ] Model "health score" derived from drift signals.
+   - [ ] Store and query drift metrics over time.
+   - [ ] **Verification:** Drift metrics queryable per model, per feature.
+
+2. **Confidence Gating & Abstention Logic:**
+   - [ ] Extend model output schema: BUY / SELL / ABSTAIN.
+   - [ ] Configurable confidence thresholds per strategy.
+   - [ ] Entropy / uncertainty measure calculation.
+   - [ ] Ensemble disagreement signals.
+   - [ ] Update backtest engine to account for abstentions.
+   - [ ] **Verification:** Strategy abstains when confidence < threshold.
+
+3. **Local Explainability (SHAP):**
+   - [ ] SHAP integration for tree-based models.
+   - [ ] Permutation importance as fallback.
+   - [ ] Explanation payload: features, influence direction (+/-), confidence.
+   - [ ] Store explanations alongside trade records.
+   - [ ] Dashboard UI to view trade explanations.
+   - [ ] **Verification:** Each recommendation has human-readable explanation.
+
+4. **Human-in-the-Loop Controls:**
+   - [ ] Approval flag in execution pipeline.
+   - [ ] Recommendation queue (pending human approval).
+   - [ ] Manual override UI in dashboard.
+   - [ ] Log human vs model decisions for comparison.
+   - [ ] **Verification:** Trade requires explicit approval when HITL enabled.
+
+5. **Regret & Baseline Comparison Metrics:**
+   - [ ] Baseline strategy implementations (hold cash, buy & hold, random-controlled).
+   - [ ] Regret metrics calculation vs baselines.
+   - [ ] Track regret over time.
+   - [ ] Dashboard visualization of relative performance.
+   - [ ] **Verification:** Dashboard shows "vs baseline" comparison.
+
+6. **Polish & UX (from backlog):**
+   - [ ] Educational tooltips for trading terminology.
+   - [ ] Help page with glossary (P&L, Sharpe, Max Drawdown, Win Rate, etc.).
+   - [ ] Tooltip component for StatsCard and table headers.
+   - [ ] Vercel deployment configuration.
+   - [ ] **Verification:** Non-technical user can understand all metrics.
+
+### Sprint 7: MLOps & Advanced Analysis (Days 19-22)
+*Goal: Build operational infrastructure for reproducibility, simulation, and intelligent capital allocation.*
+
+1. **Feature Registry & Lineage Tracking:**
+   - [ ] Feature registry schema (name, definition, window/params, source, version).
+   - [ ] Database table or metadata store implementation.
+   - [ ] Feature versioning support.
+   - [ ] Link features → models → experiments.
+   - [ ] **Verification:** Feature used in model traceable to definition.
+
+2. **Experiment Registry & Research Traceability:**
+   - [ ] Experiment registry schema (dataset version, feature set, model type, hyperparams, metrics).
+   - [ ] Deployment status tracking (research → staging → production).
+   - [ ] Links between experiments, models, and live runs.
+   - [ ] Queryable history of model evolution.
+   - [ ] **Verification:** Can answer "why did we deploy this model?"
+
+3. **Dynamic Capital Allocation:**
+   - [ ] Capital allocation policy module.
+   - [ ] Inputs: recent performance, drawdown, volatility, confidence/drift scores.
+   - [ ] Per-model allocation caps.
+   - [ ] Integration with ensemble layer.
+   - [ ] Logged allocation decisions for auditability.
+   - [ ] **Verification:** Capital shifts away from underperforming models.
+
+4. **Failure Mode & Stress Simulation:**
+   - [ ] Scenario simulation framework.
+   - [ ] Volatility spike simulation.
+   - [ ] Missing/delayed data simulation.
+   - [ ] Poor fills / increased slippage simulation.
+   - [ ] API outage simulation.
+   - [ ] Partial execution failure simulation.
+   - [ ] Stress-test reports.
+   - [ ] Documented failure handling strategies.
+   - [ ] **Verification:** System behavior documented under adverse conditions.
+
+5. **Counterfactual & What-If Analysis:**
+   - [ ] Parameterized backtest reruns.
+   - [ ] Dashboard controls for what-if scenarios.
+   - [ ] Scenarios: confidence threshold, model exclusion, trade delay.
+   - [ ] Comparison metrics vs baseline run.
+   - [ ] **Verification:** Can compare "what if" scenarios in dashboard.
+
+## Sprint Summary
+
+| Sprint | Focus | Days | Status |
+|--------|-------|------|--------|
+| 1 | Infrastructure & Data | 1-3 | ✅ Complete |
+| 2 | Feature Pipeline & Strategy Core | 4-6 | ✅ Complete |
+| 3 | Backtesting & Reporting | 7-9 | ✅ Complete |
+| 4 | Dashboard & API | 10-12 | ✅ Complete |
+| 5 | Execution & Risk | 13-14 | ✅ Complete |
+| 6 | ML Safety & Interpretability | 15-18 | Not Started |
+| 7 | MLOps & Advanced Analysis | 19-22 | Not Started |
 
 ## Success Criteria
 - ✅ All `/docs` files exist and are internally consistent
@@ -159,8 +268,21 @@ This section guides the Cursor Agents for the build phase.
 - ✅ Risk and security gates are clearly defined
 - ✅ `task_plan.md` includes a Cursor Implementation Sprint section
 
+### Sprint 6 Success Criteria
+- [ ] Model behavior under uncertainty is explicit (abstention, drift detection)
+- [ ] Trade recommendations are interpretable (SHAP explanations)
+- [ ] Human-in-the-loop approval works for cautious deployment
+- [ ] Performance compared to baselines (regret metrics)
+
+### Sprint 7 Success Criteria
+- [ ] Results are reproducible (feature registry, experiment tracking)
+- [ ] System failure modes are understood (stress testing)
+- [ ] Adding or removing models is safe (dynamic capital allocation)
+- [ ] "What if" analysis enables safer tuning
+
 ## Notes
 - This project targets **risk level 6-7** (moderate): controlled drawdowns, risk-adjusted returns
 - **Paper trading first**, then live with strict safeguards
 - Dashboard deploys to **Vercel** (Next.js), trading services run separately
 - Technology stack: Python 3.11+, FastAPI, pandas, scikit-learn/XGBoost, Next.js, Postgres
+- Sprint 6-7 focus: **trustworthy ML platform** over profit maximization

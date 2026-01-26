@@ -48,6 +48,7 @@ This document specifies the User Interface and Experience (UI/UX) for the monito
     *   Run Report (`/runs/[id]`)
 6.  **System Health** (`/health`)
 7.  **Settings / Admin** (`/settings`)
+8.  **Help / Glossary** (`/help`)
 
 ---
 
@@ -126,6 +127,60 @@ This document specifies the User Interface and Experience (UI/UX) for the monito
     *   Redis: 🟢 Healthy
 *   **API Usage:** Progress bars for rate limits (e.g., "Alpaca API: 450/1000 requests").
 
+### 7. Help / Glossary (`/help`)
+**Goal:** Educational resource for users unfamiliar with trading terminology.
+
+**Components:**
+*   **Search Bar:** Filter glossary terms.
+*   **Glossary Table:** Alphabetized list of trading terms with definitions.
+*   **Category Sections:**
+    *   *Performance Metrics:* P&L, Sharpe Ratio, Max Drawdown, Win Rate, Profit Factor
+    *   *Risk Metrics:* Drawdown, Risk %, Stop Loss, Take Profit
+    *   *Position Terms:* Long, Short, Entry, Mark Price, Unrealized P&L
+    *   *Strategy Terms:* Backtest, Paper Trading, Live Trading, Signal
+
+**Key Terms to Define:**
+| Term | Definition |
+|------|------------|
+| **P&L** | Profit and Loss - the money made or lost on trades |
+| **Sharpe Ratio** | Risk-adjusted return metric. Higher = better risk-adjusted performance. >1 is good, >2 is excellent |
+| **Max Drawdown** | Largest peak-to-trough decline in portfolio value. Measures worst-case loss |
+| **Win Rate** | Percentage of trades that were profitable |
+| **Profit Factor** | Gross profit / gross loss. >1 means profitable overall |
+| **Drawdown** | Current decline from the portfolio's peak value |
+| **Long** | Buying an asset expecting price to rise |
+| **Short** | Selling borrowed asset expecting price to fall |
+
+---
+
+## Educational Tooltips
+
+**Goal:** Provide instant context for trading terminology without leaving the page.
+
+**Implementation:**
+*   Use Shadcn/UI `Tooltip` component with `?` icon trigger.
+*   Add tooltips to:
+    *   StatsCard labels (P&L, Sharpe Ratio, Max Drawdown, Win Rate)
+    *   Table column headers (all pages)
+    *   Chart legends
+*   Tooltip content matches glossary definitions.
+*   Optional: "Learn more" link to `/help` page.
+
+**Example:**
+```
+┌─────────────────────────────────┐
+│  Sharpe Ratio  (?)              │
+│      1.85                       │
+└─────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────┐
+│ Risk-adjusted return metric.                │
+│ Higher = better. >1 good, >2 excellent.     │
+│ [Learn more →]                              │
+└─────────────────────────────────────────────┘
+```
+
 ---
 
 ## Component Interface (Design System)
@@ -165,9 +220,22 @@ This document specifies the User Interface and Experience (UI/UX) for the monito
 
 ## Implementation Tasks
 
-*   [ ] Initialize Next.js 14 project (`npx create-next-app`).
-*   [ ] Install ShadCN/UI components (Card, Table, Button, Dialog).
+### Sprint 4 (Complete)
+*   [x] Initialize Next.js 14 project (`npx create-next-app`).
+*   [x] Install ShadCN/UI components (Card, Table, Button, Dialog).
 *   [ ] Setup NextAuth with Custom Credentials provider connecting to FastAPI.
-*   [ ] Create API Client (Axios/Fetch) hook wrapper for querying Python backend.
-*   [ ] Build "Global Layout" shell with Sidebar navigation.
-*   [ ] Implement "Overview" page widgets.
+*   [x] Create API Client (Axios/Fetch) hook wrapper for querying Python backend.
+*   [x] Build "Global Layout" shell with Sidebar navigation.
+*   [x] Implement "Overview" page widgets.
+
+### Sprint 6 (Backlog)
+*   [ ] Create `Tooltip` wrapper component with consistent styling.
+*   [ ] Create `glossary.ts` data file with term definitions.
+*   [ ] Add tooltips to StatsCard component (Overview page).
+*   [ ] Add tooltips to table headers (Strategies, Runs, Positions).
+*   [ ] Build `/help` page with searchable glossary.
+*   [ ] Add `?` icon to sidebar navigation linking to Help page.
+*   [ ] Create `vercel.json` with build and routing configuration.
+*   [ ] Configure environment variables (`NEXT_PUBLIC_API_URL`).
+*   [ ] Set up API rewrites to proxy `/api/*` to FastAPI backend.
+*   [ ] Deploy to Vercel with production and preview environments.

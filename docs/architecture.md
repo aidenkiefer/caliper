@@ -385,27 +385,182 @@ SELL: fill_price = bar.close × (1 - slippage_bps / 10000)
 
 **Responsibilities:**
 - Execute orders in paper or live mode
-- Connect to broker APIs (Alpaca, Interactive Brokers)
+- Connect to broker APIs (Alpaca Paper API for v1)
 - Track order status (pending, filled, cancelled)
 - Manage position tracking and reconciliation
+- Ensure order idempotency via unique `client_order_id`
 
 **Broker Adapter Pattern:**
+
+The execution service uses a broker adapter pattern to abstract broker-specific implementations:
+
 ```python
 class BrokerClient(ABC):
-    def place_order(self, order: Order) -> OrderID
-    def get_positions(self) -> List[Position]
-    def get_account(self) -> Account
-    def stream_quotes(self, symbols: List[str]) -> QuoteStream
+    """Abstract interface for broker integrations."""
+    
+    @abstractmethod
+    async def place_order(self, order: Order) -> OrderResult
+    """Place order and return broker order ID."""
+    
+    @abstractmethod
+    async def cancel_order(self, order_id: str) -> bool
+    """Cancel pending order."""
+    
+    @abstractmethod
+    async def get_positions(self) -> List[Position]
+    """Get current positions from broker."""
+    
+    @abstractmethod
+    async def get_account(self) -> Account
+    """Get account information (equity, buying power, etc.)."""
+    
+    @abstractmethod
+    async def get_order_status(self, order_id: str) -> OrderStatus
+    """Poll order status (for async status updates)."""
 ```
 
-**Modes:**
-- `BACKTEST`: Uses historical fills simulator
-- `PAPER`: Broker paper trading API
-- `LIVE`: Real money (requires strict risk gates)
+**BrokerClient Interface Diagram:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         BrokerClient Interface                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────────┐
+│   BrokerClient       │  (Abstract Base Class)
+│   (ABC)              │
+├──────────────────────┤
+│ + place_order()      │
+│ + cancel_order()     │
+│ + get_positions()    │
+│ + get_account()      │
+│ + get_order_status() │
+└──────────┬───────────┘
+           │
+           │ implements
+           │
+    ┌──────┴──────┐
+    │             │
+    ▼             ▼
+┌──────────┐  ┌──────────────┐
+│ Alpaca   │  │ Interactive  │  (Future)
+│ Client   │  │ Brokers      │
+│ (v1)     │  │ Client       │
+└──────────┘  └──────────────┘
+```
+
+**Order Lifecycle State Machine:**
+
+Orders follow a strict state machine to track lifecycle:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         ORDER LIFECYCLE STATE MACHINE                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                    ┌──────────┐
+                    │ PENDING  │  (Created, awaiting risk check)
+                    └────┬─────┘
+                         │ Risk check passes
+                         ▼
+                 ┌───────────────┐
+                 │  SUBMITTED    │  (Sent to broker)
+                 └───────┬───────┘
+                         │
+         ┌───────────────┼───────────────┐
+         │               │               │
+         ▼               ▼               ▼
+    ┌────────┐    ┌──────────┐    ┌──────────┐
+    │ FILLED │    │ REJECTED │    │CANCELLED │
+    └────────┘    └──────────┘    └──────────┘
+    (Complete)    (Broker/        (Manually
+                  Risk rejected)   cancelled)
+```
+
+**State Transitions:**
+- `PENDING` → `SUBMITTED`: Order passes risk checks, sent to broker
+- `PENDING` → `REJECTED`: Risk check fails before submission
+- `SUBMITTED` → `FILLED`: Broker confirms fill
+- `SUBMITTED` → `REJECTED`: Broker rejects order (invalid params, insufficient funds)
+- `SUBMITTED` → `CANCELLED`: Order cancelled before fill
+- `PENDING` → `CANCELLED`: Order cancelled before submission
+
+**Order Management System (OMS):**
+
+The OMS tracks all orders in the database with:
+- Unique `client_order_id` for idempotency (prevents duplicate submissions)
+- Broker `order_id` after submission
+- State transitions with timestamps
+- Fill details (price, quantity, fees)
+
+**Position Reconciliation Flow:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      POSITION RECONCILIATION FLOW                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Every 1 minute:
+    ┌──────────────────┐
+    │  Local Positions  │  (Database: positions table)
+    │  (Expected State)  │
+    └────────┬──────────┘
+             │
+             │ Compare
+             ▼
+    ┌──────────────────┐
+    │ Broker Positions │  (API: get_positions())
+    │  (Actual State)  │
+    └────────┬──────────┘
+             │
+             ▼
+    ┌──────────────────┐
+    │   Match?         │
+    └────┬─────────────┘
+         │
+    ┌────┴────┐
+    │         │
+   YES       NO
+    │         │
+    │         ▼
+    │    ┌──────────────┐
+    │    │ Alert + Log  │
+    │    │ Discrepancy  │
+    │    └──────────────┘
+    │         │
+    │         ▼
+    │    ┌──────────────┐
+    │    │ Pause Trading│
+    │    │ (Safe Mode)  │
+    │    └──────────────┘
+    │
+    ▼
+Continue normal operation
+```
+
+**Alpaca Paper API Integration:**
+
+For v1, the execution service integrates with Alpaca Paper Trading API:
+
+- **Base URL:** `https://paper-api.alpaca.markets`
+- **Authentication:** API Key + Secret Key (from environment variables)
+- **Library:** `alpaca-py` (official Alpaca Python SDK)
+- **Rate Limiting:** Respects Alpaca API limits (200 requests/minute)
+- **Order Types:** Market and Limit orders supported
+- **Paper Mode:** Virtual capital, no real money at risk
+
+**Order Idempotency:**
+
+Every order must include a unique `client_order_id`:
+- Format: `{strategy_id}-{timestamp}-{uuid}`
+- Prevents duplicate submissions on retry
+- Broker validates uniqueness (rejects duplicates)
 
 **Technology:**
-- Python, alpaca-trade-api, ib_insync for Interactive Brokers
-- OMS (Order Management System) with state machine for order lifecycle
+- Python 3.11+, async/await for non-blocking API calls
+- `alpaca-py` library for Alpaca API integration
+- SQLAlchemy for order/position persistence
+- Database: `orders` and `positions` tables in Postgres
 
 ---
 
@@ -415,21 +570,255 @@ class BrokerClient(ABC):
 - Pre-trade risk checks (position sizing, exposure limits)
 - Post-trade monitoring (drawdown tracking)
 - Circuit breakers and kill switches
-- Enforce risk policy rules
+- Enforce risk policy rules from `docs/risk-policy.md`
 
-**Key Checks:**
-- Max risk per trade (0.5-2% of equity)
-- Max capital deployed (50-80%)
-- Max concurrent positions (5-15)
-- Daily loss limit (1-3% triggers pause)
-- Max drawdown kill switch (5-12% halts trading)
+**RiskManager Flow Diagram:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         RISK MANAGER FLOW                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Order Request
+    │
+    ▼
+┌──────────────────────┐
+│ Kill Switch Check    │  Is system/strategy kill switch active?
+└──────┬───────────────┘
+       │
+       │ Active? ──YES──▶ REJECT (Order blocked)
+       │
+       NO
+       │
+       ▼
+┌──────────────────────┐
+│ Order-Level Limits   │  Max risk per trade (2%), notional cap ($25k)
+│                      │  Price deviation (<5%), min price ($5)
+└──────┬───────────────┘
+       │
+       │ Pass? ──NO──▶ REJECT (with reason)
+       │
+      YES
+       │
+       ▼
+┌──────────────────────┐
+│ Strategy-Level       │  Max allocation, daily loss limit
+│ Limits               │  Strategy drawdown threshold
+└──────┬───────────────┘
+       │
+       │ Pass? ──NO──▶ REJECT (strategy paused)
+       │
+      YES
+       │
+       ▼
+┌──────────────────────┐
+│ Portfolio-Level      │  Max capital deployed (80%)
+│ Limits               │  Max open positions (20)
+│                      │  Daily drawdown (3%)
+└──────┬───────────────┘
+       │
+       │ Pass? ──NO──▶ REJECT (portfolio limit)
+       │
+      YES
+       │
+       ▼
+    APPROVED
+    (Order can proceed to execution)
+```
+
+**Pre-Trade Check Sequence:**
+
+The `RiskManager.check_order()` method performs checks in this order:
+
+1. **Kill Switch Check** (fastest, highest priority)
+   - System-wide kill switch active? → REJECT
+   - Strategy-specific kill switch active? → REJECT
+
+2. **Order-Level Limits** (from `docs/risk-policy.md` section 3)
+   - Max Risk Per Trade: 2.0% of Portfolio Equity (hard limit)
+   - Max Notional Per Trade: $25,000 (configurable, default)
+   - Price Deviation: Reject if >5% from last traded price
+   - Min Stock Price: $5.00 (penny stock filter)
+   - Max Quantity: 10% of average daily volume
+
+3. **Strategy-Level Limits** (from `docs/risk-policy.md` section 2)
+   - Max Allocation: 0-100% of Portfolio (per strategy)
+   - Max Drawdown: 5-10% of Strategy Allocation (pauses strategy)
+   - Daily Loss Limit: 1-2% of Strategy Allocation (pauses for session)
+   - Min Liquidity: $500k Daily Volume
+
+4. **Portfolio-Level Limits** (from `docs/risk-policy.md` section 1)
+   - Max Daily Drawdown: 3.0% of Opening Equity → Halt new entries
+   - Max Total Drawdown: 10.0% from High Water Mark → Kill Switch
+   - Max Capital Deployed: 80% of Total Liquidity → Reject orders
+   - Max Open Positions: 20 (across all strategies) → Reject orders
+
+**Kill Switch Activation Flow:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      KILL SWITCH ACTIVATION FLOW                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Trigger Event (Auto or Manual)
+    │
+    ├─▶ Auto: Total Drawdown > 10%
+    ├─▶ Auto: Daily Drawdown > 3% (configurable)
+    └─▶ Manual: POST /v1/controls/kill-switch
+    │
+    ▼
+┌──────────────────────┐
+│ 1. Cancel All        │  Cancel all pending orders via BrokerClient
+│    Pending Orders    │
+└──────┬───────────────┘
+       │
+       ▼
+┌──────────────────────┐
+│ 2. Halt Strategy     │  Stop processing new signals
+│    Execution         │  (Strategy loop checks kill switch status)
+└──────┬───────────────┘
+       │
+       ▼
+┌──────────────────────┐
+│ 3. Position Action   │  Default: FREEZE (manual intervention)
+│                      │  Optional: FLATTEN (market sell all)
+└──────┬───────────────┘
+       │
+       ▼
+┌──────────────────────┐
+│ 4. Send CRITICAL     │  Alert via all channels:
+│    Alert             │  - SMS
+│                      │  - Email
+│                      │  - Slack
+└──────┬───────────────┘
+       │
+       ▼
+┌──────────────────────┐
+│ 5. Require Manual    │  Admin must call:
+│    Reset             │  POST /v1/controls/kill-switch
+│                      │  { action: "deactivate", admin_code: "..." }
+└──────────────────────┘
+```
+
+**Circuit Breaker Triggers:**
+
+The circuit breaker monitors portfolio health continuously:
+
+- **Daily Drawdown > 3%:** Halt new entries (existing positions remain)
+- **Total Drawdown > 10%:** Activate kill switch (full halt)
+- **Capital Deployed > 80%:** Reject new opening orders
+- **Open Positions > 20:** Reject new opening orders
 
 **Interfaces:**
-- `RiskManager.check_order(order, portfolio)` → Approved/Rejected
-- `CircuitBreaker.check_drawdown(equity_curve)` → Active/Inactive
+
+```python
+class RiskManager:
+    def check_order(self, order: Order, portfolio: Portfolio) -> RiskCheckResult
+    """Pre-trade validation. Returns APPROVED or REJECTED with reason."""
+    
+    def check_portfolio_health(self, portfolio: Portfolio) -> HealthStatus
+    """Post-trade monitoring. Returns HEALTHY, WARNING, or CRITICAL."""
+    
+    def get_current_limits(self) -> RiskLimits
+    """Get active risk limits (portfolio, strategy, order level)."""
+
+class KillSwitch:
+    def activate(self, scope: str, reason: str) -> None
+    """Activate kill switch (system-wide or strategy-specific)."""
+    
+    def deactivate(self, admin_code: str) -> None
+    """Deactivate kill switch (requires admin authorization)."""
+    
+    def is_active(self, strategy_id: Optional[str] = None) -> bool
+    """Check if kill switch is active (system or strategy)."""
+
+class CircuitBreaker:
+    def check_drawdown(self, equity_curve: List[EquityPoint]) -> CircuitState
+    """Monitor drawdown and return ACTIVE/INACTIVE."""
+    
+    def trigger_if_threshold_breached(self) -> Optional[KillSwitchEvent]
+    """Auto-activate kill switch if threshold exceeded."""
+```
 
 **Technology:**
-- Python, real-time metrics from monitoring service
+- Python 3.11+, real-time metrics from monitoring service
+- Database: Risk limits stored in `risk_limits` table
+- Kill switch state persisted in `kill_switch_state` table
+- Integration with execution service for order rejection
+
+---
+
+### Execution & Risk Data Flow
+
+**Order Request Flow:**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    ORDER REQUEST → EXECUTION → FILL FLOW                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Strategy generates signal
+    │
+    ▼
+┌──────────────────────┐
+│ Order Request        │  { symbol, side, quantity, order_type, ... }
+│ (with client_order_id)│
+└──────┬───────────────┘
+       │
+       ▼
+┌──────────────────────┐
+│ RiskManager          │  check_order(order, portfolio)
+│ .check_order()       │
+└──────┬───────────────┘
+       │
+       ├─▶ REJECTED ────▶ Return 400 Bad Request
+       │   (with reason)    { error: "Max risk exceeded: 2.5% > 2.0%" }
+       │
+       │ APPROVED
+       │
+       ▼
+┌──────────────────────┐
+│ Order State:         │  PENDING → SUBMITTED
+│ Update in Database   │
+└──────┬───────────────┘
+       │
+       ▼
+┌──────────────────────┐
+│ BrokerClient         │  place_order(order)
+│ .place_order()       │  → Returns broker order_id
+│ (AlpacaClient)       │
+└──────┬───────────────┘
+       │
+       ▼
+┌──────────────────────┐
+│ Order State:         │  SUBMITTED
+│ Store broker order_id│
+└──────┬───────────────┘
+       │
+       │ (Async polling every 5 seconds)
+       │
+       ▼
+┌──────────────────────┐
+│ BrokerClient         │  get_order_status(order_id)
+│ .get_order_status()  │  → Returns FILLED/REJECTED/CANCELLED
+└──────┬───────────────┘
+       │
+       ├─▶ FILLED ──────▶ Update Position
+       │                     Record Fill (price, quantity, fees)
+       │                     Update Order State: FILLED
+       │
+       ├─▶ REJECTED ────▶ Log rejection reason
+       │                     Update Order State: REJECTED
+       │
+       └─▶ CANCELLED ───▶ Update Order State: CANCELLED
+```
+
+**Key Points:**
+- Risk checks happen **before** order submission (fail-fast)
+- Orders are tracked in database with state machine
+- Broker status is polled asynchronously (not blocking)
+- Position updates happen automatically on fill
+- All state transitions are logged for audit trail
 
 ---
 

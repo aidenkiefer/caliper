@@ -91,15 +91,40 @@
 - [x] 160 tests (135 unit + 25 integration)
 - [x] Documentation and runbooks
 
-### Days 13-14: Execution + Risk Hardening
+### Days 13-14: Execution + Risk Hardening ✅ COMPLETE (Sprint 5)
 **Objective:** Complete system with paper trading and monitoring  
 **Deliverables:**
-- [ ] Broker adapter (Alpaca/IB) for paper trading
-- [ ] Risk management module with kill switches
-- [ ] Alert system (Slack/Email)
-- [ ] Next.js dashboard deployed to Vercel
-- [ ] API backend (FastAPI) deployed
-- [ ] Go-live checklist for limited capital
+- [x] Broker adapter (Alpaca) for paper trading
+- [x] Risk management module with kill switches
+- [x] Circuit breaker with auto-triggers
+- [x] Order Management System (OMS) with state machine
+- [x] API endpoints for orders and controls
+- [x] 114 tests (76 unit + 38 integration)
+- [x] ADR-0007 for execution architecture decisions
+- [ ] Alert system (Slack/Email) - deferred to Sprint 6
+- [ ] Next.js dashboard deployed to Vercel - deferred to Sprint 6
+- [ ] API backend (FastAPI) deployed - deferred to Sprint 6
+- [ ] Go-live checklist for limited capital - deferred to Sprint 6
+
+### Days 15-18: ML Safety & Interpretability (Sprint 6)
+**Objective:** Enable explicit model behavior under uncertainty, build trust through interpretability  
+**Deliverables:**
+- [ ] Model drift & decay detection (PSI, KL divergence, health score)
+- [ ] Confidence gating & abstention logic (ABSTAIN signal)
+- [ ] Local explainability via SHAP
+- [ ] Human-in-the-loop approval controls
+- [ ] Regret & baseline comparison metrics
+- [ ] Educational tooltips and help page
+- [ ] Vercel deployment configuration
+
+### Days 19-22: MLOps & Advanced Analysis (Sprint 7)
+**Objective:** Build operational infrastructure for reproducibility, simulation, and intelligent capital allocation  
+**Deliverables:**
+- [ ] Feature registry & lineage tracking
+- [ ] Experiment registry & research traceability
+- [ ] Dynamic capital allocation policy
+- [ ] Failure mode & stress simulation framework
+- [ ] Counterfactual & what-if analysis
 
 ---
 

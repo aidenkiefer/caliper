@@ -36,3 +36,13 @@ logs-api: ## Show API service logs
 clean: ## Stop services and remove volumes (WARNING: deletes data)
 	docker-compose down -v
 	@echo "All services stopped and volumes removed"
+
+# Execution & Risk Service Development Targets
+dev-execution: ## Run execution service in development mode
+	poetry run python -m services.execution.main
+
+dev-risk: ## Run risk service in development mode
+	poetry run python -m services.risk.main
+
+test-execution: ## Run execution and risk unit tests
+	poetry run pytest tests/unit/test_execution.py tests/unit/test_risk_manager.py -v

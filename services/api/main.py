@@ -18,7 +18,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from .routers import health, metrics, strategies, runs, positions
+from .routers import health, metrics, strategies, runs, positions, orders, controls
 
 
 @asynccontextmanager
@@ -147,6 +147,18 @@ app.include_router(
     positions.router,
     prefix=API_V1_PREFIX,
     tags=["positions"],
+)
+
+app.include_router(
+    orders.router,
+    prefix=API_V1_PREFIX,
+    tags=["orders"],
+)
+
+app.include_router(
+    controls.router,
+    prefix=API_V1_PREFIX,
+    tags=["controls"],
 )
 
 

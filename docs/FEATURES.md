@@ -1,7 +1,7 @@
 # Platform Features Overview
 
 **Last Updated:** 2026-01-26  
-**Status:** Sprint 3 Complete
+**Status:** Sprint 5 Complete
 
 This document provides a comprehensive overview of all implemented features, capabilities, and components in the Quant ML Trading Platform.
 
@@ -9,7 +9,7 @@ This document provides a comprehensive overview of all implemented features, cap
 
 ## 🎯 Current Implementation Status
 
-### ✅ Completed (Sprints 1-3)
+### ✅ Completed (Sprints 1-5)
 
 #### Sprint 1: Infrastructure & Data ✅
 - **Monorepo Structure**: Complete Python/Node.js monorepo with Poetry and npm
@@ -89,6 +89,65 @@ This document provides a comprehensive overview of all implemented features, cap
   - Integration test for SMA Crossover backtest
   - Known-good P&L validation scenarios
   - Comprehensive test fixtures
+
+#### Sprint 4: Dashboard & API ✅
+- **FastAPI Backend** (`services/api/`)
+  - 10+ REST endpoints per `docs/api-contracts.md`
+  - Health, metrics, strategies, runs, positions endpoints
+  - Pydantic response models (`packages/common/api_schemas.py`)
+  - CORS middleware for dashboard access
+  - OpenAPI documentation at `/docs`
+- **Next.js Dashboard** (`apps/dashboard/`)
+  - Next.js 14 with App Router
+  - Overview, Strategies, Runs, Health, Settings pages
+  - Shadcn/UI components + Tailwind CSS
+  - SWR hooks for data fetching with polling
+  - Dark mode and responsive design
+  - Interactive equity curve charts
+- **Testing & Verification**
+  - 160 tests (135 unit + 25 integration)
+  - API endpoint validation
+  - Mock data for development
+
+#### Sprint 5: Execution & Risk ✅
+- **Execution Engine** (`services/execution/`)
+  - BrokerClient abstract interface with adapter pattern
+  - AlpacaClient implementation for Alpaca Paper API
+  - Order Management System (OMS) with state machine
+  - Order states: PENDING → SUBMITTED → FILLED/PARTIALLY_FILLED/REJECTED/CANCELLED
+  - Order idempotency via unique `client_order_id`
+  - Position tracking and reconciliation
+- **Risk Management** (`services/risk/`)
+  - RiskManager with multi-level pre-trade validation
+  - Portfolio-level limits:
+    - 3% daily drawdown (circuit breaker trigger)
+    - 10% total drawdown (kill switch trigger)
+    - 80% max capital deployed
+    - 20 max open positions
+  - Order-level limits:
+    - 2% max risk per trade
+    - $25,000 max notional per trade
+    - $5.00 minimum stock price (penny stock filter)
+    - 5% max price deviation from last traded price
+  - Strategy-level limits:
+    - Max allocation percentage
+    - Daily loss limits
+    - Strategy pause capability
+  - KillSwitch (global and per-strategy)
+  - CircuitBreaker with auto-triggers
+  - Admin code required for deactivation
+- **API Endpoints**
+  - POST /v1/orders (submit with risk validation)
+  - GET /v1/orders (list with pagination)
+  - GET /v1/orders/{order_id} (details)
+  - DELETE /v1/orders/{order_id} (cancel)
+  - POST /v1/controls/kill-switch (activate/deactivate)
+  - GET /v1/controls/kill-switch (status)
+  - POST /v1/controls/mode-transition (PAPER → LIVE)
+- **Testing & Verification**
+  - 114 tests (76 unit + 38 integration)
+  - Risk rejection scenarios validated
+  - Kill switch and circuit breaker behavior tested
 
 ---
 
@@ -249,7 +308,7 @@ This document provides a comprehensive overview of all implemented features, cap
 
 ## 🔄 Data Flow
 
-### Current Workflow (Sprints 1-4)
+### Current Workflow (Sprints 1-5)
 
 ```
 1. Data Ingestion (Sprint 1)
@@ -272,26 +331,37 @@ This document provides a comprehensive overview of all implemented features, cap
 
 7. Dashboard (Sprint 4)
    API → Next.js Dashboard → User Interface
+
+8. Risk Validation (Sprint 5)
+   Order Request → RiskManager → Approved/Rejected
+   
+9. Execution (Sprint 5)
+   Approved Order → OMS → BrokerClient → Alpaca Paper API
+   
+10. Controls (Sprint 5)
+    Dashboard → Kill Switch API → Block/Allow Trading
 ```
 
 ---
 
-## 🚧 Planned Features (Sprint 5)
+## 🚧 Planned Features (Sprint 6+)
 
-### Sprint 4: Dashboard & API ✅ COMPLETE
-- ✅ FastAPI backend with 10 REST endpoints
-- ✅ Next.js 14 dashboard UI
-- ✅ Backtest results visualization
-- ✅ Strategy management interface
-- ✅ 160 API tests (135 unit + 25 integration)
+### Sprint 5: Execution & Risk ✅ COMPLETE
+- ✅ Paper trading execution (Alpaca Paper API)
+- ✅ Risk management module (RiskManager)
+- ✅ Circuit breakers and kill switches
+- ✅ Order Management System (OMS)
+- ✅ Position tracking and reconciliation
+- ✅ 114 tests (76 unit + 38 integration)
 
-### Sprint 5: Execution & Risk
-- Paper trading execution
-- Live trading execution (with safeguards)
-- Risk management module
-- Circuit breakers and kill switches
-- Alert system (Slack/Email)
-- Position monitoring
+### Sprint 6: ML Safety & Interpretability
+- Model drift detection
+- Confidence gating and abstention logic
+- SHAP integration for explainability
+- Human-in-the-loop controls
+- Regret and baseline comparison metrics
+- Educational tooltips and help page
+- Vercel deployment
 
 ### Future Enhancements
 - Multi-asset portfolio backtesting
@@ -308,18 +378,21 @@ This document provides a comprehensive overview of all implemented features, cap
 ## 📈 Metrics & Statistics
 
 ### Codebase Statistics
-- **Total Lines of Code:** ~5,000+ lines
-- **Services:** 3 implemented (data, features, backtest)
+- **Total Lines of Code:** ~10,000+ lines
+- **Services:** 5 implemented (data, features, backtest, api, execution, risk)
 - **Packages:** 2 implemented (common, strategies)
-- **Test Coverage:** 60+ unit tests, 1 integration test
-- **Documentation:** 15+ major documents
+- **Test Coverage:** 300+ tests across all sprints
+- **Documentation:** 20+ major documents
+- **ADRs:** 7 architecture decision records
 
 ### Sprint Completion
 - **Sprint 1:** ✅ Complete (Infrastructure & Data)
 - **Sprint 2:** ✅ Complete (Feature Pipeline & Strategy Core)
 - **Sprint 3:** ✅ Complete (Backtesting & Reporting)
-- **Sprint 4:** ⬜ Planned (Dashboard & API)
-- **Sprint 5:** ⬜ Planned (Execution & Risk)
+- **Sprint 4:** ✅ Complete (Dashboard & API)
+- **Sprint 5:** ✅ Complete (Execution & Risk)
+- **Sprint 6:** ⬜ Planned (ML Safety & Interpretability)
+- **Sprint 7:** ⬜ Planned (MLOps & Advanced Analysis)
 
 ---
 
@@ -336,9 +409,12 @@ This document provides a comprehensive overview of all implemented features, cap
 ## 🔗 Related Documentation
 
 - [Architecture Overview](architecture.md)
-- [Sprint 3 Summary](../SPRINT3_SUMMARY.md)
+- [Sprint 3 Summary](../plans/SPRINT3_SUMMARY.md)
+- [Sprint 4 Summary](../plans/SPRINT4_SUMMARY.md)
+- [Sprint 5 Summary](../plans/SPRINT5_SUMMARY.md)
 - [Backtest Verification Runbook](runbooks/backtest-verification.md)
-- [Multi-Agent Workflow](WORKFLOW.md)
+- [Execution Verification Runbook](runbooks/execution-verification.md)
+- [Multi-Agent Workflow](workflow/WORKFLOW.md)
 
 ---
 

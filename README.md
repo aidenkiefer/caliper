@@ -4,12 +4,13 @@ A modular quantitative ML trading platform for stocks and options with risk mana
 
 ## Project Status
 
-**Current Phase:** Implementation - Sprint 4 ✅ COMPLETE
+**Current Phase:** Implementation - Sprint 5 ✅ COMPLETE
 
 **Sprint 1:** ✅ Complete (Infrastructure & Data)  
 **Sprint 2:** ✅ Complete (Feature Pipeline & Strategy Core)  
 **Sprint 3:** ✅ Complete (Backtesting & Reporting)  
-**Sprint 4:** ✅ Complete (Dashboard & API)
+**Sprint 4:** ✅ Complete (Dashboard & API)  
+**Sprint 5:** ✅ Complete (Execution & Risk)
 
 ## Architecture
 
@@ -125,14 +126,14 @@ make dev
 ```
 quant/
 ├── apps/
-│   └── dashboard/          # Next.js dashboard (planned)
+│   └── dashboard/          # ✅ Next.js dashboard (Sprint 4)
 ├── services/
 │   ├── data/               # ✅ Data ingestion service (Sprint 1)
 │   ├── features/           # ✅ Feature engineering (Sprint 2)
 │   ├── backtest/           # ✅ Backtesting engine (Sprint 3)
 │   ├── api/                # ✅ FastAPI backend (Sprint 4)
-│   ├── execution/          # Trade execution (Sprint 5)
-│   ├── risk/               # Risk management (Sprint 5)
+│   ├── execution/          # ✅ Trade execution (Sprint 5)
+│   ├── risk/               # ✅ Risk management (Sprint 5)
 │   └── monitoring/         # Metrics & alerts (planned)
 ├── packages/
 │   ├── common/             # ✅ Shared schemas & utilities
@@ -161,6 +162,7 @@ quant/
 - **Sprint 2:** [`plans/SPRINT2_SUMMARY.md`](plans/SPRINT2_SUMMARY.md) - Feature Pipeline & Strategy Core
 - **Sprint 3:** [`plans/SPRINT3_SUMMARY.md`](plans/SPRINT3_SUMMARY.md) - Backtesting & Reporting
 - **Sprint 4:** [`plans/SPRINT4_SUMMARY.md`](plans/SPRINT4_SUMMARY.md) - Dashboard & API
+- **Sprint 5:** [`plans/SPRINT5_SUMMARY.md`](plans/SPRINT5_SUMMARY.md) - Execution & Risk
 
 ### Multi-Agent Workflow
 - **Workflow Guide:** [`docs/workflow/WORKFLOW.md`](docs/workflow/WORKFLOW.md) - Multi-agent development protocol
@@ -171,6 +173,7 @@ quant/
 ### Runbooks
 - **Backtest Verification:** [`docs/runbooks/backtest-verification.md`](docs/runbooks/backtest-verification.md)
 - **API Verification:** [`docs/runbooks/api-verification.md`](docs/runbooks/api-verification.md)
+- **Execution Verification:** [`docs/runbooks/execution-verification.md`](docs/runbooks/execution-verification.md)
 
 ### Features Overview
 - **Platform Features:** [`docs/FEATURES.md`](docs/FEATURES.md) - Comprehensive feature list and capabilities
@@ -217,6 +220,19 @@ See [`plans/task_plan.md`](plans/task_plan.md) for the full implementation plan.
 - [x] Dark mode and responsive design
 - [x] Docker configuration for API service
 - [x] 160 tests (135 unit + 25 integration)
+
+**Sprint 5:** ✅ Execution & Risk (Complete)
+- [x] Execution engine (`services/execution/`)
+- [x] BrokerClient interface with AlpacaClient implementation
+- [x] Order Management System (OMS) with state machine
+- [x] Position tracking and reconciliation
+- [x] Risk management (`services/risk/`)
+- [x] RiskManager with multi-level validation
+- [x] Kill switch (global and per-strategy)
+- [x] Circuit breaker with auto-triggers
+- [x] Order and controls API endpoints
+- [x] Execution schemas (`packages/common/execution_schemas.py`)
+- [x] 114 tests (76 unit + 38 integration)
 
 ## Security Notice
 
