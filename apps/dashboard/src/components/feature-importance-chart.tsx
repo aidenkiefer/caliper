@@ -4,6 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 interface FeatureContribution {
   feature_name: string;
+  value: number;
   contribution: number;
   direction: 'positive' | 'negative';
 }
