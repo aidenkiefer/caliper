@@ -78,11 +78,7 @@ export function FeatureImportanceChart({
           <Bar 
             dataKey="contribution" 
             radius={[0, 4, 4, 0]}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            cell={(props: any) => {
-              const fillColor = props.payload?.fill || '#8884d8';
-              return <rect {...props} fill={fillColor} />;
-            }}
+            fill="#8884d8"
           />
         </BarChart>
       </ResponsiveContainer>
