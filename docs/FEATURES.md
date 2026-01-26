@@ -1,7 +1,7 @@
 # Platform Features Overview
 
 **Last Updated:** 2026-01-26  
-**Status:** Sprint 5 Complete
+**Status:** Sprint 6 Complete
 
 This document provides a comprehensive overview of all implemented features, capabilities, and components in the Quant ML Trading Platform.
 
@@ -9,7 +9,7 @@ This document provides a comprehensive overview of all implemented features, cap
 
 ## 🎯 Current Implementation Status
 
-### ✅ Completed (Sprints 1-5)
+### ✅ Completed (Sprints 1-6)
 
 #### Sprint 1: Infrastructure & Data ✅
 - **Monorepo Structure**: Complete Python/Node.js monorepo with Poetry and npm
@@ -148,6 +148,56 @@ This document provides a comprehensive overview of all implemented features, cap
   - 114 tests (76 unit + 38 integration)
   - Risk rejection scenarios validated
   - Kill switch and circuit breaker behavior tested
+
+#### Sprint 6: ML Safety & Interpretability ✅
+- **Drift Detection Service** (`services/ml/drift/`)
+  - PSI (Population Stability Index) calculation
+  - KL divergence for distribution comparison
+  - Mean shift detection (in standard deviations)
+  - Confidence drift monitoring
+  - Error drift tracking (when ground truth available)
+  - Health score calculator (0-100 composite score)
+  - Threshold-based alerts (WARNING/CRITICAL)
+- **Confidence Gating** (`services/ml/confidence/`)
+  - ABSTAIN signal support in model output
+  - Configurable confidence thresholds per strategy
+  - Entropy and uncertainty measures
+  - Ensemble disagreement signals
+  - Abstention tracking in backtests
+- **Explainability Service** (`services/ml/explainability/`)
+  - SHAP integration for tree-based models
+  - Permutation importance fallback
+  - Trade explanation payloads (features, contributions, directions)
+  - Explanation storage with trades
+- **Baseline Strategies** (`services/ml/baselines/`)
+  - Hold cash baseline (0% return)
+  - Buy & hold baseline (market tracking)
+  - Random baseline (risk-controlled)
+  - Regret calculator (strategy vs baselines)
+- **Human-in-the-Loop** (`services/ml/hitl/`)
+  - Recommendation approval queue
+  - Human decision logging (approve/reject with rationale)
+  - Agreement statistics (human vs model)
+- **API Endpoints**
+  - GET /v1/drift/metrics/{model_id}
+  - GET /v1/drift/health/{model_id}
+  - GET /v1/explanations/{trade_id}
+  - GET /v1/baselines/comparison
+  - GET/POST /v1/recommendations (HITL queue)
+- **Dashboard Features**
+  - Help page with searchable glossary (22 trading terms)
+  - Educational tooltips on all metrics
+  - Trade explanation UI with feature importance charts
+  - Approval queue page for HITL
+  - Baseline comparison widget
+- **Vercel Deployment**
+  - vercel.json configuration
+  - API rewrites to FastAPI backend
+  - Security headers
+  - Deployment runbook
+- **Testing & Verification**
+  - 70+ tests (unit + integration)
+  - ML safety verification runbook
 
 ---
 
@@ -354,14 +404,15 @@ This document provides a comprehensive overview of all implemented features, cap
 - ✅ Position tracking and reconciliation
 - ✅ 114 tests (76 unit + 38 integration)
 
-### Sprint 6: ML Safety & Interpretability
-- Model drift detection
-- Confidence gating and abstention logic
-- SHAP integration for explainability
-- Human-in-the-loop controls
-- Regret and baseline comparison metrics
-- Educational tooltips and help page
-- Vercel deployment
+### Sprint 6: ML Safety & Interpretability ✅
+- ✅ Model drift detection (PSI, KL divergence, health score)
+- ✅ Confidence gating and abstention logic (ABSTAIN signal)
+- ✅ SHAP integration for explainability
+- ✅ Human-in-the-loop controls (approval queue)
+- ✅ Regret and baseline comparison metrics
+- ✅ Educational tooltips and help page
+- ✅ Vercel deployment configuration
+- ✅ 70+ tests (unit + integration)
 
 ### Future Enhancements
 - Multi-asset portfolio backtesting
@@ -381,7 +432,7 @@ This document provides a comprehensive overview of all implemented features, cap
 - **Total Lines of Code:** ~10,000+ lines
 - **Services:** 5 implemented (data, features, backtest, api, execution, risk)
 - **Packages:** 2 implemented (common, strategies)
-- **Test Coverage:** 300+ tests across all sprints
+- **Test Coverage:** 370+ tests across all sprints
 - **Documentation:** 20+ major documents
 - **ADRs:** 7 architecture decision records
 
@@ -391,8 +442,9 @@ This document provides a comprehensive overview of all implemented features, cap
 - **Sprint 3:** ✅ Complete (Backtesting & Reporting)
 - **Sprint 4:** ✅ Complete (Dashboard & API)
 - **Sprint 5:** ✅ Complete (Execution & Risk)
-- **Sprint 6:** ⬜ Planned (ML Safety & Interpretability)
+- **Sprint 6:** ✅ Complete (ML Safety & Interpretability)
 - **Sprint 7:** ⬜ Planned (MLOps & Advanced Analysis)
+- **Sprint 8:** ⬜ Planned (Model Observatory Dashboard)
 
 ---
 
@@ -412,7 +464,9 @@ This document provides a comprehensive overview of all implemented features, cap
 - [Sprint 3 Summary](../plans/SPRINT3_SUMMARY.md)
 - [Sprint 4 Summary](../plans/SPRINT4_SUMMARY.md)
 - [Sprint 5 Summary](../plans/SPRINT5_SUMMARY.md)
+- [Sprint 6 Summary](../plans/SPRINT6_SUMMARY.md)
 - [Backtest Verification Runbook](runbooks/backtest-verification.md)
+- [ML Safety Verification Runbook](runbooks/ml-safety-verification.md)
 - [Execution Verification Runbook](runbooks/execution-verification.md)
 - [Multi-Agent Workflow](workflow/WORKFLOW.md)
 

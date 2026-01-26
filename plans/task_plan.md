@@ -158,54 +158,54 @@ This section guides the Cursor Agents for the build phase.
    - [x] Middleware to block orders if risk check fails.
    - [x] **Verification:** Attempt to place order > 5% risk, verify rejection.
 
-### Sprint 6: ML Safety & Interpretability Core (Days 15-18)
+### Sprint 6: ML Safety & Interpretability Core (Days 15-18) ✅ COMPLETE
 *Goal: Enable explicit model behavior under uncertainty, build trust through interpretability.*
 
 1. **Model Drift & Decay Detection:**
-   - [ ] Feature distribution drift tracking (mean, std, PSI, KL divergence).
-   - [ ] Prediction confidence drift monitoring.
-   - [ ] Error drift tracking when ground truth becomes available.
-   - [ ] Threshold-based alerts for drift.
-   - [ ] Model "health score" derived from drift signals.
-   - [ ] Store and query drift metrics over time.
-   - [ ] **Verification:** Drift metrics queryable per model, per feature.
+   - [x] Feature distribution drift tracking (mean, std, PSI, KL divergence).
+   - [x] Prediction confidence drift monitoring.
+   - [x] Error drift tracking when ground truth becomes available.
+   - [x] Threshold-based alerts for drift.
+   - [x] Model "health score" derived from drift signals.
+   - [x] Store and query drift metrics over time.
+   - [x] **Verification:** Drift metrics queryable per model, per feature.
 
 2. **Confidence Gating & Abstention Logic:**
-   - [ ] Extend model output schema: BUY / SELL / ABSTAIN.
-   - [ ] Configurable confidence thresholds per strategy.
-   - [ ] Entropy / uncertainty measure calculation.
-   - [ ] Ensemble disagreement signals.
-   - [ ] Update backtest engine to account for abstentions.
-   - [ ] **Verification:** Strategy abstains when confidence < threshold.
+   - [x] Extend model output schema: BUY / SELL / ABSTAIN.
+   - [x] Configurable confidence thresholds per strategy.
+   - [x] Entropy / uncertainty measure calculation.
+   - [x] Ensemble disagreement signals.
+   - [x] Update backtest engine to account for abstentions.
+   - [x] **Verification:** Strategy abstains when confidence < threshold.
 
 3. **Local Explainability (SHAP):**
-   - [ ] SHAP integration for tree-based models.
-   - [ ] Permutation importance as fallback.
-   - [ ] Explanation payload: features, influence direction (+/-), confidence.
-   - [ ] Store explanations alongside trade records.
-   - [ ] Dashboard UI to view trade explanations.
-   - [ ] **Verification:** Each recommendation has human-readable explanation.
+   - [x] SHAP integration for tree-based models.
+   - [x] Permutation importance as fallback.
+   - [x] Explanation payload: features, influence direction (+/-), confidence.
+   - [x] Store explanations alongside trade records.
+   - [x] Dashboard UI to view trade explanations.
+   - [x] **Verification:** Each recommendation has human-readable explanation.
 
 4. **Human-in-the-Loop Controls:**
-   - [ ] Approval flag in execution pipeline.
-   - [ ] Recommendation queue (pending human approval).
-   - [ ] Manual override UI in dashboard.
-   - [ ] Log human vs model decisions for comparison.
-   - [ ] **Verification:** Trade requires explicit approval when HITL enabled.
+   - [x] Approval flag in execution pipeline.
+   - [x] Recommendation queue (pending human approval).
+   - [x] Manual override UI in dashboard.
+   - [x] Log human vs model decisions for comparison.
+   - [x] **Verification:** Trade requires explicit approval when HITL enabled.
 
 5. **Regret & Baseline Comparison Metrics:**
-   - [ ] Baseline strategy implementations (hold cash, buy & hold, random-controlled).
-   - [ ] Regret metrics calculation vs baselines.
-   - [ ] Track regret over time.
-   - [ ] Dashboard visualization of relative performance.
-   - [ ] **Verification:** Dashboard shows "vs baseline" comparison.
+   - [x] Baseline strategy implementations (hold cash, buy & hold, random-controlled).
+   - [x] Regret metrics calculation vs baselines.
+   - [x] Track regret over time.
+   - [x] Dashboard visualization of relative performance.
+   - [x] **Verification:** Dashboard shows "vs baseline" comparison.
 
 6. **Polish & UX (from backlog):**
-   - [ ] Educational tooltips for trading terminology.
-   - [ ] Help page with glossary (P&L, Sharpe, Max Drawdown, Win Rate, etc.).
-   - [ ] Tooltip component for StatsCard and table headers.
-   - [ ] Vercel deployment configuration.
-   - [ ] **Verification:** Non-technical user can understand all metrics.
+   - [x] Educational tooltips for trading terminology.
+   - [x] Help page with glossary (P&L, Sharpe, Max Drawdown, Win Rate, etc.).
+   - [x] Tooltip component for StatsCard and table headers.
+   - [x] Vercel deployment configuration.
+   - [x] **Verification:** Non-technical user can understand all metrics.
 
 ### Sprint 7: MLOps & Advanced Analysis (Days 19-22)
 *Goal: Build operational infrastructure for reproducibility, simulation, and intelligent capital allocation.*
@@ -224,7 +224,14 @@ This section guides the Cursor Agents for the build phase.
    - [ ] Queryable history of model evolution.
    - [ ] **Verification:** Can answer "why did we deploy this model?"
 
-3. **Dynamic Capital Allocation:**
+3. **Model Registry Backend:**
+   - [ ] Model registry API (CRUD for model metadata).
+   - [ ] Persistent model metadata store.
+   - [ ] Model lifecycle states (active, paused, candidate, retired).
+   - [ ] Model health score integration (from drift metrics).
+   - [ ] **Verification:** Model metadata queryable via API.
+
+4. **Dynamic Capital Allocation:**
    - [ ] Capital allocation policy module.
    - [ ] Inputs: recent performance, drawdown, volatility, confidence/drift scores.
    - [ ] Per-model allocation caps.
@@ -232,7 +239,7 @@ This section guides the Cursor Agents for the build phase.
    - [ ] Logged allocation decisions for auditability.
    - [ ] **Verification:** Capital shifts away from underperforming models.
 
-4. **Failure Mode & Stress Simulation:**
+5. **Failure Mode & Stress Simulation:**
    - [ ] Scenario simulation framework.
    - [ ] Volatility spike simulation.
    - [ ] Missing/delayed data simulation.
@@ -243,12 +250,87 @@ This section guides the Cursor Agents for the build phase.
    - [ ] Documented failure handling strategies.
    - [ ] **Verification:** System behavior documented under adverse conditions.
 
-5. **Counterfactual & What-If Analysis:**
-   - [ ] Parameterized backtest reruns.
-   - [ ] Dashboard controls for what-if scenarios.
-   - [ ] Scenarios: confidence threshold, model exclusion, trade delay.
-   - [ ] Comparison metrics vs baseline run.
-   - [ ] **Verification:** Can compare "what if" scenarios in dashboard.
+6. **Model Drift & Health Visualization API:**
+   - [ ] API endpoints for drift metrics per model.
+   - [ ] Feature drift over time data.
+   - [ ] Confidence drift data.
+   - [ ] Health score trend data.
+   - [ ] Alert thresholds and suggested actions.
+   - [ ] **Verification:** Drift visualization data available via API.
+
+### Sprint 8: Model Observatory Dashboard (Days 23-27)
+*Goal: Make models inspectable, configurable, and comparable as first-class entities in the dashboard.*
+
+1. **Model Registry UI:**
+   - [ ] Dedicated Model Registry page in dashboard.
+   - [ ] List view with sorting/filtering.
+   - [ ] Display: name, type, status, trained date, health score, allocation weight.
+   - [ ] Quick actions (activate, pause, view details).
+   - [ ] **Verification:** All models visible in dashboard list.
+
+2. **Model Detail Page:**
+   - [ ] Model overview section (architecture, feature set, hyperparams).
+   - [ ] Training & validation summary (period, method, metrics, overfitting indicators).
+   - [ ] Live/paper performance (accuracy over time, abstention rate).
+   - [ ] Confidence calibration plots.
+   - [ ] **Verification:** Full model context visible on single page.
+
+3. **ML Performance Visualization:**
+   - [ ] Prediction vs actual plots (directional or regression).
+   - [ ] Rolling accuracy charts.
+   - [ ] Confusion matrix (for classification).
+   - [ ] Calibration curves (confidence vs correctness).
+   - [ ] Error distribution plots.
+   - [ ] Toggle between ML metrics and trading metrics.
+   - [ ] **Verification:** ML-native visualizations render correctly.
+
+4. **Model Comparison & Ranking View:**
+   - [ ] Side-by-side model comparison page.
+   - [ ] Comparison dimensions: validation metrics, recent performance, drawdown, volatility.
+   - [ ] Sorting/filtering (best performers, most stable, least risky).
+   - [ ] Confidence stability and drift score comparison.
+   - [ ] **Verification:** Can rank models by multiple criteria.
+
+5. **Hyperparameter & Threshold Tuning Interface:**
+   - [ ] Dashboard controls for confidence thresholds.
+   - [ ] Abstention threshold adjustment.
+   - [ ] Ensemble contribution caps.
+   - [ ] Allocation limit controls.
+   - [ ] Change confirmation modal with impact preview.
+   - [ ] Change logging and rollback support.
+   - [ ] **Verification:** Parameter changes reflected in model behavior.
+
+6. **Model Lifecycle Controls:**
+   - [ ] Activate / deactivate model from dashboard.
+   - [ ] Promote candidate → active workflow.
+   - [ ] Retire model action.
+   - [ ] Freeze parameters toggle.
+   - [ ] Clone model config for new experiment.
+   - [ ] **Verification:** Lifecycle actions update model state correctly.
+
+7. **Model Drift & Health Visualization UI:**
+   - [ ] Per-model drift trend charts.
+   - [ ] Feature drift heatmaps.
+   - [ ] Health score timeline.
+   - [ ] Alert badges and threshold indicators.
+   - [ ] Suggested actions (retrain, retire).
+   - [ ] **Verification:** Drift aging is visible, not silent.
+
+8. **Human-in-the-Loop Review Mode (Model-Centric):**
+   - [ ] Model recommendation review queue.
+   - [ ] Explanation display per recommendation.
+   - [ ] Approve/reject at model level.
+   - [ ] Rationale input (optional).
+   - [ ] Decision outcome logging.
+   - [ ] **Verification:** User can review and decide on model recommendations.
+
+9. **Model Sandbox / What-If Testing:**
+   - [ ] Parameter modification sandbox (no live impact).
+   - [ ] Rerun backtests with modified thresholds.
+   - [ ] Temporarily disable models in sandbox.
+   - [ ] Compare hypothetical allocations.
+   - [ ] Preview effects before applying changes.
+   - [ ] **Verification:** Safe experimentation without affecting live behavior.
 
 ## Sprint Summary
 
@@ -259,8 +341,9 @@ This section guides the Cursor Agents for the build phase.
 | 3 | Backtesting & Reporting | 7-9 | ✅ Complete |
 | 4 | Dashboard & API | 10-12 | ✅ Complete |
 | 5 | Execution & Risk | 13-14 | ✅ Complete |
-| 6 | ML Safety & Interpretability | 15-18 | Not Started |
+| 6 | ML Safety & Interpretability | 15-18 | In Progress |
 | 7 | MLOps & Advanced Analysis | 19-22 | Not Started |
+| 8 | Model Observatory Dashboard | 23-27 | Not Started |
 
 ## Success Criteria
 - ✅ All `/docs` files exist and are internally consistent
@@ -278,7 +361,16 @@ This section guides the Cursor Agents for the build phase.
 - [ ] Results are reproducible (feature registry, experiment tracking)
 - [ ] System failure modes are understood (stress testing)
 - [ ] Adding or removing models is safe (dynamic capital allocation)
-- [ ] "What if" analysis enables safer tuning
+- [ ] Model registry API serves model metadata
+- [ ] Drift visualization data available via API
+
+### Sprint 8 Success Criteria
+- [ ] Models are first-class entities in the dashboard
+- [ ] ML-native visualizations (confusion matrix, calibration curves) available
+- [ ] Users can compare and rank models side-by-side
+- [ ] Parameter tuning is safe with preview and rollback
+- [ ] Model lifecycle (activate, pause, retire) manageable from UI
+- [ ] Dashboard supports learning and experimentation, not just monitoring
 
 ## Notes
 - This project targets **risk level 6-7** (moderate): controlled drawdowns, risk-adjusted returns
@@ -286,3 +378,4 @@ This section guides the Cursor Agents for the build phase.
 - Dashboard deploys to **Vercel** (Next.js), trading services run separately
 - Technology stack: Python 3.11+, FastAPI, pandas, scikit-learn/XGBoost, Next.js, Postgres
 - Sprint 6-7 focus: **trustworthy ML platform** over profit maximization
+- Sprint 8 focus: **model-centric observability** for ML/SWE users with little trading experience

@@ -10,6 +10,8 @@ import {
   Settings,
   Menu,
   X,
+  HelpCircle,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -19,8 +21,10 @@ const navigation = [
   { name: "Overview", href: "/", icon: LayoutDashboard },
   { name: "Strategies", href: "/strategies", icon: LineChart },
   { name: "Runs", href: "/runs", icon: FlaskConical },
+  { name: "Recommendations", href: "/recommendations", icon: Clock },
   { name: "Health", href: "/health", icon: Activity },
   { name: "Settings", href: "/settings", icon: Settings },
+  { name: "Help", href: "/help", icon: HelpCircle },
 ];
 
 export function Sidebar() {

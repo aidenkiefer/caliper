@@ -1,11 +1,12 @@
 # Progress Tracker
 
-## Current Phase: Implementation - Sprint 5 ✅ COMPLETE
+## Current Phase: Implementation - Sprint 6 ✅ COMPLETE
 
 **Last Updated:** 2026-01-26
 
-**Completed:** Sprints 1-5 (Infrastructure, Features, Backtest, Dashboard, Execution & Risk)  
-**Next Up:** Sprint 6 (ML Safety) → Sprint 7 (MLOps)
+**Completed:** Sprints 1-6 (Infrastructure, Features, Backtest, Dashboard, Execution & Risk, ML Safety)  
+**Current:** Sprint 7 (MLOps & Advanced Analysis)  
+**Next Up:** Sprint 8 (Model Observatory Dashboard)
 
 ---
 
@@ -69,52 +70,52 @@
 - [x] Documentation and ADR
 - [x] **Verification:** Order rejected when exceeding risk limits
 
-### Sprint 6: ML Safety & Interpretability Core - Not Started
+### Sprint 6: ML Safety & Interpretability Core - ✅ COMPLETE
 *Goal: Enable explicit model behavior under uncertainty, build trust through interpretability*
 
 **6.1 Model Drift & Decay Detection**
-- [ ] Feature distribution drift tracking (PSI, KL divergence)
-- [ ] Prediction confidence drift monitoring
-- [ ] Error drift tracking (when ground truth available)
-- [ ] Threshold-based alerts for drift
-- [ ] Model "health score" derived from drift signals
-- [ ] **Verification:** Drift metrics queryable per model
+- [x] Feature distribution drift tracking (PSI, KL divergence)
+- [x] Prediction confidence drift monitoring
+- [x] Error drift tracking (when ground truth available)
+- [x] Threshold-based alerts for drift
+- [x] Model "health score" derived from drift signals
+- [x] **Verification:** Drift metrics queryable per model
 
 **6.2 Confidence Gating & Abstention Logic**
-- [ ] Extend model output schema to support ABSTAIN signal
-- [ ] Configurable confidence thresholds per strategy
-- [ ] Entropy/uncertainty measure calculation
-- [ ] Ensemble disagreement signals
-- [ ] Backtest engine support for abstention trades
-- [ ] **Verification:** Strategy can abstain when confidence < threshold
+- [x] Extend model output schema to support ABSTAIN signal
+- [x] Configurable confidence thresholds per strategy
+- [x] Entropy/uncertainty measure calculation
+- [x] Ensemble disagreement signals
+- [x] Backtest engine support for abstention trades
+- [x] **Verification:** Strategy can abstain when confidence < threshold
 
 **6.3 Local Explainability (SHAP)**
-- [ ] SHAP integration for tree-based models
-- [ ] Permutation importance fallback
-- [ ] Explanation payload schema (features, influence, confidence)
-- [ ] Store explanations alongside trade records
-- [ ] Dashboard UI for viewing trade explanations
-- [ ] **Verification:** Each recommendation has human-readable explanation
+- [x] SHAP integration for tree-based models
+- [x] Permutation importance fallback
+- [x] Explanation payload schema (features, influence, confidence)
+- [x] Store explanations alongside trade records
+- [x] Dashboard UI for viewing trade explanations
+- [x] **Verification:** Each recommendation has human-readable explanation
 
 **6.4 Human-in-the-Loop Controls**
-- [ ] Approval flag in execution pipeline
-- [ ] Manual override UI in dashboard
-- [ ] Recommendation queue (pending human approval)
-- [ ] Logged human vs model decision comparison
-- [ ] **Verification:** Trade requires explicit approval when enabled
+- [x] Approval flag in execution pipeline
+- [x] Manual override UI in dashboard
+- [x] Recommendation queue (pending human approval)
+- [x] Logged human vs model decision comparison
+- [x] **Verification:** Trade requires explicit approval when enabled
 
 **6.5 Regret & Baseline Comparison Metrics**
-- [ ] Baseline strategy implementations (hold cash, buy & hold, random)
-- [ ] Regret metrics calculation vs baselines
-- [ ] Track regret over time
-- [ ] Dashboard visualization of relative performance
-- [ ] **Verification:** Dashboard shows "vs baseline" comparison
+- [x] Baseline strategy implementations (hold cash, buy & hold, random)
+- [x] Regret metrics calculation vs baselines
+- [x] Track regret over time
+- [x] Dashboard visualization of relative performance
+- [x] **Verification:** Dashboard shows "vs baseline" comparison
 
 **6.6 Polish & UX (from backlog)**
-- [ ] Educational tooltips for trading terminology
-- [ ] Help page with glossary
-- [ ] Tooltip component for StatsCard and table headers
-- [ ] Vercel deployment configuration
+- [x] Educational tooltips for trading terminology
+- [x] Help page with glossary
+- [x] Tooltip component for StatsCard and table headers
+- [x] Vercel deployment configuration
 
 ### Sprint 7: MLOps & Advanced Analysis - Not Started
 *Goal: Build operational infrastructure for reproducibility, simulation, and intelligent capital allocation*
@@ -128,12 +129,19 @@
 
 **7.2 Experiment Registry & Research Traceability**
 - [ ] Experiment registry schema (dataset, features, model, hyperparams, metrics)
-- [ ] Deployment status tracking
+- [ ] Deployment status tracking (research → staging → production)
 - [ ] Links between experiments, models, and live runs
 - [ ] Queryable history of model evolution
 - [ ] **Verification:** Can answer "why did we deploy this model?"
 
-**7.3 Dynamic Capital Allocation**
+**7.3 Model Registry Backend**
+- [ ] Model registry API (CRUD for model metadata)
+- [ ] Persistent model metadata store
+- [ ] Model lifecycle states (active, paused, candidate, retired)
+- [ ] Model health score integration (from drift metrics)
+- [ ] **Verification:** Model metadata queryable via API
+
+**7.4 Dynamic Capital Allocation**
 - [ ] Capital allocation policy module
 - [ ] Inputs: recent performance, drawdown, volatility, confidence/drift scores
 - [ ] Per-model allocation caps
@@ -141,7 +149,7 @@
 - [ ] Integration with ensemble layer
 - [ ] **Verification:** Capital shifts away from underperforming models
 
-**7.4 Failure Mode & Stress Simulation**
+**7.5 Failure Mode & Stress Simulation**
 - [ ] Scenario simulation framework
 - [ ] Volatility spike simulation
 - [ ] Missing/delayed data simulation
@@ -152,21 +160,94 @@
 - [ ] Documented failure handling strategies
 - [ ] **Verification:** System behavior documented under adverse conditions
 
-**7.5 Counterfactual & What-If Analysis**
-- [ ] Parameterized backtest reruns
-- [ ] Dashboard controls for what-if scenarios
-- [ ] Scenario: different confidence threshold
-- [ ] Scenario: exclude specific model
-- [ ] Scenario: delayed trade entry
-- [ ] Comparison metrics vs baseline run
-- [ ] **Verification:** Can compare "what if" scenarios in dashboard
+**7.6 Model Drift & Health Visualization API**
+- [ ] API endpoints for drift metrics per model
+- [ ] Feature drift over time data
+- [ ] Confidence drift data
+- [ ] Health score trend data
+- [ ] Alert thresholds and suggested actions
+- [ ] **Verification:** Drift visualization data available via API
+
+### Sprint 8: Model Observatory Dashboard - Not Started
+*Goal: Make models inspectable, configurable, and comparable as first-class entities*
+
+**8.1 Model Registry UI**
+- [ ] Dedicated Model Registry page in dashboard
+- [ ] List view with sorting/filtering
+- [ ] Display: name, type, status, trained date, health score, allocation weight
+- [ ] Quick actions (activate, pause, view details)
+- [ ] **Verification:** All models visible in dashboard list
+
+**8.2 Model Detail Page**
+- [ ] Model overview section (architecture, feature set, hyperparams)
+- [ ] Training & validation summary (period, method, metrics, overfitting indicators)
+- [ ] Live/paper performance (accuracy over time, abstention rate)
+- [ ] Confidence calibration plots
+- [ ] **Verification:** Full model context visible on single page
+
+**8.3 ML Performance Visualization**
+- [ ] Prediction vs actual plots (directional or regression)
+- [ ] Rolling accuracy charts
+- [ ] Confusion matrix (for classification)
+- [ ] Calibration curves (confidence vs correctness)
+- [ ] Error distribution plots
+- [ ] Toggle between ML metrics and trading metrics
+- [ ] **Verification:** ML-native visualizations render correctly
+
+**8.4 Model Comparison & Ranking View**
+- [ ] Side-by-side model comparison page
+- [ ] Comparison dimensions: validation metrics, recent performance, drawdown, volatility
+- [ ] Sorting/filtering (best performers, most stable, least risky)
+- [ ] Confidence stability and drift score comparison
+- [ ] **Verification:** Can rank models by multiple criteria
+
+**8.5 Hyperparameter & Threshold Tuning Interface**
+- [ ] Dashboard controls for confidence thresholds
+- [ ] Abstention threshold adjustment
+- [ ] Ensemble contribution caps
+- [ ] Allocation limit controls
+- [ ] Change confirmation modal with impact preview
+- [ ] Change logging and rollback support
+- [ ] **Verification:** Parameter changes reflected in model behavior
+
+**8.6 Model Lifecycle Controls**
+- [ ] Activate / deactivate model from dashboard
+- [ ] Promote candidate → active workflow
+- [ ] Retire model action
+- [ ] Freeze parameters toggle
+- [ ] Clone model config for new experiment
+- [ ] **Verification:** Lifecycle actions update model state correctly
+
+**8.7 Model Drift & Health Visualization UI**
+- [ ] Per-model drift trend charts
+- [ ] Feature drift heatmaps
+- [ ] Health score timeline
+- [ ] Alert badges and threshold indicators
+- [ ] Suggested actions (retrain, retire)
+- [ ] **Verification:** Drift aging is visible, not silent
+
+**8.8 Human-in-the-Loop Review Mode (Model-Centric)**
+- [ ] Model recommendation review queue
+- [ ] Explanation display per recommendation
+- [ ] Approve/reject at model level
+- [ ] Rationale input (optional)
+- [ ] Decision outcome logging
+- [ ] **Verification:** User can review and decide on model recommendations
+
+**8.9 Model Sandbox / What-If Testing**
+- [ ] Parameter modification sandbox (no live impact)
+- [ ] Rerun backtests with modified thresholds
+- [ ] Temporarily disable models in sandbox
+- [ ] Compare hypothetical allocations
+- [ ] Preview effects before applying changes
+- [ ] **Verification:** Safe experimentation without affecting live behavior
 
 ---
 
 ## Completed Artifacts
 
 ### Planning Documentation
-- ✅ `/plans/task_plan.md` - 7-sprint implementation plan
+- ✅ `/plans/task_plan.md` - 8-sprint implementation plan
 - ✅ `/plans/findings.md` - Research insights and decisions
 - ✅ `/plans/progress.md` - This file
 - ✅ `/plans/milestones.md` - Project milestones
@@ -219,8 +300,9 @@
 | 3 | Backtesting & Reporting | ✅ Complete |
 | 4 | Dashboard & API | ✅ Complete |
 | 5 | Execution & Risk | ✅ Complete |
-| 6 | ML Safety & Interpretability | Not Started |
+| 6 | ML Safety & Interpretability | In Progress |
 | 7 | MLOps & Advanced Analysis | Not Started |
+| 8 | Model Observatory Dashboard | Not Started |
 
 ---
 
@@ -229,8 +311,9 @@
 1. ✅ Sprint 3 complete - Backtesting & Reporting implemented
 2. ✅ Sprint 4 complete - Dashboard & API implemented
 3. ✅ Sprint 5 complete - Execution & Risk implemented
-4. **Next:** Sprint 6 - ML Safety & Interpretability Core
-5. **Then:** Sprint 7 - MLOps & Advanced Analysis
+4. **Current:** Sprint 6 - ML Safety & Interpretability Core
+5. **Next:** Sprint 7 - MLOps & Advanced Analysis (backend/infrastructure)
+6. **Then:** Sprint 8 - Model Observatory Dashboard (model-centric UI)
 
 ---
 

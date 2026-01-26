@@ -4,13 +4,14 @@ A modular quantitative ML trading platform for stocks and options with risk mana
 
 ## Project Status
 
-**Current Phase:** Implementation - Sprint 5 ✅ COMPLETE
+**Current Phase:** Implementation - Sprint 6 ✅ COMPLETE
 
 **Sprint 1:** ✅ Complete (Infrastructure & Data)  
 **Sprint 2:** ✅ Complete (Feature Pipeline & Strategy Core)  
 **Sprint 3:** ✅ Complete (Backtesting & Reporting)  
 **Sprint 4:** ✅ Complete (Dashboard & API)  
-**Sprint 5:** ✅ Complete (Execution & Risk)
+**Sprint 5:** ✅ Complete (Execution & Risk)  
+**Sprint 6:** ✅ Complete (ML Safety & Interpretability)
 
 ## Architecture
 
@@ -134,6 +135,7 @@ quant/
 │   ├── api/                # ✅ FastAPI backend (Sprint 4)
 │   ├── execution/          # ✅ Trade execution (Sprint 5)
 │   ├── risk/               # ✅ Risk management (Sprint 5)
+│   ├── ml/                 # ✅ ML Safety & Interpretability (Sprint 6)
 │   └── monitoring/         # Metrics & alerts (planned)
 ├── packages/
 │   ├── common/             # ✅ Shared schemas & utilities
@@ -163,6 +165,7 @@ quant/
 - **Sprint 3:** [`plans/SPRINT3_SUMMARY.md`](plans/SPRINT3_SUMMARY.md) - Backtesting & Reporting
 - **Sprint 4:** [`plans/SPRINT4_SUMMARY.md`](plans/SPRINT4_SUMMARY.md) - Dashboard & API
 - **Sprint 5:** [`plans/SPRINT5_SUMMARY.md`](plans/SPRINT5_SUMMARY.md) - Execution & Risk
+- **Sprint 6:** [`plans/SPRINT6_SUMMARY.md`](plans/SPRINT6_SUMMARY.md) - ML Safety & Interpretability
 
 ### Multi-Agent Workflow
 - **Workflow Guide:** [`docs/workflow/WORKFLOW.md`](docs/workflow/WORKFLOW.md) - Multi-agent development protocol
@@ -233,6 +236,18 @@ See [`plans/task_plan.md`](plans/task_plan.md) for the full implementation plan.
 - [x] Order and controls API endpoints
 - [x] Execution schemas (`packages/common/execution_schemas.py`)
 - [x] 114 tests (76 unit + 38 integration)
+
+**Sprint 6:** ✅ ML Safety & Interpretability (Complete)
+- [x] Drift detection (PSI, KL divergence, mean shift, health score)
+- [x] Confidence gating with ABSTAIN signal support
+- [x] SHAP explainability for tree-based models
+- [x] Human-in-the-loop approval queue
+- [x] Baseline strategies (hold cash, buy & hold, random)
+- [x] Regret metrics vs baselines
+- [x] Educational tooltips and help page
+- [x] Vercel deployment configuration
+- [x] ML schemas (`packages/common/ml_schemas.py`)
+- [x] 70+ tests (unit + integration)
 
 ## Security Notice
 

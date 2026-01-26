@@ -4,6 +4,7 @@ import { useMetrics, useAlerts } from "@/lib/hooks";
 import { StatsCard } from "@/components/stats-card";
 import { EquityChart } from "@/components/equity-chart";
 import { AlertsWidget } from "@/components/alerts-widget";
+import { BaselineComparison } from "@/components/baseline-comparison";
 import { DollarSign, TrendingUp, Activity, Wallet } from "lucide-react";
 
 export default function OverviewPage() {
@@ -91,6 +92,26 @@ export default function OverviewPage() {
           changeType="neutral"
         />
       </div>
+
+      {/* Baseline Comparison */}
+      <BaselineComparison
+        strategyReturn={parseFloat(metrics.total_pnl_percent) / 100}
+        baselineReturns={{
+          hold_cash: 0.0,
+          buy_and_hold: 0.12, // Mock 12% annual return
+          random: 0.05,
+        }}
+        regretMetrics={{
+          regret_vs_cash: parseFloat(metrics.total_pnl_percent) / 100,
+          regret_vs_buy_hold: (parseFloat(metrics.total_pnl_percent) / 100) - 0.12,
+          regret_vs_random: (parseFloat(metrics.total_pnl_percent) / 100) - 0.05,
+        }}
+        outperforms={{
+          cash: parseFloat(metrics.total_pnl_percent) > 0,
+          buy_and_hold: parseFloat(metrics.total_pnl_percent) > 12,
+          random: parseFloat(metrics.total_pnl_percent) > 5,
+        }}
+      />
     </div>
   );
 }

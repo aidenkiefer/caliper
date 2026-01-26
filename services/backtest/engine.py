@@ -29,6 +29,7 @@ from .models import (
     Trade,
     EquityPoint,
 )
+from .abstention import AbstentionTracker
 
 
 class BacktestEngine:
@@ -49,6 +50,7 @@ class BacktestEngine:
         self.equity_curve: List[EquityPoint] = []
         self.completed_trades: List[Trade] = []
         self.pending_orders: List[Order] = []
+        self.abstention_tracker = AbstentionTracker()
     
     def run(
         self,
@@ -82,6 +84,16 @@ class BacktestEngine:
         end_time = datetime.now(timezone.utc)
         metrics = self._calculate_metrics(config.initial_capital)
         
+        # Add abstention metrics to metadata
+        abstention_metrics = self.abstention_tracker.get_metrics()
+        metadata = {
+            "abstention_metrics": {
+                "total_signals": abstention_metrics.total_signals,
+                "abstentions": abstention_metrics.abstentions,
+                "abstention_rate": str(abstention_metrics.abstention_rate),
+            }
+        }
+        
         return BacktestResult(
             strategy_id=strategy.strategy_id,
             config=config,
@@ -90,6 +102,7 @@ class BacktestEngine:
             metrics=metrics,
             start_time=start_time,
             end_time=end_time,
+            metadata=metadata,
         )
     
     def _reset_state(self, initial_capital: Decimal) -> None:
@@ -105,6 +118,7 @@ class BacktestEngine:
         ]
         self.completed_trades = []
         self.pending_orders = []
+        self.abstention_tracker = AbstentionTracker()
     
     def _filter_data_by_dates(
         self,
@@ -134,7 +148,17 @@ class BacktestEngine:
         
         portfolio = self._get_portfolio_state(bar)
         signals = strategy.generate_signals(portfolio)
-        orders = strategy.risk_check(signals, portfolio)
+        
+        # Track abstentions
+        for signal in signals:
+            if signal.side == "ABSTAIN":
+                self.abstention_tracker.record_signal("ABSTAIN")
+            else:
+                self.abstention_tracker.record_signal(signal.side)
+        
+        # Filter out ABSTAIN signals before risk check
+        actionable_signals = [s for s in signals if s.side != "ABSTAIN"]
+        orders = strategy.risk_check(actionable_signals, portfolio)
         
         for order in orders:
             try:

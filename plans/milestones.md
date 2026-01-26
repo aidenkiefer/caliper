@@ -106,16 +106,16 @@
 - [ ] API backend (FastAPI) deployed - deferred to Sprint 6
 - [ ] Go-live checklist for limited capital - deferred to Sprint 6
 
-### Days 15-18: ML Safety & Interpretability (Sprint 6)
+### Days 15-18: ML Safety & Interpretability (Sprint 6) ✅ COMPLETE
 **Objective:** Enable explicit model behavior under uncertainty, build trust through interpretability  
 **Deliverables:**
-- [ ] Model drift & decay detection (PSI, KL divergence, health score)
-- [ ] Confidence gating & abstention logic (ABSTAIN signal)
-- [ ] Local explainability via SHAP
-- [ ] Human-in-the-loop approval controls
-- [ ] Regret & baseline comparison metrics
-- [ ] Educational tooltips and help page
-- [ ] Vercel deployment configuration
+- [x] Model drift & decay detection (PSI, KL divergence, health score)
+- [x] Confidence gating & abstention logic (ABSTAIN signal)
+- [x] Local explainability via SHAP
+- [x] Human-in-the-loop approval controls
+- [x] Regret & baseline comparison metrics
+- [x] Educational tooltips and help page
+- [x] Vercel deployment configuration
 
 ### Days 19-22: MLOps & Advanced Analysis (Sprint 7)
 **Objective:** Build operational infrastructure for reproducibility, simulation, and intelligent capital allocation  

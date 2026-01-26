@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsCard } from "@/components/stats-card";
+import { ExplanationCard } from "@/components/explanation-card";
+import { FeatureImportanceChart } from "@/components/feature-importance-chart";
 import { ArrowLeft, Play, Pause, Settings } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -129,6 +131,7 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="positions">Positions</TabsTrigger>
+          <TabsTrigger value="explanations">Explanations</TabsTrigger>
           <TabsTrigger value="config">Configuration</TabsTrigger>
           <TabsTrigger value="logs">Logs</TabsTrigger>
         </TabsList>
@@ -215,6 +218,65 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
               <p className="text-muted-foreground text-center py-8">
                 No open positions for this strategy
               </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="explanations" className="space-y-4">
+          {/* Mock explanation data - in production, fetch from API */}
+          <ExplanationCard
+            tradeId="trade-123"
+            signal="BUY"
+            confidence={0.82}
+            topFeatures={[
+              {
+                feature_name: "RSI_14",
+                value: 35.2,
+                contribution: 0.15,
+                direction: "positive",
+              },
+              {
+                feature_name: "MACD",
+                value: 2.5,
+                contribution: 0.12,
+                direction: "positive",
+              },
+              {
+                feature_name: "Volume_SMA_20",
+                value: 1.2,
+                contribution: -0.08,
+                direction: "negative",
+              },
+            ]}
+            baseValue={0.65}
+          />
+          <Card>
+            <CardHeader>
+              <CardTitle>Feature Importance</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <FeatureImportanceChart
+                features={[
+                  {
+                    feature_name: "RSI_14",
+                    contribution: 0.15,
+                    direction: "positive",
+                    value: 35.2,
+                  },
+                  {
+                    feature_name: "MACD",
+                    contribution: 0.12,
+                    direction: "positive",
+                    value: 2.5,
+                  },
+                  {
+                    feature_name: "Volume_SMA_20",
+                    contribution: -0.08,
+                    direction: "negative",
+                    value: 1.2,
+                  },
+                ]}
+              />
             </CardContent>
           </Card>
         </TabsContent>

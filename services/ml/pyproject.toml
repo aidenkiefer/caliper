@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "ml-safety-service"
+version = "0.1.0"
+description = "ML Safety & Interpretability services for drift detection, explainability, and confidence gating"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pandas = "^2.1.4"
+numpy = "^1.26.3"
+pydantic = "^2.5.0"
+scipy = "^1.12.0"
+scikit-learn = "^1.4.0"
+shap = "^0.44.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.4"
+pytest-asyncio = "^0.21.1"
