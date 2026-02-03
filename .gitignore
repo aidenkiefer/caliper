@@ -54,7 +54,6 @@ Thumbs.db
 
 # Data / artifacts
 data/
-models/
 logs/
 *.db
 *.sqlite
