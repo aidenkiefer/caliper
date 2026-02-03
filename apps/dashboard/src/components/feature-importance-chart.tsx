@@ -41,8 +41,8 @@ export function FeatureImportanceChart({
   }));
   
   return (
-    <div className="w-full h-[400px]">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-[400px] min-h-[200px]">
+      <ResponsiveContainer width="100%" height="100%" minHeight={200}>
         <BarChart
           data={chartData}
           layout="vertical"

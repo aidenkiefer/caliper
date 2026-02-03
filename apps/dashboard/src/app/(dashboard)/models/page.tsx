@@ -69,7 +69,7 @@ export default function ModelsPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as ModelStatus | 'all')}
-              className="px-3 py-2 border rounded"
+              className="px-3 py-2 border border-input rounded-md bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
             >
               <option value="all">All</option>
               <option value="active">Active</option>
@@ -83,7 +83,7 @@ export default function ModelsPage() {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value as ModelType | 'all')}
-              className="px-3 py-2 border rounded"
+              className="px-3 py-2 border border-input rounded-md bg-muted text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
             >
               <option value="all">All</option>
               <option value="logistic">Logistic</option>

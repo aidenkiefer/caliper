@@ -7,7 +7,6 @@
 
 'use client';
 
-import { use } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { modelsAPI, performanceAPI, driftAPI } from '@/lib/api/models';
@@ -17,8 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings, AlertTriangle, Play, Pause, Archive } from 'lucide-react';
 
-export default function ModelDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
+export default function ModelDetailPage({ params }: { params: { id: string } }) {
+  const { id } = params;
 
   const { data: model, error: modelError } = useSWR(`model-${id}`, () => modelsAPI.get(id));
   const { data: performance } = useSWR(`perf-${id}`, () => performanceAPI.get(id, 30));

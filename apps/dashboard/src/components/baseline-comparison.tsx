@@ -68,8 +68,8 @@ export function BaselineComparison({
       <CardContent>
         <div className="space-y-6">
           {/* Chart */}
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[300px] min-h-[200px] w-full">
+            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />

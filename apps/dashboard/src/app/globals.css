@@ -69,6 +69,14 @@
 }
 
 @layer components {
+  /* Native select: dark background + light text for contrast in dark mode */
+  select {
+    @apply bg-muted text-foreground;
+  }
+  select option {
+    @apply bg-muted text-foreground;
+  }
+
   /* Trading data typography - monospace for financial numbers */
   .font-tabular {
     font-variant-numeric: tabular-nums;

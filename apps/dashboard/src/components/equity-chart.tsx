@@ -65,8 +65,8 @@ export function EquityChart({ data, title = "Equity Curve" }: EquityChartProps) 
         </Tabs>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[300px] w-full min-h-[200px]">
+          <ResponsiveContainer width="100%" height="100%" minHeight={200}>
             <LineChart data={chartData}>
               <CartesianGrid
                 strokeDasharray="3 3"
