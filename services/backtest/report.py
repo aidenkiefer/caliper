@@ -16,82 +16,86 @@ from .models import BacktestResult
 
 class ReportGenerator:
     """Generate reports from backtest results."""
-    
+
     def generate_json(self, result: BacktestResult) -> Dict[str, Any]:
         """
         Generate JSON report (machine-readable).
-        
+
         Args:
             result: Backtest result to generate report from
-            
+
         Returns:
             Dictionary with all backtest data
         """
         return {
-            'backtest_id': str(result.backtest_id),
-            'strategy_id': result.strategy_id,
-            'start_time': result.start_time.isoformat(),
-            'end_time': result.end_time.isoformat(),
-            'config': {
-                'initial_capital': str(result.config.initial_capital),
-                'commission_per_trade': str(result.config.commission_per_trade),
-                'slippage_bps': str(result.config.slippage_bps),
+            "backtest_id": str(result.backtest_id),
+            "strategy_id": result.strategy_id,
+            "start_time": result.start_time.isoformat(),
+            "end_time": result.end_time.isoformat(),
+            "config": {
+                "initial_capital": str(result.config.initial_capital),
+                "commission_per_trade": str(result.config.commission_per_trade),
+                "slippage_bps": str(result.config.slippage_bps),
             },
-            'metrics': {
-                'total_return': str(result.metrics.total_return),
-                'total_return_pct': str(result.metrics.total_return_pct),
-                'sharpe_ratio': str(result.metrics.sharpe_ratio) if result.metrics.sharpe_ratio else None,
-                'max_drawdown': str(result.metrics.max_drawdown),
-                'max_drawdown_pct': str(result.metrics.max_drawdown_pct),
-                'win_rate': str(result.metrics.win_rate),
-                'total_trades': result.metrics.total_trades,
-                'winning_trades': result.metrics.winning_trades,
-                'losing_trades': result.metrics.losing_trades,
-                'avg_win': str(result.metrics.avg_win) if result.metrics.avg_win else None,
-                'avg_loss': str(result.metrics.avg_loss) if result.metrics.avg_loss else None,
-                'profit_factor': str(result.metrics.profit_factor) if result.metrics.profit_factor else None,
+            "metrics": {
+                "total_return": str(result.metrics.total_return),
+                "total_return_pct": str(result.metrics.total_return_pct),
+                "sharpe_ratio": str(result.metrics.sharpe_ratio)
+                if result.metrics.sharpe_ratio
+                else None,
+                "max_drawdown": str(result.metrics.max_drawdown),
+                "max_drawdown_pct": str(result.metrics.max_drawdown_pct),
+                "win_rate": str(result.metrics.win_rate),
+                "total_trades": result.metrics.total_trades,
+                "winning_trades": result.metrics.winning_trades,
+                "losing_trades": result.metrics.losing_trades,
+                "avg_win": str(result.metrics.avg_win) if result.metrics.avg_win else None,
+                "avg_loss": str(result.metrics.avg_loss) if result.metrics.avg_loss else None,
+                "profit_factor": str(result.metrics.profit_factor)
+                if result.metrics.profit_factor
+                else None,
             },
-            'trades': [
+            "trades": [
                 {
-                    'trade_id': str(trade.trade_id),
-                    'symbol': trade.symbol,
-                    'entry_time': trade.entry_time.isoformat(),
-                    'exit_time': trade.exit_time.isoformat(),
-                    'entry_price': str(trade.entry_price),
-                    'exit_price': str(trade.exit_price),
-                    'quantity': str(trade.quantity),
-                    'commission': str(trade.commission),
-                    'pnl': str(trade.pnl),
-                    'return_pct': str(trade.return_pct),
+                    "trade_id": str(trade.trade_id),
+                    "symbol": trade.symbol,
+                    "entry_time": trade.entry_time.isoformat(),
+                    "exit_time": trade.exit_time.isoformat(),
+                    "entry_price": str(trade.entry_price),
+                    "exit_price": str(trade.exit_price),
+                    "quantity": str(trade.quantity),
+                    "commission": str(trade.commission),
+                    "pnl": str(trade.pnl),
+                    "return_pct": str(trade.return_pct),
                 }
                 for trade in result.trades
             ],
-            'equity_curve': [
+            "equity_curve": [
                 {
-                    'timestamp': point.timestamp.isoformat(),
-                    'equity': str(point.equity),
-                    'cash': str(point.cash),
-                    'unrealized_pnl': str(point.unrealized_pnl),
+                    "timestamp": point.timestamp.isoformat(),
+                    "equity": str(point.equity),
+                    "cash": str(point.cash),
+                    "unrealized_pnl": str(point.unrealized_pnl),
                 }
                 for point in result.equity_curve
             ],
-            'metadata': result.metadata,
+            "metadata": result.metadata,
         }
-    
+
     def generate_html(self, result: BacktestResult) -> str:
         """
         Generate HTML report (human-readable with charts).
-        
+
         Args:
             result: Backtest result to generate report from
-            
+
         Returns:
             HTML string with embedded charts
         """
         equity_chart = self._create_equity_chart(result)
         trades_table = self._create_trades_table(result)
         metrics_summary = self._create_metrics_summary(result)
-        
+
         html = f"""
 <!DOCTYPE html>
 <html>
@@ -196,40 +200,43 @@ class ReportGenerator:
 </html>
 """
         return html
-    
+
     def _create_equity_chart(self, result: BacktestResult) -> str:
         """Create Plotly equity curve chart."""
         timestamps = [point.timestamp for point in result.equity_curve]
         equity_values = [float(point.equity) for point in result.equity_curve]
-        
+
         fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=timestamps,
-            y=equity_values,
-            mode='lines',
-            name='Equity',
-            line=dict(color='#3498db', width=2)
-        ))
-        
+        fig.add_trace(
+            go.Scatter(
+                x=timestamps,
+                y=equity_values,
+                mode="lines",
+                name="Equity",
+                line=dict(color="#3498db", width=2),
+            )
+        )
+
         fig.update_layout(
-            title='Equity Curve',
-            xaxis_title='Date',
-            yaxis_title='Equity ($)',
-            hovermode='x unified',
+            title="Equity Curve",
+            xaxis_title="Date",
+            yaxis_title="Equity ($)",
+            hovermode="x unified",
             height=400,
         )
-        
+
         return f"Plotly.newPlot('equity-chart', {fig.to_json()});"
-    
+
     def _create_trades_table(self, result: BacktestResult) -> str:
         """Create HTML table of trades."""
         if not result.trades:
             return "<p>No trades executed during this backtest.</p>"
-        
+
         rows = []
         for trade in result.trades:
             pnl_class = "positive" if trade.pnl > 0 else "negative"
-            rows.append(f"""
+            rows.append(
+                f"""
                 <tr>
                     <td>{trade.symbol}</td>
                     <td>{trade.entry_time.strftime('%Y-%m-%d %H:%M')}</td>
@@ -240,8 +247,9 @@ class ReportGenerator:
                     <td class="{pnl_class}">${float(trade.pnl):.2f}</td>
                     <td class="{pnl_class}">{float(trade.return_pct):.2f}%</td>
                 </tr>
-            """)
-        
+            """
+            )
+
         return f"""
         <table>
             <thead>
@@ -261,12 +269,14 @@ class ReportGenerator:
             </tbody>
         </table>
         """
-    
+
     def _create_metrics_summary(self, result: BacktestResult) -> str:
         """Create HTML summary of performance metrics."""
         metrics = result.metrics
-        
-        def format_metric(label: str, value: Any, is_percent: bool = False, is_positive: bool = False) -> str:
+
+        def format_metric(
+            label: str, value: Any, is_percent: bool = False, is_positive: bool = False
+        ) -> str:
             """Format a single metric card."""
             if value is None:
                 value_str = "N/A"
@@ -274,18 +284,18 @@ class ReportGenerator:
                 value_str = f"{float(value):.2f}%"
             else:
                 value_str = f"{float(value):.2f}"
-            
+
             value_class = ""
             if is_positive and value is not None:
                 value_class = "positive" if float(value) > 0 else "negative"
-            
+
             return f"""
                 <div class="metric-card">
                     <div class="metric-label">{label}</div>
                     <div class="metric-value {value_class}">{value_str}</div>
                 </div>
             """
-        
+
         return f"""
         <div class="metrics-grid">
             {format_metric('Total Return', metrics.total_return_pct, is_percent=True, is_positive=True)}

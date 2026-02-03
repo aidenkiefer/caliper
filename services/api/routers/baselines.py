@@ -26,7 +26,7 @@ async def get_baseline_comparison(
 ) -> BaselineComparisonResponse:
     """
     Get baseline comparison for a specific strategy.
-    
+
     Returns:
     - Strategy return
     - Baseline returns (cash, buy & hold, random)
@@ -38,7 +38,7 @@ async def get_baseline_comparison(
             status_code=404,
             detail=f"Baseline comparison not found for strategy {strategy_id}",
         )
-    
+
     comparison = _baseline_comparisons[strategy_id]
-    
+
     return BaselineComparisonResponse(**comparison)

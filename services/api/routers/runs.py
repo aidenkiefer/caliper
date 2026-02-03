@@ -144,19 +144,19 @@ async def list_runs(
 ) -> RunListResponse:
     """
     List all strategy runs.
-    
+
     Args:
         strategy_id: Optional filter by strategy
         run_type: Optional filter by run type
         status: Optional filter by status
         page: Page number (1-based)
         per_page: Items per page (max 100)
-    
+
     Returns:
         Paginated list of runs
     """
     runs = []
-    
+
     for r in MOCK_RUNS.values():
         # Apply filters
         if strategy_id and r["strategy_id"] != strategy_id:
@@ -165,7 +165,7 @@ async def list_runs(
             continue
         if status and r["status"].value != status:
             continue
-        
+
         runs.append(
             RunListItem(
                 run_id=r["run_id"],
@@ -183,13 +183,13 @@ async def list_runs(
                 completed_at=r["completed_at"],
             )
         )
-    
+
     # Simple pagination
     total = len(runs)
     start = (page - 1) * per_page
     end = start + per_page
     paginated_runs = runs[start:end]
-    
+
     return RunListResponse(
         data=paginated_runs,
         meta=RunListMeta(
@@ -209,21 +209,21 @@ async def list_runs(
 async def get_run(run_id: str) -> RunDetailResponse:
     """
     Get details for a specific run.
-    
+
     Args:
         run_id: Run identifier
-    
+
     Returns:
         Run details including metrics, equity curve, and trades
-    
+
     Raises:
         HTTPException: 404 if run not found
     """
     if run_id not in MOCK_RUNS:
         raise HTTPException(status_code=404, detail=f"Run '{run_id}' not found")
-    
+
     r = MOCK_RUNS[run_id]
-    
+
     trades = [
         RunTrade(
             trade_id=t["trade_id"],
@@ -238,12 +238,9 @@ async def get_run(run_id: str) -> RunDetailResponse:
         )
         for t in r["trades"]
     ]
-    
-    equity_curve = [
-        EquityCurvePoint(date=p["date"], value=p["value"])
-        for p in r["equity_curve"]
-    ]
-    
+
+    equity_curve = [EquityCurvePoint(date=p["date"], value=p["value"]) for p in r["equity_curve"]]
+
     return RunDetailResponse(
         data=RunDetailData(
             run_id=r["run_id"],
@@ -275,19 +272,19 @@ async def get_run(run_id: str) -> RunDetailResponse:
 async def create_run(request: RunCreateRequest) -> RunCreateResponse:
     """
     Create a new backtest run.
-    
+
     Args:
         request: Run configuration including strategy, dates, and capital
-    
+
     Returns:
         New run ID and status (202 Accepted - async operation)
     """
     # TODO: Wire to actual backtest engine
     # For now, create a mock run
-    
+
     run_id = f"run-{uuid4().hex[:8]}"
     estimated_completion = datetime.now(timezone.utc) + timedelta(minutes=15)
-    
+
     return RunCreateResponse(
         message="Backtest started",
         data=RunCreateData(

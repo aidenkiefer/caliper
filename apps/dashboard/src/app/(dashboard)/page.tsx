@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useMetrics, useAlerts } from "@/lib/hooks";
 import { StatsCard } from "@/components/stats-card";
 import { EquityChart } from "@/components/equity-chart";
 import { AlertsWidget } from "@/components/alerts-widget";
 import { BaselineComparison } from "@/components/baseline-comparison";
-import { DollarSign, TrendingUp, Activity, Wallet } from "lucide-react";
+import { DollarSign, TrendingUp, Activity, Wallet, Brain, ArrowRight } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function OverviewPage() {
   const { metrics } = useMetrics();
@@ -92,6 +95,27 @@ export default function OverviewPage() {
           changeType="neutral"
         />
       </div>
+
+      {/* Model Observatory (Sprint 9) */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Brain className="h-5 w-5" />
+            Model Observatory
+          </CardTitle>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/models" className="flex items-center gap-1">
+              View models
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            View and manage ML models: registry, performance, drift, health, and lifecycle controls.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Baseline Comparison */}
       <BaselineComparison

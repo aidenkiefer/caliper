@@ -207,58 +207,205 @@ This section guides the Cursor Agents for the build phase.
    - [x] Vercel deployment configuration.
    - [x] **Verification:** Non-technical user can understand all metrics.
 
-### Sprint 7: MLOps & Advanced Analysis (Days 19-22)
-*Goal: Build operational infrastructure for reproducibility, simulation, and intelligent capital allocation.*
+### Skills to Use for the upcoming Sprints
+### ML & experimentation
 
-1. **Feature Registry & Lineage Tracking:**
-   - [ ] Feature registry schema (name, definition, window/params, source, version).
-   - [ ] Database table or metadata store implementation.
-   - [ ] Feature versioning support.
-   - [ ] Link features → models → experiments.
-   - [ ] **Verification:** Feature used in model traceable to definition.
+1. **ml-pipeline-builder**
+2. **feature-engineering**
+3. **time-series-ml**
+4. **ensemble-modeling**
+5. **model-evaluation**
+6. **experiment-tracking**
 
-2. **Experiment Registry & Research Traceability:**
-   - [ ] Experiment registry schema (dataset version, feature set, model type, hyperparams, metrics).
-   - [ ] Deployment status tracking (research → staging → production).
-   - [ ] Links between experiments, models, and live runs.
-   - [ ] Queryable history of model evolution.
-   - [ ] **Verification:** Can answer "why did we deploy this model?"
+---
 
-3. **Model Registry Backend:**
-   - [ ] Model registry API (CRUD for model metadata).
-   - [ ] Persistent model metadata store.
-   - [ ] Model lifecycle states (active, paused, candidate, retired).
-   - [ ] Model health score integration (from drift metrics).
-   - [ ] **Verification:** Model metadata queryable via API.
+### Safety, correctness, robustness
 
-4. **Dynamic Capital Allocation:**
-   - [ ] Capital allocation policy module.
-   - [ ] Inputs: recent performance, drawdown, volatility, confidence/drift scores.
-   - [ ] Per-model allocation caps.
-   - [ ] Integration with ensemble layer.
-   - [ ] Logged allocation decisions for auditability.
-   - [ ] **Verification:** Capital shifts away from underperforming models.
+7. **data-leakage-detector**
+8. **risk-control-logic**
+9. **abstention-logic**
+10. **anomaly-detection**
+
+---
+
+### Backend & infra
+
+11. **backend-service-architect**
+12. **async-systems**
+13. **database-schema-designer**
+14. **caching-strategy**
+15. **config-management**
+
+---
+
+### Observability & UX
+
+16. **model-observability**
+17. **explainability-ui**
+18. **dashboard-architect**
+
+---
+
+### Dev velocity & quality
+
+19. **refactor-engine**
+20. **documentation-generator**
+
+
+### Sprint 7: First ML Model (End-to-End Loop) (Days 19–22)
+Goal: Introduce exactly one real ML model into the system and run it end-to-end with correct training, validation, inference, and execution semantics.
+
+This sprint is about correctness, clarity, and learning — not performance or UI polish.
+
+1. **ML Problem Definition**
+   - Define target variable (e.g. probability of positive return over next N bars).
+   - Define prediction horizon.
+   - Define label construction logic.
+   - Define evaluation metrics (classification or regression).
+   - Document assumptions and failure modes.
+   - Verification: Model target and metrics clearly documented.
+
+2. **Training & Validation Pipeline**
+   - Implement offline training script.
+   - Time-aware train/validation split (walk-forward or sliding window).
+   - Prevent data leakage explicitly.
+   - Log training and validation metrics.
+   - Verification: Training run reproducible and metrics logged.
+
+3. **Model Interface & Contract**
+   - Standardized model input schema.
+   - Standardized output schema:
+     - prediction
+     - confidence
+     - abstain signal
+   - Explicit confidence semantics.
+   - Verification: Execution layer can consume model output unambiguously.
+
+4. **Inference Integration**
+   - Run model inference in the live/paper pipeline.
+   - Integrate with existing risk and execution layers.
+   - Log predictions, confidence, and decisions.
+   - Verification: Model predictions flow through full system.
+
+5. **Text-Based Explainability (Initial)**
+   - Simple explanation payload (features used, confidence, rationale).
+   - Stored alongside predictions.
+   - No SHAP yet.
+   - Verification: Each prediction has a human-readable explanation.
+
+Sprint 7 Success Criteria:
+- Exactly one ML model runs end-to-end.
+- Model behavior is understandable and inspectable.
+- No silent failures or hidden assumptions.
+
+**Actionable implementation:**
+
+1. **ML Problem Definition:**
+   - [ ] Define target variable (e.g. probability of positive return over next N bars).
+   - [ ] Define prediction horizon and label construction logic.
+   - [ ] Define evaluation metrics (classification or regression).
+   - [ ] Document assumptions and failure modes.
+   - [ ] **Verification:** Model target and metrics clearly documented.
+
+2. **Training & Validation Pipeline:**
+   - [ ] Implement offline training script.
+   - [ ] Time-aware train/validation split (walk-forward or sliding window).
+   - [ ] Explicit data leakage prevention (e.g. no future data in features).
+   - [ ] Log training and validation metrics.
+   - [ ] **Verification:** Training run reproducible and metrics logged.
+
+3. **Model Interface & Contract:**
+   - [ ] Standardized model input schema (features, symbol, timestamp).
+   - [ ] Standardized output schema: prediction, confidence, abstain signal.
+   - [ ] Explicit confidence semantics (e.g. 0–1, when to ABSTAIN).
+   - [ ] **Verification:** Execution layer can consume model output unambiguously.
+
+4. **Inference Integration:**
+   - [ ] Run model inference in the live/paper pipeline (strategy or dedicated service).
+   - [ ] Integrate model output with existing risk and execution layers.
+   - [ ] Log predictions, confidence, and decisions (e.g. to DB or structured logs).
+   - [ ] **Verification:** Model predictions flow through full system (data → model → signal → risk → order).
+
+5. **Text-Based Explainability (Initial):**
+   - [ ] Simple explanation payload (features used, confidence, short rationale).
+   - [ ] Store explanations alongside predictions/trades.
+   - [ ] **Verification:** Each prediction has a human-readable explanation (no SHAP required yet).
+
+
+### Sprint 8: ML Observability, Safety & Evaluation (Days 23–26)
+Goal: Make the first ML model observable, debuggable, and safe before scaling to multiple models.
+
+1. **Model Performance Tracking**
+   - Prediction vs outcome logging.
+   - Rolling accuracy / error metrics.
+   - Abstention rate tracking.
+   - Verification: Performance queryable over time.
+
+2. **Baseline & Regret Metrics**
+   - Implement simple baselines (do nothing, buy & hold, random).
+   - Compute regret relative to baselines.
+   - Verification: Model performance contextualized.
+
+3. **Confidence & Drift Monitoring**
+   - Feature distribution drift.
+   - Confidence drift.
+   - Error drift once ground truth is available.
+   - Health score derived from drift signals.
+   - Verification: Drift metrics stored and queryable.
+
+4. **Explainability (Advanced)**
+   - SHAP for supported models.
+   - Permutation importance fallback.
+   - Store explanations per prediction.
+   - Verification: Explanation available for each recommendation.
+
+5. **Failure Mode & Stress Simulation**
+   - Missing data simulation.
+   - Volatility spike simulation.
+   - API outage simulation.
+   - Document system behavior under stress.
+   - Verification: Failure modes are understood and documented.
+
+Sprint 8 Success Criteria:
+- Model failures are visible, not silent.
+- Performance is contextualized, not absolute.
+- System behavior under stress is understood.
+
+**Actionable implementation:**
+
+1. **Model Performance Tracking:**
+   - [ ] Log prediction vs outcome (direction or return) when ground truth is available.
+   - [ ] Compute rolling accuracy / error metrics (e.g. over last N days).
+   - [ ] Track abstention rate over time.
+   - [ ] Expose performance metrics via API or DB for dashboard.
+   - [ ] **Verification:** Performance queryable per model over time.
+
+2. **Baseline & Regret Metrics:**
+   - [ ] Wire existing baselines (hold cash, buy & hold, random) to model strategy comparison.
+   - [ ] Compute regret (strategy vs baselines) for the live model.
+   - [ ] Store and expose regret metrics (e.g. API or dashboard feed).
+   - [ ] **Verification:** Model performance contextualized vs baselines.
+
+3. **Confidence & Drift Monitoring:**
+   - [ ] Feed current feature (and confidence) distributions into existing drift detector.
+   - [ ] Store reference (training) distributions for comparison.
+   - [ ] Compute and store health score from drift signals.
+   - [ ] Expose drift metrics and health via API (e.g. per model, per feature).
+   - [ ] **Verification:** Drift metrics stored and queryable per model.
+
+4. **Explainability (Advanced):**
+   - [ ] Integrate SHAP (or permutation importance) for the deployed model’s predictions.
+   - [ ] Store explanation payload per prediction/recommendation.
+   - [ ] **Verification:** Explanation available for each recommendation (e.g. via API or trade record).
 
 5. **Failure Mode & Stress Simulation:**
-   - [ ] Scenario simulation framework.
-   - [ ] Volatility spike simulation.
-   - [ ] Missing/delayed data simulation.
-   - [ ] Poor fills / increased slippage simulation.
-   - [ ] API outage simulation.
-   - [ ] Partial execution failure simulation.
-   - [ ] Stress-test reports.
-   - [ ] Documented failure handling strategies.
-   - [ ] **Verification:** System behavior documented under adverse conditions.
+   - [ ] Implement or script: missing data simulation (e.g. drop bars, NaN features).
+   - [ ] Implement or script: volatility spike simulation (e.g. scaled returns).
+   - [ ] Implement or script: API outage simulation (e.g. broker unavailable).
+   - [ ] Document system behavior under each scenario (no trade, abstain, fallback, etc.).
+   - [ ] **Verification:** Failure modes are understood and documented (runbook or ADR).
 
-6. **Model Drift & Health Visualization API:**
-   - [ ] API endpoints for drift metrics per model.
-   - [ ] Feature drift over time data.
-   - [ ] Confidence drift data.
-   - [ ] Health score trend data.
-   - [ ] Alert thresholds and suggested actions.
-   - [ ] **Verification:** Drift visualization data available via API.
-
-### Sprint 8: Model Observatory Dashboard (Days 23-27)
+### Sprint 9: Model Observatory Dashboard (Days 27–31)
 *Goal: Make models inspectable, configurable, and comparable as first-class entities in the dashboard.*
 
 1. **Model Registry UI:**
@@ -341,9 +488,10 @@ This section guides the Cursor Agents for the build phase.
 | 3 | Backtesting & Reporting | 7-9 | ✅ Complete |
 | 4 | Dashboard & API | 10-12 | ✅ Complete |
 | 5 | Execution & Risk | 13-14 | ✅ Complete |
-| 6 | ML Safety & Interpretability | 15-18 | In Progress |
-| 7 | MLOps & Advanced Analysis | 19-22 | Not Started |
-| 8 | Model Observatory Dashboard | 23-27 | Not Started |
+| 6 | ML Safety & Interpretability | 15-18 | ✅ Complete |
+| 7 | First ML Model (End-to-End Loop) | 19-22 | Not Started |
+| 8 | ML Observability, Safety & Evaluation | 23-26 | Not Started |
+| 9 | Model Observatory Dashboard | 27-31 | Not Started |
 
 ## Success Criteria
 - ✅ All `/docs` files exist and are internally consistent
@@ -357,14 +505,17 @@ This section guides the Cursor Agents for the build phase.
 - [ ] Human-in-the-loop approval works for cautious deployment
 - [ ] Performance compared to baselines (regret metrics)
 
-### Sprint 7 Success Criteria
-- [ ] Results are reproducible (feature registry, experiment tracking)
-- [ ] System failure modes are understood (stress testing)
-- [ ] Adding or removing models is safe (dynamic capital allocation)
-- [ ] Model registry API serves model metadata
-- [ ] Drift visualization data available via API
+### Sprint 7 Success Criteria (First ML Model)
+- [ ] Exactly one ML model runs end-to-end
+- [ ] Model behavior is understandable and inspectable
+- [ ] No silent failures or hidden assumptions
 
-### Sprint 8 Success Criteria
+### Sprint 8 Success Criteria (ML Observability & Safety)
+- [ ] Model failures are visible, not silent
+- [ ] Performance is contextualized, not absolute (vs baselines)
+- [ ] System behavior under stress is understood and documented
+
+### Sprint 9 Success Criteria (Model Observatory Dashboard)
 - [ ] Models are first-class entities in the dashboard
 - [ ] ML-native visualizations (confusion matrix, calibration curves) available
 - [ ] Users can compare and rank models side-by-side
@@ -377,5 +528,7 @@ This section guides the Cursor Agents for the build phase.
 - **Paper trading first**, then live with strict safeguards
 - Dashboard deploys to **Vercel** (Next.js), trading services run separately
 - Technology stack: Python 3.11+, FastAPI, pandas, scikit-learn/XGBoost, Next.js, Postgres
-- Sprint 6-7 focus: **trustworthy ML platform** over profit maximization
-- Sprint 8 focus: **model-centric observability** for ML/SWE users with little trading experience
+- Sprint 6 focus: **trustworthy ML platform** (safety, interpretability, baselines)
+- Sprint 7 focus: **first ML model end-to-end** (training, inference, clarity)
+- Sprint 8 focus: **observability and safety** (drift, stress testing, contextualized performance)
+- Sprint 9 focus: **model-centric dashboard** for ML/SWE users with little trading experience

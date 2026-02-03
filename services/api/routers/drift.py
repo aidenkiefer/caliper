@@ -28,7 +28,7 @@ _health_scores: dict[str, float] = {}
 async def get_drift_metrics(model_id: str) -> DriftMetricsResponse:
     """
     Get drift metrics for a specific model.
-    
+
     Returns feature-level drift metrics, confidence drift, and error drift.
     """
     if model_id not in _drift_metrics_store:
@@ -36,9 +36,9 @@ async def get_drift_metrics(model_id: str) -> DriftMetricsResponse:
             status_code=404,
             detail=f"Drift metrics not found for model {model_id}",
         )
-    
+
     metrics = _drift_metrics_store[model_id]
-    
+
     return DriftMetricsResponse(
         model_id=model_id,
         feature_metrics=metrics.get("feature_metrics", []),
@@ -60,7 +60,7 @@ async def get_health_score(
 ) -> HealthScoreResponse:
     """
     Get health score for a specific model.
-    
+
     Health score is calculated from:
     - Feature drift (30%)
     - Confidence drift (30%)
@@ -72,7 +72,7 @@ async def get_health_score(
             status_code=404,
             detail=f"Drift metrics not found for model {model_id}",
         )
-    
+
     # Parse last retraining date if provided
     retraining_date = None
     if last_retraining_date:
@@ -80,14 +80,14 @@ async def get_health_score(
             retraining_date = datetime.fromisoformat(last_retraining_date.replace("Z", "+00:00"))
         except ValueError:
             pass
-    
+
     # Calculate health score (mock - would use actual metrics)
     health_calculator = HealthScore(last_retraining_date=retraining_date)
-    
+
     # In production, would use actual metrics from store
     # For now, return mock score
     score = _health_scores.get(model_id, 75.0)
-    
+
     return HealthScoreResponse(
         model_id=model_id,
         health_score=score,

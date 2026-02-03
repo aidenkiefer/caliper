@@ -38,7 +38,7 @@ def _check_broker_health() -> ServiceHealth:
     global _last_broker_check
     now = datetime.now(timezone.utc)
     _last_broker_check = now
-    
+
     # In production, would actually ping broker API
     if _broker_connected:
         return ServiceHealth(
@@ -61,7 +61,7 @@ def _check_broker_health() -> ServiceHealth:
 def _check_risk_health() -> ServiceHealth:
     """Check risk manager health."""
     now = datetime.now(timezone.utc)
-    
+
     # Determine status based on kill switch and circuit breaker
     if _kill_switch_active:
         status = "unhealthy"
@@ -71,7 +71,7 @@ def _check_risk_health() -> ServiceHealth:
         status = "degraded"
     else:
         status = "healthy"
-    
+
     return ServiceHealth(
         status=status,
         last_update=now,
@@ -101,12 +101,12 @@ def _check_risk_health() -> ServiceHealth:
 async def get_health() -> HealthResponse:
     """
     Get system health status.
-    
+
     Returns health information for all services including
     broker connection status and risk manager status.
     """
     now = datetime.now(timezone.utc)
-    
+
     # Build service health checks
     services = {
         "database": ServiceHealth(
@@ -124,7 +124,7 @@ async def get_health() -> HealthResponse:
             status="healthy",
         ),
     }
-    
+
     # Determine overall status
     statuses = [s.status for s in services.values()]
     if all(s == "healthy" for s in statuses):
@@ -133,7 +133,7 @@ async def get_health() -> HealthResponse:
         overall = "unhealthy"
     else:
         overall = "degraded"
-    
+
     return HealthResponse(
         status=overall,
         services=services,
@@ -149,7 +149,7 @@ async def get_health() -> HealthResponse:
 async def get_broker_health() -> dict:
     """Get detailed broker connection health."""
     health = _check_broker_health()
-    
+
     return {
         "status": health.status,
         "broker": health.broker,
@@ -172,7 +172,7 @@ async def get_broker_health() -> dict:
 async def get_risk_health() -> dict:
     """Get detailed risk manager health."""
     health = _check_risk_health()
-    
+
     return {
         "status": health.status,
         "kill_switch": {

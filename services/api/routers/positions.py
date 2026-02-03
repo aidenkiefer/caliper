@@ -129,20 +129,20 @@ async def list_positions(
 ) -> PositionListResponse:
     """
     List all open positions.
-    
+
     Args:
         strategy_id: Optional filter by strategy
         symbol: Optional filter by symbol
         mode: Optional filter by mode (PAPER or LIVE)
         page: Page number (1-based)
         per_page: Items per page (max 100)
-    
+
     Returns:
         Paginated list of positions
     """
     positions = []
     total_unrealized_pnl = 0.0
-    
+
     for p in MOCK_POSITIONS.values():
         # Apply filters
         if strategy_id and p["strategy_id"] != strategy_id:
@@ -150,7 +150,7 @@ async def list_positions(
         if symbol and p["symbol"] != symbol:
             continue
         # mode filter would require mode field in position data
-        
+
         positions.append(
             PositionItem(
                 position_id=p["position_id"],
@@ -168,13 +168,13 @@ async def list_positions(
             )
         )
         total_unrealized_pnl += float(p["unrealized_pnl"])
-    
+
     # Simple pagination
     total = len(positions)
     start = (page - 1) * per_page
     end = start + per_page
     paginated_positions = positions[start:end]
-    
+
     return PositionListResponse(
         data=paginated_positions,
         meta=PositionListMeta(
@@ -195,21 +195,21 @@ async def list_positions(
 async def get_position(position_id: str) -> PositionDetailResponse:
     """
     Get details for a specific position.
-    
+
     Args:
         position_id: Position identifier
-    
+
     Returns:
         Position details including entry orders and risk metrics
-    
+
     Raises:
         HTTPException: 404 if position not found
     """
     if position_id not in MOCK_POSITIONS:
         raise HTTPException(status_code=404, detail=f"Position '{position_id}' not found")
-    
+
     p = MOCK_POSITIONS[position_id]
-    
+
     entry_orders = [
         EntryOrder(
             order_id=o["order_id"],
@@ -219,14 +219,14 @@ async def get_position(position_id: str) -> PositionDetailResponse:
         )
         for o in p["entry_orders"]
     ]
-    
+
     risk_metrics = PositionRiskMetrics(
         stop_loss_price=p["risk_metrics"]["stop_loss_price"],
         take_profit_price=p["risk_metrics"]["take_profit_price"],
         max_loss=p["risk_metrics"]["max_loss"],
         max_profit=p["risk_metrics"]["max_profit"],
     )
-    
+
     return PositionDetailResponse(
         data=PositionDetailData(
             position_id=p["position_id"],

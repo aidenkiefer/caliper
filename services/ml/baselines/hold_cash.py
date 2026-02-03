@@ -21,16 +21,16 @@ class HoldCashBaseline:
     """
     Baseline strategy that holds cash (no trading).
     """
-    
+
     def __init__(self, risk_free_rate: Decimal = Decimal("0.0")):
         """
         Initialize hold cash baseline.
-        
+
         Args:
             risk_free_rate: Annual risk-free rate (default: 0.0 = no return)
         """
         self.risk_free_rate = risk_free_rate
-    
+
     def run(
         self,
         config: BacktestConfig,
@@ -40,13 +40,13 @@ class HoldCashBaseline:
     ) -> BacktestResult:
         """
         Run hold cash baseline.
-        
+
         Args:
             config: Backtest configuration
             start_date: Start date
             end_date: End date
             strategy_id: Strategy identifier
-            
+
         Returns:
             BacktestResult with zero return (or risk-free rate)
         """
@@ -57,9 +57,9 @@ class HoldCashBaseline:
             total_return = daily_rate * Decimal(str(days))
         else:
             total_return = Decimal("0.0")
-        
+
         final_equity = config.initial_capital * (Decimal("1") + total_return)
-        
+
         # Create equity curve (just start and end points)
         equity_curve = [
             EquityPoint(
@@ -75,10 +75,10 @@ class HoldCashBaseline:
                 unrealized_pnl=Decimal("0"),
             ),
         ]
-        
+
         # No trades
         trades: list[Trade] = []
-        
+
         # Performance metrics
         metrics = PerformanceMetrics(
             total_return=total_return,
@@ -94,7 +94,7 @@ class HoldCashBaseline:
             avg_loss=None,
             profit_factor=None,
         )
-        
+
         return BacktestResult(
             backtest_id=uuid4(),
             strategy_id=strategy_id,

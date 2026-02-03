@@ -26,7 +26,7 @@ _explanations_store: dict[str, dict] = {}
 async def get_trade_explanation(trade_id: str) -> TradeExplanationResponse:
     """
     Get explanation for a specific trade.
-    
+
     Returns top features with their contributions and directions.
     """
     if trade_id not in _explanations_store:
@@ -34,9 +34,9 @@ async def get_trade_explanation(trade_id: str) -> TradeExplanationResponse:
             status_code=404,
             detail=f"Explanation not found for trade {trade_id}",
         )
-    
+
     explanation = _explanations_store[trade_id]
-    
+
     return TradeExplanationResponse(**explanation)
 
 
@@ -52,19 +52,16 @@ async def list_explanations(
 ) -> List[TradeExplanationResponse]:
     """
     List trade explanations.
-    
+
     Can be filtered by strategy_id and limited by count.
     """
     explanations = list(_explanations_store.values())
-    
+
     # Filter by strategy if provided
     if strategy_id:
-        explanations = [
-            e for e in explanations
-            if e.get("strategy_id") == strategy_id
-        ]
-    
+        explanations = [e for e in explanations if e.get("strategy_id") == strategy_id]
+
     # Limit results
     explanations = explanations[:limit]
-    
+
     return [TradeExplanationResponse(**e) for e in explanations]

@@ -1,12 +1,12 @@
 # Progress Tracker
 
-## Current Phase: Implementation - Sprint 6 ✅ COMPLETE
+## Current Phase: Implementation - Sprints 7–9 ✅ COMPLETE
 
-**Last Updated:** 2026-01-26
+**Last Updated:** 2026-02-02
 
-**Completed:** Sprints 1-6 (Infrastructure, Features, Backtest, Dashboard, Execution & Risk, ML Safety)  
-**Current:** Sprint 7 (MLOps & Advanced Analysis)  
-**Next Up:** Sprint 8 (Model Observatory Dashboard)
+**Completed:** Sprints 1-9 (Infrastructure through Model Observatory Dashboard)  
+**Current:** None (all planned sprints complete)  
+**Next Up:** Iteration on Sprints 7–9 (see [docs/SPRINTS-7-8-9-SUMMARY.md](../docs/SPRINTS-7-8-9-SUMMARY.md))
 
 ---
 
@@ -117,137 +117,155 @@
 - [x] Tooltip component for StatsCard and table headers
 - [x] Vercel deployment configuration
 
-### Sprint 7: MLOps & Advanced Analysis - Not Started
-*Goal: Build operational infrastructure for reproducibility, simulation, and intelligent capital allocation*
+### Sprint 7: First ML Model (End-to-End Loop) - ✅ COMPLETE
+*Goal: Introduce exactly one real ML model into the system and run it end-to-end with correct training, validation, inference, and execution semantics.*
 
-**7.1 Feature Registry & Lineage Tracking**
-- [ ] Feature registry schema (name, definition, window, source, version)
-- [ ] Database table or metadata store
-- [ ] Feature versioning support
-- [ ] Link features → models → experiments
-- [ ] **Verification:** Feature used in model is traceable to definition
+**7.1 ML Problem Definition**
+- [x] Define target variable (e.g. probability of positive return over next N bars)
+- [x] Define prediction horizon and label construction logic
+- [x] Define evaluation metrics (classification or regression)
+- [x] Document assumptions and failure modes
+- [x] **Verification:** Model target and metrics clearly documented
 
-**7.2 Experiment Registry & Research Traceability**
-- [ ] Experiment registry schema (dataset, features, model, hyperparams, metrics)
-- [ ] Deployment status tracking (research → staging → production)
-- [ ] Links between experiments, models, and live runs
-- [ ] Queryable history of model evolution
-- [ ] **Verification:** Can answer "why did we deploy this model?"
+**7.2 Training & Validation Pipeline**
+- [x] Implement offline training script
+- [x] Time-aware train/validation split (walk-forward or sliding window)
+- [x] Explicit data leakage prevention (e.g. no future data in features)
+- [x] Log training and validation metrics
+- [x] **Verification:** Training run reproducible and metrics logged
 
-**7.3 Model Registry Backend**
-- [ ] Model registry API (CRUD for model metadata)
-- [ ] Persistent model metadata store
-- [ ] Model lifecycle states (active, paused, candidate, retired)
-- [ ] Model health score integration (from drift metrics)
-- [ ] **Verification:** Model metadata queryable via API
+**7.3 Model Interface & Contract**
+- [x] Standardized model input schema (features, symbol, timestamp)
+- [x] Standardized output schema: prediction, confidence, abstain signal
+- [x] Explicit confidence semantics (e.g. 0–1, when to ABSTAIN)
+- [x] **Verification:** Execution layer can consume model output unambiguously
 
-**7.4 Dynamic Capital Allocation**
-- [ ] Capital allocation policy module
-- [ ] Inputs: recent performance, drawdown, volatility, confidence/drift scores
-- [ ] Per-model allocation caps
-- [ ] Logged allocation decisions for auditability
-- [ ] Integration with ensemble layer
-- [ ] **Verification:** Capital shifts away from underperforming models
+**7.4 Inference Integration**
+- [x] Run model inference in the live/paper pipeline (strategy or dedicated service)
+- [x] Integrate model output with existing risk and execution layers
+- [x] Log predictions, confidence, and decisions (e.g. to DB or structured logs)
+- [x] **Verification:** Model predictions flow through full system (data → model → signal → risk → order)
 
-**7.5 Failure Mode & Stress Simulation**
-- [ ] Scenario simulation framework
-- [ ] Volatility spike simulation
-- [ ] Missing/delayed data simulation
-- [ ] Poor fills / increased slippage simulation
-- [ ] API outage simulation
-- [ ] Partial execution failure simulation
-- [ ] Stress-test reports
-- [ ] Documented failure handling strategies
-- [ ] **Verification:** System behavior documented under adverse conditions
+**7.5 Text-Based Explainability (Initial)**
+- [x] Simple explanation payload (features used, confidence, short rationale)
+- [x] Store explanations alongside predictions/trades
+- [x] **Verification:** Each prediction has a human-readable explanation (no SHAP required yet)
 
-**7.6 Model Drift & Health Visualization API**
-- [ ] API endpoints for drift metrics per model
-- [ ] Feature drift over time data
-- [ ] Confidence drift data
-- [ ] Health score trend data
-- [ ] Alert thresholds and suggested actions
-- [ ] **Verification:** Drift visualization data available via API
+### Sprint 8: ML Observability, Safety & Evaluation - ✅ COMPLETE
+*Goal: Make the first ML model observable, debuggable, and safe before scaling to multiple models.*
 
-### Sprint 8: Model Observatory Dashboard - Not Started
-*Goal: Make models inspectable, configurable, and comparable as first-class entities*
+**8.1 Model Performance Tracking**
+- [x] Log prediction vs outcome (direction or return) when ground truth is available
+- [x] Compute rolling accuracy / error metrics (e.g. over last N days)
+- [x] Track abstention rate over time
+- [x] Expose performance metrics via API or DB for dashboard
+- [x] **Verification:** Performance queryable per model over time
 
-**8.1 Model Registry UI**
-- [ ] Dedicated Model Registry page in dashboard
-- [ ] List view with sorting/filtering
-- [ ] Display: name, type, status, trained date, health score, allocation weight
-- [ ] Quick actions (activate, pause, view details)
-- [ ] **Verification:** All models visible in dashboard list
+**8.2 Baseline & Regret Metrics**
+- [x] Wire existing baselines (hold cash, buy & hold, random) to model strategy comparison
+- [x] Compute regret (strategy vs baselines) for the live model
+- [x] Store and expose regret metrics (e.g. API or dashboard feed)
+- [x] **Verification:** Model performance contextualized vs baselines
 
-**8.2 Model Detail Page**
-- [ ] Model overview section (architecture, feature set, hyperparams)
-- [ ] Training & validation summary (period, method, metrics, overfitting indicators)
-- [ ] Live/paper performance (accuracy over time, abstention rate)
-- [ ] Confidence calibration plots
-- [ ] **Verification:** Full model context visible on single page
+**8.3 Confidence & Drift Monitoring**
+- [x] Feed current feature (and confidence) distributions into existing drift detector
+- [x] Store reference (training) distributions for comparison
+- [x] Compute and store health score from drift signals
+- [x] Expose drift metrics and health via API (e.g. per model, per feature)
+- [x] **Verification:** Drift metrics stored and queryable per model
 
-**8.3 ML Performance Visualization**
-- [ ] Prediction vs actual plots (directional or regression)
-- [ ] Rolling accuracy charts
-- [ ] Confusion matrix (for classification)
-- [ ] Calibration curves (confidence vs correctness)
-- [ ] Error distribution plots
-- [ ] Toggle between ML metrics and trading metrics
-- [ ] **Verification:** ML-native visualizations render correctly
+**8.4 Explainability (Advanced)**
+- [x] Integrate SHAP (or permutation importance) for the deployed model’s predictions
+- [x] Store explanation payload per prediction/recommendation
+- [x] **Verification:** Explanation available for each recommendation (e.g. via API or trade record)
 
-**8.4 Model Comparison & Ranking View**
-- [ ] Side-by-side model comparison page
-- [ ] Comparison dimensions: validation metrics, recent performance, drawdown, volatility
-- [ ] Sorting/filtering (best performers, most stable, least risky)
-- [ ] Confidence stability and drift score comparison
-- [ ] **Verification:** Can rank models by multiple criteria
+**8.5 Failure Mode & Stress Simulation**
+- [x] Implement or script: missing data simulation (e.g. drop bars, NaN features)
+- [x] Implement or script: volatility spike simulation (e.g. scaled returns)
+- [x] Implement or script: API outage simulation (e.g. broker unavailable)
+- [x] Document system behavior under each scenario (no trade, abstain, fallback, etc.)
+- [x] **Verification:** Failure modes are understood and documented (runbook or ADR)
 
-**8.5 Hyperparameter & Threshold Tuning Interface**
-- [ ] Dashboard controls for confidence thresholds
-- [ ] Abstention threshold adjustment
-- [ ] Ensemble contribution caps
-- [ ] Allocation limit controls
-- [ ] Change confirmation modal with impact preview
-- [ ] Change logging and rollback support
-- [ ] **Verification:** Parameter changes reflected in model behavior
+### Sprint 9: Model Observatory Dashboard - ✅ COMPLETE
+*Goal: Make models inspectable, configurable, and comparable as first-class entities in the dashboard.*
 
-**8.6 Model Lifecycle Controls**
-- [ ] Activate / deactivate model from dashboard
-- [ ] Promote candidate → active workflow
-- [ ] Retire model action
-- [ ] Freeze parameters toggle
-- [ ] Clone model config for new experiment
-- [ ] **Verification:** Lifecycle actions update model state correctly
+**9.1 Model Registry UI**
+- [x] Dedicated Model Registry page in dashboard
+- [x] List view with sorting/filtering
+- [x] Display: name, type, status, trained date, health score, allocation weight
+- [x] Quick actions (activate, pause, view details)
+- [x] **Verification:** All models visible in dashboard list
 
-**8.7 Model Drift & Health Visualization UI**
-- [ ] Per-model drift trend charts
-- [ ] Feature drift heatmaps
-- [ ] Health score timeline
-- [ ] Alert badges and threshold indicators
-- [ ] Suggested actions (retrain, retire)
-- [ ] **Verification:** Drift aging is visible, not silent
+**9.2 Model Detail Page**
+- [x] Model overview section (architecture, feature set, hyperparams)
+- [x] Training & validation summary (period, method, metrics, overfitting indicators)
+- [x] Live/paper performance (accuracy over time, abstention rate)
+- [x] Confidence calibration plots
+- [x] **Verification:** Full model context visible on single page
 
-**8.8 Human-in-the-Loop Review Mode (Model-Centric)**
-- [ ] Model recommendation review queue
-- [ ] Explanation display per recommendation
-- [ ] Approve/reject at model level
-- [ ] Rationale input (optional)
-- [ ] Decision outcome logging
-- [ ] **Verification:** User can review and decide on model recommendations
+**9.3 ML Performance Visualization**
+- [x] Prediction vs actual plots (directional or regression)
+- [x] Rolling accuracy charts
+- [x] Confusion matrix (for classification)
+- [x] Calibration curves (confidence vs correctness)
+- [x] Error distribution plots
+- [x] Toggle between ML metrics and trading metrics
+- [x] **Verification:** ML-native visualizations render correctly
 
-**8.9 Model Sandbox / What-If Testing**
-- [ ] Parameter modification sandbox (no live impact)
-- [ ] Rerun backtests with modified thresholds
-- [ ] Temporarily disable models in sandbox
-- [ ] Compare hypothetical allocations
-- [ ] Preview effects before applying changes
-- [ ] **Verification:** Safe experimentation without affecting live behavior
+**9.4 Model Comparison & Ranking View**
+- [x] Side-by-side model comparison page
+- [x] Comparison dimensions: validation metrics, recent performance, drawdown, volatility
+- [x] Sorting/filtering (best performers, most stable, least risky)
+- [x] Confidence stability and drift score comparison
+- [x] **Verification:** Can rank models by multiple criteria
+
+**9.5 Hyperparameter & Threshold Tuning Interface**
+- [x] Dashboard controls for confidence thresholds
+- [x] Abstention threshold adjustment
+- [x] Ensemble contribution caps
+- [x] Allocation limit controls
+- [x] Change confirmation modal with impact preview
+- [x] Change logging and rollback support
+- [x] **Verification:** Parameter changes reflected in model behavior
+
+**9.6 Model Lifecycle Controls**
+- [x] Activate / deactivate model from dashboard
+- [x] Promote candidate → active workflow
+- [x] Retire model action
+- [x] Freeze parameters toggle
+- [x] Clone model config for new experiment
+- [x] **Verification:** Lifecycle actions update model state correctly
+
+**9.7 Model Drift & Health Visualization UI**
+- [x] Per-model drift trend charts
+- [x] Feature drift heatmaps
+- [x] Health score timeline
+- [x] Alert badges and threshold indicators
+- [x] Suggested actions (retrain, retire)
+- [x] **Verification:** Drift aging is visible, not silent
+
+**9.8 Human-in-the-Loop Review Mode (Model-Centric)**
+- [x] Model recommendation review queue
+- [x] Explanation display per recommendation
+- [x] Approve/reject at model level
+- [x] Rationale input (optional)
+- [x] Decision outcome logging
+- [x] **Verification:** User can review and decide on model recommendations
+
+**9.9 Model Sandbox / What-If Testing**
+- [x] Parameter modification sandbox (no live impact)
+- [x] Rerun backtests with modified thresholds
+- [x] Temporarily disable models in sandbox
+- [x] Compare hypothetical allocations
+- [x] Preview effects before applying changes
+- [x] **Verification:** Safe experimentation without affecting live behavior
 
 ---
 
 ## Completed Artifacts
 
 ### Planning Documentation
-- ✅ `/plans/task_plan.md` - 8-sprint implementation plan
+- ✅ `/plans/task_plan.md` - 9-sprint implementation plan
 - ✅ `/plans/findings.md` - Research insights and decisions
 - ✅ `/plans/progress.md` - This file
 - ✅ `/plans/milestones.md` - Project milestones
@@ -300,9 +318,10 @@
 | 3 | Backtesting & Reporting | ✅ Complete |
 | 4 | Dashboard & API | ✅ Complete |
 | 5 | Execution & Risk | ✅ Complete |
-| 6 | ML Safety & Interpretability | In Progress |
-| 7 | MLOps & Advanced Analysis | Not Started |
-| 8 | Model Observatory Dashboard | Not Started |
+| 6 | ML Safety & Interpretability | ✅ Complete |
+| 7 | First ML Model (End-to-End Loop) | ✅ Complete |
+| 8 | ML Observability, Safety & Evaluation | ✅ Complete |
+| 9 | Model Observatory Dashboard | ✅ Complete |
 
 ---
 
@@ -311,12 +330,13 @@
 1. ✅ Sprint 3 complete - Backtesting & Reporting implemented
 2. ✅ Sprint 4 complete - Dashboard & API implemented
 3. ✅ Sprint 5 complete - Execution & Risk implemented
-4. **Current:** Sprint 6 - ML Safety & Interpretability Core
-5. **Next:** Sprint 7 - MLOps & Advanced Analysis (backend/infrastructure)
-6. **Then:** Sprint 8 - Model Observatory Dashboard (model-centric UI)
+4. ✅ Sprint 6 complete - ML Safety & Interpretability Core
+5. ✅ Sprint 7 complete - First ML Model (End-to-End Loop)
+6. ✅ Sprint 8 complete - ML Observability, Safety & Evaluation
+7. ✅ Sprint 9 complete - Model Observatory Dashboard
 
 ---
 
 ## Blockers
 
-**None.** Sprint 5 is complete and ready for Sprint 6.
+**None.** All sprints 1–9 complete. See [docs/SPRINTS-7-8-9-SUMMARY.md](../docs/SPRINTS-7-8-9-SUMMARY.md) for documentation index and next steps.

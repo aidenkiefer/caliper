@@ -20,19 +20,19 @@ from packages.common.api_schemas import (
 def get_mock_strategy(overrides: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Create a mock strategy with sensible defaults.
-    
+
     Args:
         overrides: Optional dict of fields to override
-    
+
     Returns:
         Mock strategy data dict
-    
+
     Example:
         >>> strategy = get_mock_strategy({"status": StrategyStatus.INACTIVE})
         >>> assert strategy["status"] == StrategyStatus.INACTIVE
     """
     now = datetime.now(timezone.utc)
-    
+
     default = {
         "strategy_id": f"test_strategy_{uuid4().hex[:8]}",
         "name": "Test Strategy",
@@ -58,38 +58,38 @@ def get_mock_strategy(overrides: Optional[Dict[str, Any]] = None) -> Dict[str, A
             "win_rate": "0.62",
         },
     }
-    
+
     if overrides:
         # Handle nested config updates
         if "config" in overrides and isinstance(overrides["config"], dict):
             default["config"] = {**default["config"], **overrides["config"]}
             overrides = {k: v for k, v in overrides.items() if k != "config"}
-        
+
         if "performance" in overrides and isinstance(overrides["performance"], dict):
             default["performance"] = {**default["performance"], **overrides["performance"]}
             overrides = {k: v for k, v in overrides.items() if k != "performance"}
-        
+
         default.update(overrides)
-    
+
     return default
 
 
 def get_mock_backtest_run(overrides: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Create a mock backtest run with sensible defaults.
-    
+
     Args:
         overrides: Optional dict of fields to override
-    
+
     Returns:
         Mock run data dict
-    
+
     Example:
         >>> run = get_mock_backtest_run({"status": RunStatus.FAILED})
         >>> assert run["status"] == RunStatus.FAILED
     """
     now = datetime.now(timezone.utc)
-    
+
     default = {
         "run_id": f"run-{uuid4().hex[:8]}",
         "strategy_id": "momentum_v1",
@@ -135,34 +135,34 @@ def get_mock_backtest_run(overrides: Optional[Dict[str, Any]] = None) -> Dict[st
             {"date": "2025-12-31", "value": "118450.00"},
         ],
     }
-    
+
     if overrides:
         # Handle nested updates
         if "metrics" in overrides and isinstance(overrides["metrics"], dict):
             default["metrics"] = {**default["metrics"], **overrides["metrics"]}
             overrides = {k: v for k, v in overrides.items() if k != "metrics"}
-        
+
         default.update(overrides)
-    
+
     return default
 
 
 def get_mock_metrics(overrides: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Create mock metrics summary with sensible defaults.
-    
+
     Args:
         overrides: Optional dict of fields to override
-    
+
     Returns:
         Mock metrics data dict
-    
+
     Example:
         >>> metrics = get_mock_metrics({"total_pnl": "50000.00"})
         >>> assert metrics["total_pnl"] == "50000.00"
     """
     now = datetime.now(timezone.utc)
-    
+
     default = {
         "total_pnl": "12345.67",
         "total_pnl_percent": "15.23",
@@ -183,29 +183,29 @@ def get_mock_metrics(overrides: Optional[Dict[str, Any]] = None) -> Dict[str, An
         "period": "1m",
         "updated_at": now,
     }
-    
+
     if overrides:
         default.update(overrides)
-    
+
     return default
 
 
 def get_mock_position(overrides: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Create a mock position with sensible defaults.
-    
+
     Args:
         overrides: Optional dict of fields to override
-    
+
     Returns:
         Mock position data dict
-    
+
     Example:
         >>> pos = get_mock_position({"symbol": "GOOGL", "quantity": "50.00"})
         >>> assert pos["symbol"] == "GOOGL"
     """
     now = datetime.now(timezone.utc)
-    
+
     default = {
         "position_id": f"pos-{uuid4().hex[:8]}",
         "strategy_id": "momentum_v1",
@@ -234,15 +234,15 @@ def get_mock_position(overrides: Optional[Dict[str, Any]] = None) -> Dict[str, A
             "max_profit": "751.00",
         },
     }
-    
+
     if overrides:
         # Handle nested updates
         if "risk_metrics" in overrides and isinstance(overrides["risk_metrics"], dict):
             default["risk_metrics"] = {**default["risk_metrics"], **overrides["risk_metrics"]}
             overrides = {k: v for k, v in overrides.items() if k != "risk_metrics"}
-        
+
         default.update(overrides)
-    
+
     return default
 
 
@@ -253,31 +253,33 @@ def get_mock_equity_curve(
 ) -> List[Dict[str, str]]:
     """
     Generate a mock equity curve.
-    
+
     Args:
         days: Number of days to generate
         start_value: Starting equity value
         volatility: Daily volatility (as decimal)
-    
+
     Returns:
         List of equity curve points
     """
     import random
-    
+
     curve = []
     value = start_value
     start_date = datetime.now(timezone.utc) - timedelta(days=days)
-    
+
     for i in range(days):
         date = start_date + timedelta(days=i)
-        curve.append({
-            "date": date.strftime("%Y-%m-%d"),
-            "value": f"{value:.2f}",
-        })
+        curve.append(
+            {
+                "date": date.strftime("%Y-%m-%d"),
+                "value": f"{value:.2f}",
+            }
+        )
         # Random walk with slight upward drift
         change = value * volatility * (random.random() - 0.45)
         value += change
-    
+
     return curve
 
 
@@ -287,16 +289,16 @@ def get_mock_health_response(
 ) -> Dict[str, Any]:
     """
     Create a mock health response.
-    
+
     Args:
         overall_status: Overall health status
         service_overrides: Optional service-specific overrides
-    
+
     Returns:
         Mock health response dict
     """
     now = datetime.now(timezone.utc)
-    
+
     services = {
         "database": {
             "status": "healthy",
@@ -316,14 +318,14 @@ def get_mock_health_response(
             "status": "healthy",
         },
     }
-    
+
     if service_overrides:
         for service, overrides in service_overrides.items():
             if service in services:
                 services[service].update(overrides)
             else:
                 services[service] = overrides
-    
+
     return {
         "status": overall_status,
         "services": services,

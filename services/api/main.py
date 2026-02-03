@@ -18,14 +18,26 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from .routers import health, metrics, strategies, runs, positions, orders, controls, drift, explanations, baselines, recommendations
+from .routers import (
+    health,
+    metrics,
+    strategies,
+    runs,
+    positions,
+    orders,
+    controls,
+    drift,
+    explanations,
+    baselines,
+    recommendations,
+)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """
     Lifespan context manager for startup and shutdown events.
-    
+
     Use this to initialize database connections, cache clients, etc.
     """
     # Startup: Initialize resources
@@ -53,6 +65,7 @@ app = FastAPI(
 # Exception Handlers
 # ============================================================================
 
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(
     request: Request,
@@ -62,11 +75,13 @@ async def validation_exception_handler(
     details = []
     for error in exc.errors():
         field = ".".join(str(loc) for loc in error["loc"])
-        details.append({
-            "field": field,
-            "message": error["msg"],
-        })
-    
+        details.append(
+            {
+                "field": field,
+                "message": error["msg"],
+            }
+        )
+
     return JSONResponse(
         status_code=status.HTTP_400_BAD_REQUEST,
         content={
@@ -88,7 +103,7 @@ async def generic_exception_handler(
     """Handle unexpected errors with consistent error format."""
     # Log the error (in production, use proper logging)
     # logger.error(f"Unexpected error: {exc}", exc_info=True)
-    
+
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={
@@ -100,11 +115,12 @@ async def generic_exception_handler(
         },
     )
 
+
 # Configure CORS for dashboard access
 # Note: For production, replace with specific origins
 CORS_ORIGINS = [
-    "http://localhost:3000",      # Local Next.js dev
-    "http://127.0.0.1:3000",      # Alternative localhost
+    "http://localhost:3000",  # Local Next.js dev
+    "http://127.0.0.1:3000",  # Alternative localhost
 ]
 
 app.add_middleware(

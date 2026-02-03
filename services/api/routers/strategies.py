@@ -100,26 +100,26 @@ async def list_strategies(
 ) -> StrategyListResponse:
     """
     List all trading strategies.
-    
+
     Args:
         status: Optional status filter (active, inactive, all)
         mode: Optional mode filter (BACKTEST, PAPER, LIVE)
-    
+
     Returns:
         List of strategies with metadata
     """
     strategies = []
-    
+
     for s in MOCK_STRATEGIES.values():
         # Apply status filter
         if status and status != "all":
             if s["status"].value != status:
                 continue
-        
+
         # Apply mode filter
         if mode and s["mode"].value != mode:
             continue
-        
+
         strategies.append(
             StrategyListItem(
                 strategy_id=s["strategy_id"],
@@ -134,9 +134,9 @@ async def list_strategies(
                 updated_at=s["updated_at"],
             )
         )
-    
+
     active_count = sum(1 for s in strategies if s.status == StrategyStatus.ACTIVE)
-    
+
     return StrategyListResponse(
         data=strategies,
         meta=StrategyListMeta(
@@ -155,21 +155,21 @@ async def list_strategies(
 async def get_strategy(strategy_id: str) -> StrategyDetailResponse:
     """
     Get details for a specific strategy.
-    
+
     Args:
         strategy_id: Strategy identifier
-    
+
     Returns:
         Strategy details including config and performance
-    
+
     Raises:
         HTTPException: 404 if strategy not found
     """
     if strategy_id not in MOCK_STRATEGIES:
         raise HTTPException(status_code=404, detail=f"Strategy '{strategy_id}' not found")
-    
+
     s = MOCK_STRATEGIES[strategy_id]
-    
+
     return StrategyDetailResponse(
         data=StrategyDetailData(
             strategy_id=s["strategy_id"],
@@ -205,33 +205,33 @@ async def update_strategy(
 ) -> StrategyUpdateResponse:
     """
     Update a strategy's configuration.
-    
+
     Args:
         strategy_id: Strategy identifier
         request: Update request with new status/config
-    
+
     Returns:
         Updated strategy details
-    
+
     Raises:
         HTTPException: 404 if strategy not found
     """
     if strategy_id not in MOCK_STRATEGIES:
         raise HTTPException(status_code=404, detail=f"Strategy '{strategy_id}' not found")
-    
+
     s = MOCK_STRATEGIES[strategy_id]
-    
+
     # Apply updates
     if request.status is not None:
         s["status"] = request.status
-    
+
     if request.config is not None:
         for key, value in request.config.items():
             if key in s["config"]:
                 s["config"][key] = value
-    
+
     s["updated_at"] = datetime.now(timezone.utc)
-    
+
     return StrategyUpdateResponse(
         message="Strategy updated successfully",
         data=StrategyDetailData(

@@ -10,7 +10,7 @@ Detects when model performance degrades due to:
 from .detector import DriftDetector
 from .metrics import DriftMetrics, calculate_psi, calculate_kl_divergence, calculate_mean_shift
 from .health_score import HealthScore
-from .alerts import DriftAlert, AlertLevel
+from .alerts import DriftAlert, AlertLevel, DriftAlertManager
 
 __all__ = [
     "DriftDetector",
@@ -21,4 +21,5 @@ __all__ = [
     "HealthScore",
     "DriftAlert",
     "AlertLevel",
+    "DriftAlertManager",
 ]

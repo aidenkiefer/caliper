@@ -18,33 +18,33 @@ def get_mock_order(
     quantity: int = 10,
     side: str = "BUY",
     risk_percent: float = 1.0,
-    **overrides: Any
+    **overrides: Any,
 ) -> dict:
     """
     Factory function for mock order data.
-    
+
     Args:
         symbol: Trading symbol
         quantity: Order quantity
         side: BUY or SELL
         risk_percent: Risk as % of portfolio (used for stop loss calculation)
         **overrides: Additional fields to override
-        
+
     Returns:
         Dict representing an order for testing
-        
+
     Example:
         >>> order = get_mock_order(symbol="MSFT", quantity=50)
         >>> assert order["symbol"] == "MSFT"
     """
     # Default price for AAPL-like stock
     price = Decimal("150.00")
-    
+
     # Calculate stop loss based on risk_percent
     # Assuming $100k portfolio, risk_percent of price determines stop loss distance
     risk_per_share = price * Decimal(str(risk_percent)) / Decimal("100")
     stop_loss = price - risk_per_share if side == "BUY" else price + risk_per_share
-    
+
     defaults = {
         "client_order_id": f"test_{uuid4().hex[:8]}",
         "symbol": symbol,
@@ -57,7 +57,7 @@ def get_mock_order(
         "strategy_id": "test_strategy_v1",
         "created_at": datetime.now(timezone.utc),
     }
-    
+
     defaults.update(overrides)
     return defaults
 
@@ -67,21 +67,21 @@ def get_mock_portfolio(
     cash: float = 50000,
     positions_count: int = 5,
     drawdown_percent: float = 0.0,
-    **overrides: Any
+    **overrides: Any,
 ) -> dict:
     """
     Factory function for mock portfolio data.
-    
+
     Args:
         equity: Total portfolio equity
         cash: Available cash
         positions_count: Number of open positions
         drawdown_percent: Current drawdown as positive percentage
         **overrides: Additional fields to override
-        
+
     Returns:
         Dict representing portfolio state for testing
-        
+
     Example:
         >>> portfolio = get_mock_portfolio(equity=50000, drawdown_percent=5.0)
         >>> assert portfolio["equity"] == Decimal("50000")
@@ -89,20 +89,23 @@ def get_mock_portfolio(
     equity_decimal = Decimal(str(equity))
     cash_decimal = Decimal(str(cash))
     capital_deployed = equity_decimal - cash_decimal
-    
+
     defaults = {
         "equity": equity_decimal,
         "cash": cash_decimal,
         "buying_power": cash_decimal * Decimal("2"),  # 2x margin
         "portfolio_value": equity_decimal,
         "capital_deployed": capital_deployed,
-        "capital_deployed_pct": (capital_deployed / equity_decimal * 100) if equity > 0 else Decimal("0"),
+        "capital_deployed_pct": (capital_deployed / equity_decimal * 100)
+        if equity > 0
+        else Decimal("0"),
         "positions_count": positions_count,
         "daily_drawdown_pct": Decimal(str(drawdown_percent)),
         "total_drawdown_pct": Decimal(str(drawdown_percent)),
-        "high_water_mark": equity_decimal * (Decimal("1") + Decimal(str(drawdown_percent)) / Decimal("100")),
+        "high_water_mark": equity_decimal
+        * (Decimal("1") + Decimal(str(drawdown_percent)) / Decimal("100")),
     }
-    
+
     defaults.update(overrides)
     return defaults
 
@@ -110,17 +113,17 @@ def get_mock_portfolio(
 def get_risky_order() -> dict:
     """
     Get an order that exceeds risk limits (>2% risk).
-    
+
     This order should fail risk checks:
     - Risk per trade: 5% (limit is 2%)
-    
+
     Returns:
         Dict representing a risky order that should be rejected
     """
     # Price $100, stop loss $95 = $5 risk per share (5%)
     # With 100 shares, total risk = $500 = 5% of $10,000 portfolio
     # For $100k portfolio this would be 0.5%, so we need bigger size
-    # 
+    #
     # To get 5% risk of $100k = $5,000 risk
     # At $5 risk per share, need 1000 shares
     return {
@@ -141,13 +144,13 @@ def get_risky_order() -> dict:
 def get_safe_order() -> dict:
     """
     Get an order that passes all risk checks.
-    
+
     This order should pass all limits:
     - Risk per trade: ~1% (limit is 2%)
     - Notional: $15,000 (limit is $25,000)
     - Price: $150 (above $5 minimum)
     - No price deviation
-    
+
     Returns:
         Dict representing a safe order that should be approved
     """
@@ -171,7 +174,7 @@ def get_safe_order() -> dict:
 def get_high_notional_order() -> dict:
     """
     Get an order that exceeds max notional limit ($25,000).
-    
+
     Returns:
         Dict with notional > $25,000
     """
@@ -191,7 +194,7 @@ def get_high_notional_order() -> dict:
 def get_penny_stock_order() -> dict:
     """
     Get an order for a penny stock (price < $5).
-    
+
     Returns:
         Dict with price below minimum
     """
@@ -211,7 +214,7 @@ def get_penny_stock_order() -> dict:
 def get_price_deviation_order() -> dict:
     """
     Get an order with high price deviation from last price (>5%).
-    
+
     Returns:
         Dict with order price far from market price
     """
@@ -232,7 +235,7 @@ def get_price_deviation_order() -> dict:
 def get_max_positions_portfolio() -> dict:
     """
     Get portfolio at maximum positions (20).
-    
+
     Returns:
         Dict representing portfolio at position limit
     """
@@ -247,11 +250,11 @@ def get_max_positions_portfolio() -> dict:
 def get_drawdown_portfolio(daily_pct: float = 0.0, total_pct: float = 0.0) -> dict:
     """
     Get portfolio with specific drawdown levels.
-    
+
     Args:
         daily_pct: Daily drawdown percentage
         total_pct: Total drawdown from high water mark
-        
+
     Returns:
         Dict representing portfolio in drawdown
     """
@@ -268,7 +271,7 @@ def get_drawdown_portfolio(daily_pct: float = 0.0, total_pct: float = 0.0) -> di
 def get_over_deployed_portfolio() -> dict:
     """
     Get portfolio with >80% capital deployed.
-    
+
     Returns:
         Dict representing over-deployed portfolio
     """

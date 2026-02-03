@@ -13,9 +13,9 @@ from .backtest_data import (
 )
 
 __all__ = [
-    'get_mock_price_bar',
-    'get_mock_price_bars',
-    'get_mock_backtest_config',
-    'get_mock_trade',
-    'get_sample_aapl_bars',
+    "get_mock_price_bar",
+    "get_mock_price_bars",
+    "get_mock_backtest_config",
+    "get_mock_trade",
+    "get_sample_aapl_bars",
 ]
