@@ -1,0 +1,44 @@
+# Training configuration for first ML model
+# Sprint 7, ticket 07-02
+
+model:
+  type: logistic_regression
+  hyperparameters:
+    C: 1.0
+    solver: lbfgs
+    max_iter: 1000
+    random_state: 42
+
+data:
+  symbol: SPY
+  start_date: "2020-01-01"
+  end_date: "2025-01-01"
+  timeframe: 1day
+
+split:
+  train_ratio: 0.6
+  validation_ratio: 0.2
+  test_ratio: 0.2
+
+features:
+  use_all: true  # Use all 34 features from FeaturePipeline
+
+target:
+  type: binary_direction
+  threshold: 0.0  # No minimum return threshold (any positive return = UP)
+  horizon_bars: 1  # Next bar prediction
+
+evaluation:
+  primary_metrics:
+    - accuracy
+    - precision
+    - recall
+    - f1
+    - roc_auc
+  success_criteria:
+    min_accuracy: 0.52
+    min_roc_auc: 0.55
+
+output:
+  model_path: models/first_model_v1.pkl
+  metadata_path: models/first_model_v1.json

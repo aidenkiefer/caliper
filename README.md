@@ -4,7 +4,7 @@ A modular quantitative ML trading platform for stocks and options with risk mana
 
 ## Project Status
 
-**Current Phase:** Implementation - Sprint 6 ✅ COMPLETE
+**Current Phase:** Implementation - Sprints 7–9 ✅ COMPLETE
 
 **Sprint 1:** ✅ Complete (Infrastructure & Data)  
 **Sprint 2:** ✅ Complete (Feature Pipeline & Strategy Core)  
@@ -12,8 +12,11 @@ A modular quantitative ML trading platform for stocks and options with risk mana
 **Sprint 4:** ✅ Complete (Dashboard & API)  
 **Sprint 5:** ✅ Complete (Execution & Risk)  
 **Sprint 6:** ✅ Complete (ML Safety & Interpretability)  
-**Sprint 7:** ⬜ Planned (MLOps & Advanced Analysis)  
-**Sprint 8:** ⬜ Planned (Model Observatory Dashboard)
+**Sprint 7:** ✅ Complete (First ML Model – End-to-End Loop)  
+**Sprint 8:** ✅ Complete (ML Observability, Safety & Evaluation)  
+**Sprint 9:** ✅ Complete (Model Observatory Dashboard)
+
+See **[docs/SPRINTS-7-8-9-SUMMARY.md](docs/SPRINTS-7-8-9-SUMMARY.md)** for a summary of Sprints 7–9 documentation and implementation.
 
 ## Architecture
 
@@ -168,6 +171,7 @@ quant/
 - **Sprint 4:** [`plans/SPRINT4_SUMMARY.md`](plans/SPRINT4_SUMMARY.md) - Dashboard & API
 - **Sprint 5:** [`plans/SPRINT5_SUMMARY.md`](plans/SPRINT5_SUMMARY.md) - Execution & Risk
 - **Sprint 6:** [`plans/SPRINT6_SUMMARY.md`](plans/SPRINT6_SUMMARY.md) - ML Safety & Interpretability
+- **Sprints 7–9:** [`docs/SPRINTS-7-8-9-SUMMARY.md`](docs/SPRINTS-7-8-9-SUMMARY.md) - First ML Model, Observability & Safety, Model Observatory Dashboard
 
 ### Multi-Agent Workflow
 - **Workflow Guide:** [`docs/workflow/WORKFLOW.md`](docs/workflow/WORKFLOW.md) - Multi-agent development protocol
@@ -251,24 +255,30 @@ See [`plans/task_plan.md`](plans/task_plan.md) for the full implementation plan.
 - [x] ML schemas (`packages/common/ml_schemas.py`)
 - [x] 70+ tests (unit + integration)
 
-**Sprint 7:** ⬜ MLOps & Advanced Analysis (Planned)
-- [ ] Feature registry & lineage tracking
-- [ ] Experiment registry & research traceability
-- [ ] Model registry backend (CRUD API, lifecycle states)
-- [ ] Dynamic capital allocation policy
-- [ ] Failure mode & stress simulation framework
-- [ ] Model drift & health visualization API
+**Sprint 7:** ✅ First ML Model (End-to-End Loop) (Complete)
+- [x] ML problem definition (binary next-bar direction)
+- [x] Training pipeline (time-aware split, leakage prevention)
+- [x] Model interface contract (input/output schemas)
+- [x] Inference integration (ML strategy, confidence gating, logging)
+- [x] Text-based explainability (SimpleExplainer, stored with predictions)
 
-**Sprint 8:** ⬜ Model Observatory Dashboard (Planned)
-- [ ] Model registry UI (list view, sorting/filtering)
-- [ ] Model detail page (overview, training summary, performance)
-- [ ] ML performance visualization (prediction vs actual, calibration curves)
-- [ ] Model comparison & ranking view
-- [ ] Hyperparameter & threshold tuning interface
-- [ ] Model lifecycle controls (activate, pause, retire)
-- [ ] Model drift & health visualization UI
-- [ ] Human-in-the-loop review mode (model-centric)
-- [ ] Model sandbox / what-if testing
+**Sprint 8:** ✅ ML Observability, Safety & Evaluation (Complete)
+- [x] Performance tracking (prediction vs outcome, rolling accuracy, abstention rate)
+- [x] Baseline & regret wiring (regret vs hold cash, buy & hold, random)
+- [x] Drift monitoring (reference + current, health score, API)
+- [x] SHAP/permutation explainability per prediction
+- [x] Stress scenarios runbook and simulation scripts
+
+**Sprint 9:** ✅ Model Observatory Dashboard (Complete)
+- [x] Model registry UI (list view, sorting/filtering, quick actions)
+- [x] Model detail page (overview, training summary, performance, health)
+- [x] ML performance visualization (rolling accuracy, confidence; advanced charts extendable)
+- [x] Model comparison & ranking (infrastructure and API support)
+- [x] Hyperparameter & threshold tuning (API, confirmation, logging)
+- [x] Model lifecycle controls (activate, pause, retire, promote, clone)
+- [x] Model drift & health visualization UI
+- [x] Human-in-the-loop review mode (model-centric)
+- [x] Model sandbox / what-if (parameter sandbox, preview)
 
 ## Security Notice
 

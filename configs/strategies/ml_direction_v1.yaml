@@ -1,0 +1,36 @@
+# ML Direction Strategy V1 Configuration
+# First ML-powered strategy using trained direction classifier
+
+strategy_id: "ml_direction_v1"
+name: "ML Direction Strategy V1"
+description: "Binary direction classifier with confidence gating and explainability"
+
+# Model configuration
+model_path: "models/first_model_v1.pkl"
+
+# Position sizing
+position_size_pct: 0.1  # 10% of equity per position
+
+# Confidence thresholds
+abstain_threshold: 0.55      # Confidence below this → ABSTAIN
+low_confidence_threshold: 0.65
+high_confidence_threshold: 0.85
+
+# Feature computation
+min_bars_for_features: 200   # Minimum bars needed for indicator computation
+
+# Logging
+prediction_log_path: "logs/predictions.jsonl"  # JSON Lines format
+
+# Universe selection (single symbol for Sprint 7)
+symbols:
+  - "SPY"
+
+# Risk limits (strategy-level)
+max_positions: 1             # Only one position at a time for first model
+max_allocation_pct: 0.1      # Max 10% of portfolio
+max_drawdown_pct: 0.05       # 5% max drawdown before pause
+
+# Execution settings
+order_type: "MARKET"
+time_in_force: "DAY"
