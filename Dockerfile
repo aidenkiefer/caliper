@@ -7,19 +7,16 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Poetry (match version that generated poetry.lock: 2.3.1)
-RUN pip install --no-cache-dir poetry==2.3.1
+# Copy requirements file
+COPY requirements.txt ./
 
-# Copy dependency files
+# Install Python dependencies using pip (more reliable than Poetry in Docker)
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy dependency metadata files (for package structure)
 COPY pyproject.toml poetry.lock* ./
 COPY services/api/pyproject.toml ./services/api/
 COPY packages/common/pyproject.toml ./packages/common/
-
-# Configure Poetry to not create virtual environment (we're in Docker)
-RUN poetry config virtualenvs.create false
-
-# Install dependencies
-RUN poetry install --no-interaction --no-ansi --only main
 
 # Copy application code
 COPY . .
