@@ -143,6 +143,8 @@ class TradingModel(ABC):
 - Python, scikit-learn, xgboost/lightgbm, torch (optional for LSTM/RL)
 - FinRL for reinforcement learning strategies (optional)
 
+**ML Model & Model Observatory (Sprints 7–9):** The first ML model (binary next-bar direction) is trained via `services/ml/training/`, exposed through a standardized model interface (`packages/common/ml_schemas.py`), and used by `MLDirectionStrategyV1` with confidence gating and explainability. Observability (performance tracking, baselines, drift, SHAP) and the Model Observatory Dashboard (registry, detail, tuning, lifecycle, HITL, sandbox) are documented in **[docs/SPRINTS-7-8-9-SUMMARY.md](SPRINTS-7-8-9-SUMMARY.md)**.
+
 ---
 
 ### 4. Backtesting Engine (`services/backtest`)

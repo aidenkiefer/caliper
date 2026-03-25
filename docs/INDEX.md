@@ -1,0 +1,80 @@
+# Docs Index — Caliper (quant)
+
+This is the primary doc map for agent and human navigation in the `quant/` repo.
+
+## Core system docs
+
+| Doc | Path | Use when |
+|---|---|---|
+| Architecture | `docs/architecture.md` | Understanding services, boundaries, and data flow |
+| API contracts | `docs/api-contracts.md` | Working on FastAPI endpoints, request/response shapes, auth, pagination |
+| Data contracts | `docs/data-contracts.md` | Working on shared schemas, market data, positions, orders, model payloads |
+| Risk policy | `docs/risk-policy.md` | Touching order validation, kill switch, circuit breaker, limits |
+| Security | `docs/security.md` | Touching secrets, auth, credentials, security controls |
+| Dashboard spec | `docs/dashboard-spec.md` | Adding or changing dashboard pages, charts, controls, UX flows |
+| Design guidelines | `docs/design-guidelines.md` | Dashboard visual system, density, color, layout, contrast |
+| Features overview | `docs/FEATURES.md` | Checking what is implemented vs planned across sprints |
+
+## Workflow docs
+
+| Doc | Path | Use when |
+|---|---|---|
+| Workflow entrypoint | `docs/workflow/workflow.md` | Starting agentic work in this repo |
+| Execution rules | `docs/workflow/execution-rules.md` | Runtime rules, budgets, constraints |
+| Ticket template | `docs/workflow/ticket-template.md` | Writing one bounded task |
+| Skill map | `docs/workflow/skill-map.md` | Choosing workflow/process skills |
+| Task-type map | `docs/workflow/task-type-reference-map.md` | Choosing reference bundles, agent types, domain skills |
+| Context flow | `docs/workflow/context-flow.md` | Understanding how context should load through sessions |
+| Context audit | `docs/workflow/context-audit.md` | Auditing doc accuracy and drift |
+
+## Plans and progress
+
+| Doc | Path | Use when |
+|---|---|---|
+| Historical progress tracker | `plans/progress.md` | Reviewing full sprint completion history |
+| Historical planning handoff | `plans/task_plan.md` | Reviewing original sprint/task decomposition |
+| Specs + tickets hub | `docs/plans/README.md` | Understanding Sprint 7-9 spec/ticket workflow |
+| Workflow progress log | `docs/plans/PROGRESS.md` | Logging completed workflow-era milestones and patches |
+| Sprint 7 spec | `docs/plans/specs/sprint-7-first-ml-model-spec.md` | First ML model end-to-end work |
+| Sprint 8 spec | `docs/plans/specs/sprint-8-observability-safety-spec.md` | Observability, drift, explainability, baselines |
+| Sprint 9 spec | `docs/plans/specs/sprint-9-model-observatory-dashboard-spec.md` | Model dashboard and model-centric UX |
+| Sprint tickets | `docs/plans/tickets/` | One-ticket-at-a-time bounded implementation work |
+
+## Summaries and milestone docs
+
+| Doc | Path | Use when |
+|---|---|---|
+| Sprints 7-9 summary | `docs/SPRINTS-7-8-9-SUMMARY.md` | Fast summary of recent ML/model-dashboard work |
+| Sprint 8 complete | `docs/SPRINT-8-COMPLETE.md` | Reviewing Sprint 8 completion notes |
+| Sprint 9 complete | `docs/SPRINT-9-COMPLETE.md` | Reviewing Sprint 9 completion notes |
+| Sprint 9 implementation guide | `docs/SPRINT-9-IMPLEMENTATION-GUIDE.md` | Reviewing Sprint 9 implementation framing |
+
+## Runbooks
+
+| Doc | Path | Use when |
+|---|---|---|
+| API verification runbook | `docs/runbooks/api-verification.md` | Understanding expected API behavior and checks |
+| Backtest verification runbook | `docs/runbooks/backtest-verification.md` | Understanding expected backtest/report behavior |
+| Execution verification runbook | `docs/runbooks/execution-verification.md` | Understanding execution/risk behavior |
+| ML safety verification runbook | `docs/runbooks/ml-safety-verification.md` | Understanding drift, abstention, explainability, HITL behavior |
+| Stress scenarios | `docs/runbooks/stress-scenarios.md` | Failure-mode and resilience scenarios |
+| Vercel deployment | `docs/runbooks/vercel-deployment.md` | Dashboard deployment and env configuration |
+
+## Implementation surfaces
+
+| Area | Path | Notes |
+|---|---|---|
+| Dashboard app | `apps/dashboard/` | Next.js 14 App Router app |
+| API service | `services/api/` | FastAPI backend for dashboard and control endpoints |
+| Backtest service | `services/backtest/` | Engine, reporting, walk-forward |
+| Data service | `services/data/` | Market data ingestion, storage, migrations |
+| Execution service | `services/execution/` | OMS, broker adapters, reconciliation |
+| Features service | `services/features/` | Indicators and feature pipeline |
+| ML service | `services/ml/` | Training, inference, confidence, drift, explainability, HITL, baselines |
+| Risk service | `services/risk/` | Risk manager, kill switch, circuit breaker |
+| Shared schemas | `packages/common/` | Pydantic schemas and shared contracts |
+| Strategies | `packages/strategies/` | Strategy ABC and strategy implementations |
+
+## Navigation rule
+
+Start with `docs/INDEX.md`, then load only the specific docs needed for the current task.

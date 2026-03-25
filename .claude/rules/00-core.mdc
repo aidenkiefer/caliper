@@ -1,0 +1,16 @@
+---
+description: Core execution rules for all agent tasks in this repository.
+globs: "**/*"
+alwaysApply: true
+---
+
+# Core execution rules
+
+- **Edit only Allowed Files.** The ticket lists what you can edit. If the change requires editing an unlisted file, stop and ask before proceeding.
+- **No verification runs.** Do not run build, dev, test, or compile to confirm changes. Verification is the user's responsibility.
+- **Targeted reads.** Max 8 file reads, 6 grep/glob, 12 total tool calls per ticket. Estimate before acting; stop and ask for expanded budgets if needed.
+- **No full-repo scans.** Prefer targeted retrieval. Ask for the path if unclear.
+- **Lazy-load skills.** The ticket names the skill pack (0–2 core, 0–2 domain). Do not load the full skill registry.
+- **No scope creep.** Implement only what the ticket explicitly requests. Stop and ask before adding out-of-scope changes.
+- **Specs once.** Read spec once per session; produce a Spec Summary; use the summary for tickets — do not re-attach the full spec every turn.
+- **Project constraints:** See `.claude/CLAUDE.md` and `docs/workflow/execution-rules.md` for project-specific constraints.

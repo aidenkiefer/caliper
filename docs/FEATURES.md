@@ -1,15 +1,17 @@
 # Platform Features Overview
 
-**Last Updated:** 2026-01-26  
-**Status:** Sprint 6 Complete
+**Last Updated:** 2026-02-02  
+**Status:** Sprint 9 Complete
 
 This document provides a comprehensive overview of all implemented features, capabilities, and components in Caliper.
+
+For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safety, Model Observatory Dashboard), see **[docs/SPRINTS-7-8-9-SUMMARY.md](SPRINTS-7-8-9-SUMMARY.md)**.
 
 ---
 
 ## 🎯 Current Implementation Status
 
-### ✅ Completed (Sprints 1-6)
+### ✅ Completed (Sprints 1-9)
 
 #### Sprint 1: Infrastructure & Data ✅
 - **Monorepo Structure**: Complete Python/Node.js monorepo with Poetry and npm
@@ -199,6 +201,12 @@ This document provides a comprehensive overview of all implemented features, cap
   - 70+ tests (unit + integration)
   - ML safety verification runbook
 
+#### Sprints 7–9: First ML Model, Observability & Safety, Model Observatory ✅
+- **Sprint 7:** First ML model end-to-end (problem definition, training pipeline, model interface contract, inference via `MLDirectionStrategyV1`, text explainability). See [sprint-7-ml-problem-definition.md](sprint-7-ml-problem-definition.md), [model-interface-contract.md](model-interface-contract.md), [sprint-7-inference-and-explainability.md](sprint-7-inference-and-explainability.md), [using-ml-strategy.md](using-ml-strategy.md).
+- **Sprint 8:** Performance tracking, baseline/regret wiring, drift monitoring, SHAP/permutation explainability per prediction, stress-scenarios runbook and simulation. See [sprint-8-implementation-summary.md](sprint-8-implementation-summary.md), [runbooks/stress-scenarios.md](runbooks/stress-scenarios.md).
+- **Sprint 9:** Model Observatory Dashboard — registry UI, model detail page, ML performance viz, comparison/ranking, tuning, lifecycle controls, drift/health UI, HITL review mode, sandbox/what-if. See [SPRINT-9-COMPLETE.md](SPRINT-9-COMPLETE.md), [SPRINT-9-IMPLEMENTATION-GUIDE.md](SPRINT-9-IMPLEMENTATION-GUIDE.md).
+- **Full index:** [SPRINTS-7-8-9-SUMMARY.md](SPRINTS-7-8-9-SUMMARY.md).
+
 ---
 
 ## 📊 Feature Details
@@ -344,9 +352,10 @@ This document provides a comprehensive overview of all implemented features, cap
 - **Security** (`docs/security.md`) - Security policies
 
 ### Implementation Documentation
-- **Sprint Summaries** - Detailed sprint completion reports
+- **Sprint Summaries** - Detailed sprint completion reports (including `docs/SPRINT-8-COMPLETE.md`, `docs/SPRINT-9-COMPLETE.md`)
+- **Sprints 7–9 Summary** - [docs/SPRINTS-7-8-9-SUMMARY.md](SPRINTS-7-8-9-SUMMARY.md) — Single entry point for Sprints 7–9 documentation and implementation
 - **ADRs** - Architecture Decision Records (5 ADRs)
-- **Runbooks** - Verification and troubleshooting guides
+- **Runbooks** - Verification and troubleshooting guides (including `docs/runbooks/stress-scenarios.md` for Sprint 8)
 - **Service READMEs** - Per-service documentation
 
 ### Multi-Agent Workflow
@@ -404,7 +413,7 @@ This document provides a comprehensive overview of all implemented features, cap
 - ✅ Position tracking and reconciliation
 - ✅ 114 tests (76 unit + 38 integration)
 
-### Sprint 6: ML Safety & Interpretability ✅
+### Sprint 6: ML Safety & Interpretability ✅ COMPLETE
 - ✅ Model drift detection (PSI, KL divergence, health score)
 - ✅ Confidence gating and abstention logic (ABSTAIN signal)
 - ✅ SHAP integration for explainability
@@ -413,6 +422,33 @@ This document provides a comprehensive overview of all implemented features, cap
 - ✅ Educational tooltips and help page
 - ✅ Vercel deployment configuration
 - ✅ 70+ tests (unit + integration)
+
+### Sprint 7: First ML Model (End-to-End Loop) ✅ COMPLETE
+- ✅ ML problem definition (binary next-bar direction; see `docs/sprint-7-ml-problem-definition.md`)
+- ✅ Offline training pipeline (time-aware split, leakage prevention; see `docs/training-first-model.md`)
+- ✅ Model interface contract (ModelInput, ModelPrediction, ModelInferenceOutput; see `docs/model-interface-contract.md`)
+- ✅ Inference integration (MLDirectionStrategyV1, confidence gating, prediction logging; see `docs/sprint-7-inference-and-explainability.md`, `docs/using-ml-strategy.md`)
+- ✅ Text-based explainability (SimpleExplainer, stored with predictions)
+
+### Sprint 8: ML Observability, Safety & Evaluation ✅ COMPLETE
+- ✅ Performance tracking (prediction vs outcome, rolling accuracy, abstention rate; API `GET /v1/metrics/performance/{model_id}`)
+- ✅ Baseline & regret wiring (regret vs hold cash, buy & hold, random; API `GET /v1/baselines/comparison`)
+- ✅ Drift monitoring (reference + current distributions, health score; API drift/metrics, drift/health)
+- ✅ SHAP/permutation explainability per prediction (API `GET /v1/explanations/{trade_id}`)
+- ✅ Stress scenarios runbook and simulation scripts (`docs/runbooks/stress-scenarios.md`, `tests/stress/`)
+
+### Sprint 9: Model Observatory Dashboard ✅ COMPLETE
+- ✅ Model Registry UI (`/models` — list view, sorting/filtering, quick actions)
+- ✅ Model Detail page (`/models/[id]` — overview, training summary, performance, health)
+- ✅ ML performance visualization (rolling accuracy, confidence; advanced charts extendable)
+- ✅ Model comparison & ranking (infrastructure and API support)
+- ✅ Hyperparameter & threshold tuning (API, confirmation, logging)
+- ✅ Model lifecycle controls (activate, pause, retire, promote, clone)
+- ✅ Drift & health visualization UI
+- ✅ HITL review mode (model-centric)
+- ✅ Model sandbox / what-if (parameter sandbox, preview)
+
+**Sprints 7–9 summary:** See [docs/SPRINTS-7-8-9-SUMMARY.md](SPRINTS-7-8-9-SUMMARY.md) for full documentation index and implementation details.
 
 ### Future Enhancements
 - Multi-asset portfolio backtesting
@@ -443,8 +479,9 @@ This document provides a comprehensive overview of all implemented features, cap
 - **Sprint 4:** ✅ Complete (Dashboard & API)
 - **Sprint 5:** ✅ Complete (Execution & Risk)
 - **Sprint 6:** ✅ Complete (ML Safety & Interpretability)
-- **Sprint 7:** ⬜ Planned (MLOps & Advanced Analysis)
-- **Sprint 8:** ⬜ Planned (Model Observatory Dashboard)
+- **Sprint 7:** ✅ Complete (First ML Model – End-to-End Loop)
+- **Sprint 8:** ✅ Complete (ML Observability, Safety & Evaluation)
+- **Sprint 9:** ✅ Complete (Model Observatory Dashboard)
 
 ---
 
