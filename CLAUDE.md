@@ -12,7 +12,7 @@ This file provides guidance to Claude when working with the **Caliper (quant)** 
 - **Learning and correctness** over profit maximization: interpretability, baselines, human-in-the-loop
 - **Paper trading first**, then live with strict safeguards
 
-**Current state:** Sprints 1–6 are complete. The only live strategy is **SMA Crossover** (rule-based; no trained ML model yet). ML infrastructure (confidence gating, SHAP, drift detection, baselines, HITL) exists but is not wired to a model. Sprint 7 will introduce the first ML model end-to-end; Sprints 8–9 add observability and the model-centric dashboard.
+**Current state:** Core platform **Sprints 1–9** are complete (including first ML model loop, observability, and model observatory dashboard). **Sprint 10** adds an optional **Polymarket** hourly BTC market-making service (`services/polymarket/`) — parallel to Alpaca/equity execution, shared TimescaleDB `pm.*` schema for analytics; see `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md` and `docs/runbooks/polymarket-operations.md`. Doc map: **`docs/INDEX.md`**.
 
 **Codebase:** Monorepo with Python services (Poetry), shared packages (common schemas, strategies), and a Next.js dashboard (npm). Trading services run separately from the dashboard; the dashboard talks to the FastAPI backend via REST.
 
@@ -27,12 +27,14 @@ quant/
 ├── services/                # Python microservices
 │   ├── api/                 # FastAPI backend (REST for dashboard)
 │   ├── backtest/            # Backtesting engine, report generator, walk-forward
+│   ├── data/                # Data layer, Alembic migrations (incl. pm.* for Polymarket)
 │   ├── execution/           # OMS, broker adapter (Alpaca), position reconciliation
 │   ├── features/           # Feature pipeline (indicators, 30+ features)
 │   ├── ml/                  # Drift, confidence gating, explainability, baselines, HITL
+│   ├── polymarket/          # Optional Polymarket CLOB bot (Sprint 10); not Strategy/OMS
 │   └── risk/                # RiskManager, kill switch, circuit breaker
 ├── packages/
-│   ├── common/              # Pydantic schemas (PriceBar, Order, Signal, api_schemas, ml_schemas, execution_schemas)
+│   ├── common/              # Pydantic schemas (PriceBar, Order, Signal, api_schemas, ml_schemas, execution_schemas, polymarket_schemas)
 │   └── strategies/          # Strategy base class, SMA Crossover strategy
 ├── configs/
 │   ├── environments/        # .env.example, environment config
@@ -47,7 +49,7 @@ quant/
 └── package.json             # Root npm (dashboard in apps/dashboard)
 ```
 
-**Do not assume** a `services/data` or `services/monitoring` directory exists in the same way as in the architecture doc; implement only what exists under `services/` and `packages/` unless the task explicitly adds new services.
+**Do not assume** `services/monitoring` matches every architecture diagram; implement only what exists under `services/` and `packages/` unless the task explicitly adds new services.
 
 ---
 

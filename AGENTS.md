@@ -1,6 +1,6 @@
 # Caliper (quant)
 
-Quantitative ML trading platform with backtesting, risk management, and a Next.js dashboard — focused on learning, correctness, and safety (paper trading first).
+Quantitative ML trading platform with backtesting, risk management, and a Next.js dashboard — focused on learning, correctness, and safety (paper trading first). An optional **Polymarket** market-making service (`services/polymarket/`) runs outside the equity OMS; use `docs/runbooks/polymarket-operations.md` when touching it.
 
 ## How to work
 
@@ -12,7 +12,7 @@ Quantitative ML trading platform with backtesting, risk management, and a Next.j
 
 ## Hard constraints
 
-- Always route order creation through risk controls; do not bypass kill switch / circuit breaker checks.
+- Always route **equity** order creation through risk controls; do not bypass kill switch / circuit breaker checks. Polymarket uses its own safety layer in `services/polymarket/` (not `services/risk` for CLOB orders).
 - Paper trading first; do not imply live trading unless explicitly requested.
 - Never commit secrets; use `.env.example` patterns only.
 

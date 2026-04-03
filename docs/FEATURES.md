@@ -1,7 +1,7 @@
 # Platform Features Overview
 
-**Last Updated:** 2026-02-02  
-**Status:** Sprint 9 Complete
+**Last Updated:** 2026-04-03  
+**Status:** Sprint 10 Complete (core platform Sprints 1–9 + Polymarket PoC)
 
 This document provides a comprehensive overview of all implemented features, capabilities, and components in Caliper.
 
@@ -11,7 +11,7 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 
 ## 🎯 Current Implementation Status
 
-### ✅ Completed (Sprints 1-9)
+### ✅ Completed (Sprints 1–10)
 
 #### Sprint 1: Infrastructure & Data ✅
 - **Monorepo Structure**: Complete Python/Node.js monorepo with Poetry and npm
@@ -206,6 +206,14 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 - **Sprint 8:** Performance tracking, baseline/regret wiring, drift monitoring, SHAP/permutation explainability per prediction, stress-scenarios runbook and simulation. See [sprint-8-implementation-summary.md](sprint-8-implementation-summary.md), [runbooks/stress-scenarios.md](runbooks/stress-scenarios.md).
 - **Sprint 9:** Model Observatory Dashboard — registry UI, model detail page, ML performance viz, comparison/ranking, tuning, lifecycle controls, drift/health UI, HITL review mode, sandbox/what-if. See [SPRINT-9-COMPLETE.md](SPRINT-9-COMPLETE.md), [SPRINT-9-IMPLEMENTATION-GUIDE.md](SPRINT-9-IMPLEMENTATION-GUIDE.md).
 - **Full index:** [SPRINTS-7-8-9-SUMMARY.md](SPRINTS-7-8-9-SUMMARY.md).
+
+#### Sprint 10: Polymarket BTC hourly market-making ✅
+- **Purpose:** Optional **parallel trading surface** — prediction-market (CLOB) market making on Polymarket hourly BTC Up/Down markets. Shares **Postgres/TimescaleDB** with Caliper for unified analytics; **does not** use `packages/strategies` or Alpaca `execution` OMS (intentional separation; see spec).
+- **Service** (`services/polymarket/`): Gamma + CLOB + Binance + Data API clients; Polygon wallet (EIP-712); fixed-spread V1 quoting; post-only + heartbeat; safety layer; session orchestrator; Typer CLI (`polymarket-session`, `--dry-run`).
+- **Data:** Alembic migration `services/data` → `pm.*` schema (sessions, orders, fills, snapshots, candles, PnL, market metadata, toxic flow by minute); telemetry for queue position, adverse selection, reward eligibility, regime tags.
+- **API:** `services/api/routers/polymarket.py` + `packages/common/polymarket_schemas.py` (read-oriented session analytics; wiring to live DB per deployment).
+- **Docs:** [polymarket-btc-trading-spec.md](plans/specs/polymarket-btc-trading-spec.md) · [SPRINT-10-POLYMARKET-COMPLETE.md](plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md) · [POLYMARKET-QUICKSTART.md](POLYMARKET-QUICKSTART.md) · [runbooks/polymarket-operations.md](runbooks/polymarket-operations.md) · `services/polymarket/docs/`.
+- **Roadmap:** Phase 2 (inventory skew, dynamic spread, rewards) and Phase 3 (hybrid directional model) in spec §10 — V1 is data-collection first with dust capital.
 
 ---
 
@@ -450,7 +458,15 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 
 **Sprints 7–9 summary:** See [docs/SPRINTS-7-8-9-SUMMARY.md](SPRINTS-7-8-9-SUMMARY.md) for full documentation index and implementation details.
 
+### Sprint 10: Polymarket BTC hourly market-making ✅ COMPLETE
+- ✅ Parallel service `services/polymarket/` with CLI, adapters, wallet, recorder, integration tests
+- ✅ `pm.*` TimescaleDB schema and migration (`services/data`)
+- ✅ V1 market-making (fixed spread, post-only, session safety limits, rich `pm.*` telemetry)
+- ✅ FastAPI Polymarket router + shared Pydantic schemas (`packages/common/polymarket_schemas.py`)
+- ✅ Operations docs: [POLYMARKET-QUICKSTART.md](POLYMARKET-QUICKSTART.md), [runbooks/polymarket-operations.md](runbooks/polymarket-operations.md)
+
 ### Future Enhancements
+- Polymarket Phase 2+ per [polymarket-btc-trading-spec.md](plans/specs/polymarket-btc-trading-spec.md) (inventory skew, dynamic spread, hybrid model, dashboard depth)
 - Multi-asset portfolio backtesting
 - Limit/stop order simulation
 - Monte Carlo simulation
@@ -465,11 +481,11 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 ## 📈 Metrics & Statistics
 
 ### Codebase Statistics
-- **Total Lines of Code:** ~10,000+ lines
-- **Services:** 5 implemented (data, features, backtest, api, execution, risk)
+- **Total Lines of Code:** ~10,000+ lines (excluding Sprint 10 service additions)
+- **Services:** Core: data, features, backtest, api, execution, risk, ml; **optional:** `polymarket` (Sprint 10)
 - **Packages:** 2 implemented (common, strategies)
-- **Test Coverage:** 370+ tests across all sprints
-- **Documentation:** 20+ major documents
+- **Test Coverage:** 370+ core tests; additional unit/integration tests under `tests/unit/polymarket/` and `tests/integration/polymarket/`
+- **Documentation:** 20+ major documents plus Polymarket spec, summary, quickstart, and operations runbook
 - **ADRs:** 7 architecture decision records
 
 ### Sprint Completion
@@ -482,6 +498,7 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 - **Sprint 7:** ✅ Complete (First ML Model – End-to-End Loop)
 - **Sprint 8:** ✅ Complete (ML Observability, Safety & Evaluation)
 - **Sprint 9:** ✅ Complete (Model Observatory Dashboard)
+- **Sprint 10:** ✅ Complete (Polymarket BTC hourly market-making — `services/polymarket/`)
 
 ---
 
@@ -505,9 +522,11 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 - [Backtest Verification Runbook](runbooks/backtest-verification.md)
 - [ML Safety Verification Runbook](runbooks/ml-safety-verification.md)
 - [Execution Verification Runbook](runbooks/execution-verification.md)
+- [Polymarket Operations Runbook](runbooks/polymarket-operations.md)
+- [Sprint 10 summary](plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)
 - [Multi-Agent Workflow](workflow/WORKFLOW.md)
 
 ---
 
-**Last Updated:** 2026-01-26  
+**Last Updated:** 2026-04-03  
 **Maintained By:** Development Team

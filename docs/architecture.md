@@ -1054,6 +1054,12 @@ services/api/
 - `GET /v1/health` - Overall system health check
   - **Status:** ✅ Implemented (mock data)
 
+**Polymarket (Sprint 10, optional parallel surface):**
+- `GET /v1/polymarket/sessions` and related read endpoints for `pm.*` session/order/fill/snapshot data
+  - **Status:** ✅ Router implemented; DB wiring follows same pattern as other API routes (stub vs live pool per deployment)
+- **Execution** is **not** driven through `packages/strategies` or `services/execution` — the bot runs as **`services/polymarket/`** + CLI (`polymarket-session`). Shared **Postgres/TimescaleDB** stores `pm.*` tables for unified analytics alongside equity data.
+- **Spec / ops:** [docs/plans/specs/polymarket-btc-trading-spec.md](plans/specs/polymarket-btc-trading-spec.md), [docs/runbooks/polymarket-operations.md](runbooks/polymarket-operations.md).
+
 **Request/Response Flow:**
 
 ```
@@ -1070,7 +1076,8 @@ FastAPI Router (versioned: /v1/*)
     ├── /v1/metrics → metrics.router
     ├── /v1/strategies → strategies.router
     ├── /v1/runs → runs.router
-    └── /v1/positions → positions.router
+    ├── /v1/positions → positions.router
+    └── /v1/polymarket → polymarket.router (Sprint 10)
     ↓
 Authentication Middleware (JWT validation) - *Planned*
     ↓

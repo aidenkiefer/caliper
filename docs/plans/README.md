@@ -1,23 +1,24 @@
 # Plans: Specs & Tickets
 
-This folder holds **specs** (read-only context for Claude) and **tickets** (one-at-a-time executable tasks) for Sprints 7, 8, and 9, following `claude-workflow-opt.md`.
+This folder holds **specs** (read-only context for agents) and **tickets** (one-at-a-time executable tasks) for **Sprints 7–10**, following the bounded workflow in `docs/workflow/workflow.md`.
 
 ## Workflow
 
-- **Specs** (`specs/`) = rules, constraints, design intent. Claude reads them as context but **does not execute** from the spec alone.
-- **Tickets** (`tickets/`) = small, bounded tasks. Claude **acts only on the ticket** it is given. Each ticket references one or more specs and lists Allowed Files and Hard Limits.
-- **CLAUDE rules:** No review/verification/QA by Claude; no build/compile/test commands. Verification is the user’s job (see root `CLAUDE.md`).
-- **Planning:** If a ticket requires design choices, Claude writes documentation in `docs/` and **pauses for your input** before implementing.
+- **Specs** (`specs/`) = rules, constraints, design intent. Agents read them as context but **do not execute** from the spec alone.
+- **Tickets** (`tickets/`) = small, bounded tasks. Agents **act only on the ticket** they are given. Each ticket references one or more specs and lists Allowed Files and tool budgets.
+- **CLAUDE rules:** No review/verification/QA by Claude; no build/compile/test commands unless the user asks. Verification is the user’s job (see root `CLAUDE.md`).
+- **Planning:** If a ticket requires design choices, write documentation in `docs/` and **pause for human input** before implementing.
 
-## Specs (Sprint 7, 8 & 9)
+## Specs
 
 | Spec | Purpose |
 |------|---------|
 | [specs/sprint-7-first-ml-model-spec.md](specs/sprint-7-first-ml-model-spec.md) | First ML model end-to-end: problem definition, training, contract, inference, text explainability. |
 | [specs/sprint-8-observability-safety-spec.md](specs/sprint-8-observability-safety-spec.md) | ML observability & safety: performance tracking, baselines/regret, drift, SHAP, stress simulation. |
 | [specs/sprint-9-model-observatory-dashboard-spec.md](specs/sprint-9-model-observatory-dashboard-spec.md) | Model Observatory Dashboard: registry, detail, ML viz, comparison, tuning, lifecycle, drift UI, HITL review, sandbox. |
+| [specs/polymarket-btc-trading-spec.md](specs/polymarket-btc-trading-spec.md) | **Sprint 10:** Polymarket hourly BTC market-making — parallel `services/polymarket/`, `pm.*` schema, V1 MM + Phase 2/3 roadmap. |
 
-All specs include the **Skills to Use for the upcoming Sprints** list (from `plans/task_plan.md`) and require skill usage on every ticket.
+Sprints 7–9 specs reference skills from `plans/task_plan.md` where applicable. Sprint 10 was executed as 20 tickets (`10-01`–`10-20`); see [summaries/SPRINT-10-POLYMARKET-COMPLETE.md](summaries/SPRINT-10-POLYMARKET-COMPLETE.md) for the completion narrative.
 
 ## Tickets
 
@@ -55,6 +56,15 @@ All specs include the **Skills to Use for the upcoming Sprints** list (from `pla
 | [09-08-hitl-review-mode-model-centric.md](tickets/09-08-hitl-review-mode-model-centric.md) | HITL review mode (model-centric): recommendation queue, explanation display, approve/reject. |
 | [09-09-model-sandbox-what-if.md](tickets/09-09-model-sandbox-what-if.md) | Model sandbox / what-if: parameter sandbox, rerun backtests, hypothetical allocations, preview. |
 
+**Sprint 10 (Polymarket BTC market-making)** — ✅ complete (2026-03-25)
+
+| Index | Description |
+|-------|-------------|
+| [tickets/10-00-INDEX.md](tickets/10-00-INDEX.md) | Dependency graph, ticket list, recommended build order |
+| [tickets/10-01-polymarket-scaffolding.md](tickets/10-01-polymarket-scaffolding.md) … `10-20-documentation.md` | Twenty bounded tickets (scaffolding → adapters → core → API → tests → docs) |
+
+**Operations (human):** [docs/POLYMARKET-QUICKSTART.md](../POLYMARKET-QUICKSTART.md) · [docs/runbooks/polymarket-operations.md](../runbooks/polymarket-operations.md)
+
 ## How to run
 
-Give Claude **one ticket at a time** (e.g. “Follow the ticket in `docs/plans/tickets/07-01-ml-problem-definition-doc.md`”). Claude should read the referenced spec(s) and reference docs, then execute only the ticket’s Instructions within the Allowed Files and Hard Limits.
+Give the agent **one ticket at a time** (e.g. “Follow the ticket in `docs/plans/tickets/07-01-ml-problem-definition-doc.md`”). The agent should read the referenced spec(s) and reference docs, then execute only within the ticket’s Allowed Files and budgets.

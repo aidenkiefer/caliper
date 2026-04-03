@@ -47,7 +47,7 @@ Track major work blocks, features, and versions in this table.
 | **v1.6.0** | **Sprint 7: First ML model end-to-end**                | Done   | 2026-02-02 | 0         | `docs/plans/specs/sprint-7-first-ml-model-spec.md`              | `docs/SPRINTS-7-8-9-SUMMARY.md`                |
 | **v1.7.0** | **Sprint 8: ML observability, safety, and evaluation** | Done   | 2026-02-02 | 0         | `docs/plans/specs/sprint-8-observability-safety-spec.md`        | `docs/SPRINT-8-COMPLETE.md`                    |
 | **v1.8.0** | **Sprint 9: Model observatory dashboard**              | Done   | 2026-02-02 | 0         | `docs/plans/specs/sprint-9-model-observatory-dashboard-spec.md` | `docs/SPRINT-9-COMPLETE.md`                    |
-| **v2.0.0** | **Sprint 10: Polymarket BTC market-making**            | Done   | 2026-03-25 | 0         | `docs/plans/specs/polymarket-btc-trading-spec.md`               | `docs/plans/POLYMARKET-TICKETS-1-5-SUMMARY.md` |
+| **v2.0.0** | **Sprint 10: Polymarket BTC market-making**            | Done   | 2026-03-25 | 0         | `docs/plans/specs/polymarket-btc-trading-spec.md`               | `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md` (see also `docs/plans/POLYMARKET-TICKETS-1-5-SUMMARY.md`) |
 
 
 **Status progression:** Not started → Concept → Spec → Tickets → In progress → Done. Keep minor versions `<= 10`; group related patches to keep patch versions usually `<= 15`.
@@ -67,6 +67,7 @@ Log smaller fixes, UI tweaks, docs updates, or tooling improvements here—work 
 | **v2.0.0-p2** | Polymarket tickets 6-10: DB migration, fee model, market discovery, data feed, quoting engine | 2026-03-25 | Polymarket service | `docs/plans/tickets/10-06` through `10-10`; 9 new files, 70+ unit tests          |
 | **v2.0.0-p3** | Polymarket tickets 11-15: executor, safety layer, recorder, session orchestrator, CLI         | 2026-03-25 | Polymarket service | `docs/plans/tickets/10-11` through `10-15`; 8 new files, 50+ tests               |
 | **v2.0.0-p4** | Polymarket tickets 16-20: shared schemas, API router, data API client, integration test, docs | 2026-03-25 | Polymarket service | `docs/plans/tickets/10-16` through `10-20`; 10 new files, complete documentation |
+| **v2.0.0-p5** | Project docs: README, `docs/INDEX.md`, `docs/FEATURES.md`, `docs/plans/README.md` aligned with Sprint 10 | 2026-04-03 | Docs | Cross-links to spec, summary, quickstart, operations runbook |
 
 
 ---
@@ -79,6 +80,7 @@ Items discussed or spec'd but not yet fully implemented. Track deferred features
 | Type             | Item                                                 | Source / reference                | Notes                                                                |
 | ---------------- | ---------------------------------------------------- | --------------------------------- | -------------------------------------------------------------------- |
 | **Future phase** | Iterate on model-centric dashboard and ML evaluation | `plans/progress.md`               | Tracker marks Sprints 7-9 complete and points to continued iteration |
+| **Future phase** | Polymarket Phase 2+ (inventory skew, dynamic spread, hybrid model) | `docs/plans/specs/polymarket-btc-trading-spec.md` §10 | V1 complete; tune from `pm.*` data before funded scale-up |
 | **Fix / patch**  | Render API server issue                              | `docs/render-api-server-issue.md` | Existing issue doc suggests deployment/runtime follow-up work        |
 
 

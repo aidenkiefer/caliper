@@ -1,10 +1,10 @@
 # Caliper
 
-A modular quantitative ML trading platform for stocks and options with risk management, backtesting, and live execution capabilities.
+A modular quantitative ML trading platform for stocks and options with risk management, backtesting, and live execution capabilities. The repo also includes an **optional parallel service** for **Polymarket** hourly BTC binary market-making (Sprint 10): same shared Postgres/TimescaleDB for observability, separate execution path from the equity Strategy / OMS stack.
 
 ## Project Status
 
-**Current Phase:** Implementation - Sprints 7–9 ✅ COMPLETE
+**Current phase:** Core platform through **Sprint 9** ✅; **Sprint 10 (Polymarket PoC)** ✅ complete — operational setup (wallet, env, migration) still required before live sessions.
 
 **Sprint 1:** ✅ Complete (Infrastructure & Data)  
 **Sprint 2:** ✅ Complete (Feature Pipeline & Strategy Core)  
@@ -14,16 +14,17 @@ A modular quantitative ML trading platform for stocks and options with risk mana
 **Sprint 6:** ✅ Complete (ML Safety & Interpretability)  
 **Sprint 7:** ✅ Complete (First ML Model – End-to-End Loop)  
 **Sprint 8:** ✅ Complete (ML Observability, Safety & Evaluation)  
-**Sprint 9:** ✅ Complete (Model Observatory Dashboard)
+**Sprint 9:** ✅ Complete (Model Observatory Dashboard)  
+**Sprint 10:** ✅ Complete (Polymarket BTC hourly market-making — `services/polymarket/`)
 
-See **[docs/SPRINTS-7-8-9-SUMMARY.md](docs/SPRINTS-7-8-9-SUMMARY.md)** for a summary of Sprints 7–9 documentation and implementation.
+See **[docs/SPRINTS-7-8-9-SUMMARY.md](docs/SPRINTS-7-8-9-SUMMARY.md)** for Sprints 7–9. For Polymarket: **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)**, **[docs/POLYMARKET-QUICKSTART.md](docs/POLYMARKET-QUICKSTART.md)**, **[docs/runbooks/polymarket-operations.md](docs/runbooks/polymarket-operations.md)**.
 
 ## Architecture
 
 This is a monorepo containing:
 
 - **`apps/dashboard`** - ✅ Next.js dashboard (Sprint 4)
-- **`services/`** - Python microservices (data, features, backtest, execution, risk, monitoring, api)
+- **`services/`** - Python microservices: data, features, backtest, execution, risk, monitoring, api, plus **`polymarket`** (Sprint 10 — optional CLOB market-making bot; not wired through `Strategy` / Alpaca OMS)
 - **`packages/`** - Shared libraries (common schemas, strategies, models)
 - **`docs/`** - Architecture and design documentation
 - **`configs/`** - Configuration files (strategies, environments)
@@ -141,6 +142,7 @@ quant/
 │   ├── execution/          # ✅ Trade execution (Sprint 5)
 │   ├── risk/               # ✅ Risk management (Sprint 5)
 │   ├── ml/                 # ✅ ML Safety & Interpretability (Sprint 6)
+│   ├── polymarket/         # ✅ Polymarket BTC hourly MM (Sprint 10; own CLI + DB pm.*)
 │   └── monitoring/         # Metrics & alerts (planned)
 ├── packages/
 │   ├── common/             # ✅ Shared schemas & utilities
@@ -172,6 +174,13 @@ quant/
 - **Sprint 5:** [`plans/SPRINT5_SUMMARY.md`](plans/SPRINT5_SUMMARY.md) - Execution & Risk
 - **Sprint 6:** [`plans/SPRINT6_SUMMARY.md`](plans/SPRINT6_SUMMARY.md) - ML Safety & Interpretability
 - **Sprints 7–9:** [`docs/SPRINTS-7-8-9-SUMMARY.md`](docs/SPRINTS-7-8-9-SUMMARY.md) - First ML Model, Observability & Safety, Model Observatory Dashboard
+- **Sprint 10:** [`docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md`](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md) - Polymarket BTC market-making (full summary)
+
+### Polymarket (Sprint 10)
+- **Quick start:** [`docs/POLYMARKET-QUICKSTART.md`](docs/POLYMARKET-QUICKSTART.md)
+- **Operations runbook:** [`docs/runbooks/polymarket-operations.md`](docs/runbooks/polymarket-operations.md)
+- **Spec:** [`docs/plans/specs/polymarket-btc-trading-spec.md`](docs/plans/specs/polymarket-btc-trading-spec.md)
+- **Service docs:** [`services/polymarket/docs/`](services/polymarket/docs/) (SETUP, CONFIG, RUNBOOK)
 
 ### Multi-Agent Workflow
 - **Workflow Guide:** [`docs/workflow/WORKFLOW.md`](docs/workflow/WORKFLOW.md) - Multi-agent development protocol
@@ -183,6 +192,7 @@ quant/
 - **Backtest Verification:** [`docs/runbooks/backtest-verification.md`](docs/runbooks/backtest-verification.md)
 - **API Verification:** [`docs/runbooks/api-verification.md`](docs/runbooks/api-verification.md)
 - **Execution Verification:** [`docs/runbooks/execution-verification.md`](docs/runbooks/execution-verification.md)
+- **Polymarket Operations:** [`docs/runbooks/polymarket-operations.md`](docs/runbooks/polymarket-operations.md)
 
 ### Features Overview
 - **Platform Features:** [`docs/FEATURES.md`](docs/FEATURES.md) - Comprehensive feature list and capabilities
@@ -280,13 +290,20 @@ See [`plans/task_plan.md`](plans/task_plan.md) for the full implementation plan.
 - [x] Human-in-the-loop review mode (model-centric)
 - [x] Model sandbox / what-if (parameter sandbox, preview)
 
+**Sprint 10:** ✅ Polymarket BTC hourly market-making (Complete)
+- [x] Parallel service `services/polymarket/` (Gamma/CLOB/Binance/Data API adapters, wallet, session orchestrator, CLI `polymarket-session`)
+- [x] V1 fixed-spread post-only quoting, heartbeat, safety layer, TimescaleDB `pm.*` schema (migration in `services/data`)
+- [x] Rich telemetry (queue position, adverse selection, toxic flow by minute, regime tags)
+- [x] API router `services/api/routers/polymarket.py` + `packages/common/polymarket_schemas.py`
+- [x] Unit/integration tests and service-local docs; see **[docs/POLYMARKET-QUICKSTART.md](docs/POLYMARKET-QUICKSTART.md)** to run
+
 ## Security Notice
 
 ⚠️ **This platform handles real financial transactions.**
 - Never commit API keys or secrets
 - Use Doppler or similar secrets manager for production
-- Always test in paper trading mode first
-- Review risk policies before live trading
+- Always test in paper trading mode first (Alpaca); for Polymarket, use **`--dry-run`** and dust capital before scaling
+- Review risk policies before live trading (`docs/risk-policy.md` applies to equity paths; Polymarket uses its own safety limits in config — see runbook)
 
 ## License
 
