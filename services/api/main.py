@@ -30,6 +30,7 @@ from .routers import (
     explanations,
     baselines,
     recommendations,
+    polymarket,
 )
 
 
@@ -199,6 +200,12 @@ app.include_router(
     recommendations.router,
     prefix=API_V1_PREFIX,
     tags=["recommendations"],
+)
+
+app.include_router(
+    polymarket.router,
+    prefix=API_V1_PREFIX,
+    tags=["polymarket"],
 )
 
 

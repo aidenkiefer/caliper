@@ -52,26 +52,26 @@ Layer 8 (testing and docs, depends on all):
 
 | # | Name | Dependencies | Est. time | Status |
 |---|------|--------------|-----------|--------|
-| 10-01 | Scaffolding | None | 30 min | ⬜ Not started |
-| 10-02 | Gamma client | 10-01 | 1 hour | ⬜ Not started |
-| 10-03 | CLOB client | 10-01 | 2 hours | ⬜ Not started |
-| 10-04 | Binance client | 10-01 | 45 min | ⬜ Not started |
-| 10-05 | Wallet management | 10-01 | 1.5 hours | ⬜ Not started |
-| 10-06 | Database schema | None | 1 hour | ⬜ Not started |
-| 10-07 | Fee model | None | 45 min | ⬜ Not started |
-| 10-08 | Market discovery | 10-02, 10-06 | 1 hour | ⬜ Not started |
-| 10-09 | Data feed | 10-03, 10-04 | 2 hours | ⬜ Not started |
-| 10-10 | Quoting engine | 10-01 | 1 hour | ⬜ Not started |
-| 10-11 | Executor | 10-03, 10-05 | 1.5 hours | ⬜ Not started |
-| 10-12 | Safety layer | 10-10 | 1 hour | ⬜ Not started |
-| 10-13 | Recorder | 10-06, 10-07 | 2 hours | ⬜ Not started |
-| 10-14 | Session orchestrator | 10-08, 10-09, 10-10, 10-11, 10-12, 10-13, 10-05 | 2 hours | ⬜ Not started |
-| 10-15 | CLI entrypoint | 10-14 | 30 min | ⬜ Not started |
-| 10-16 | Shared schemas | 10-06 | 30 min | ⬜ Not started |
-| 10-17 | API router | 10-16 | 1 hour | ⬜ Not started |
-| 10-18 | Data API client | 10-01 | 45 min | ⬜ Not started |
-| 10-19 | Integration test | 10-15 | 1.5 hours | ⬜ Not started |
-| 10-20 | Documentation | all | 1 hour | ⬜ Not started |
+| 10-01 | Scaffolding | None | 30 min | ✅ Done |
+| 10-02 | Gamma client | 10-01 | 1 hour | ✅ Done |
+| 10-03 | CLOB client | 10-01 | 2 hours | ✅ Done |
+| 10-04 | Binance client | 10-01 | 45 min | ✅ Done |
+| 10-05 | Wallet management | 10-01 | 1.5 hours | ✅ Done |
+| 10-06 | Database schema | None | 1 hour | ✅ Done |
+| 10-07 | Fee model | None | 45 min | ✅ Done |
+| 10-08 | Market discovery | 10-02, 10-06 | 1 hour | ✅ Done |
+| 10-09 | Data feed | 10-03, 10-04 | 2 hours | ✅ Done |
+| 10-10 | Quoting engine | 10-01 | 1 hour | ✅ Done |
+| 10-11 | Executor | 10-03, 10-05 | 1.5 hours | ✅ Done |
+| 10-12 | Safety layer | 10-10 | 1 hour | ✅ Done |
+| 10-13 | Recorder | 10-06, 10-07 | 2 hours | ✅ Done |
+| 10-14 | Session orchestrator | 10-08, 10-09, 10-10, 10-11, 10-12, 10-13, 10-05 | 2 hours | ✅ Done |
+| 10-15 | CLI entrypoint | 10-14 | 30 min | ✅ Done |
+| 10-16 | Shared schemas | 10-06 | 30 min | ✅ Done |
+| 10-17 | API router | 10-16 | 1 hour | ✅ Done |
+| 10-18 | Data API client | 10-01 | 45 min | ✅ Done |
+| 10-19 | Integration test | 10-15 | 1.5 hours | ✅ Done |
+| 10-20 | Documentation | all | 1 hour | ✅ Done |
 
 **Total estimated time:** ~22 hours
 
