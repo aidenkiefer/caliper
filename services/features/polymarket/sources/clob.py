@@ -11,7 +11,7 @@ Usage::
 
     source = CLOBSource()
     await source.connect(token_id="12345...")
-    state = source.get_orderbook_state()
+    state = await source.get_orderbook_state()
     fee_rate = await source.fetch_fee_rate("12345...")
     reward_cfg = await source.fetch_reward_config("12345...")
     await source.reconnect()
@@ -55,6 +55,9 @@ _DEFAULT_TICK_SIZE = Decimal("0.01")
 # Reconnect backoff parameters
 _BACKOFF_BASE = 1.0   # seconds
 _BACKOFF_MAX = 30.0   # seconds
+
+# RewardConfig cache TTL
+_REWARD_CACHE_TTL_SECONDS = 86_400  # 24 h
 
 
 # ---------------------------------------------------------------------------
@@ -245,8 +248,6 @@ class CLOBSource:
 
         # RewardConfig cache: token_id -> (RewardConfig, cached_at_utc)
         self._reward_cache: Dict[str, Tuple[RewardConfig, datetime]] = {}
-        _REWARD_CACHE_TTL_SECONDS = 86_400  # 24 h
-        self._reward_cache_ttl = _REWARD_CACHE_TTL_SECONDS
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -346,7 +347,7 @@ class CLOBSource:
     # State access
     # ------------------------------------------------------------------
 
-    def get_orderbook_state(self) -> OrderbookState:
+    async def get_orderbook_state(self) -> OrderbookState:
         """Return the current buffered orderbook state.
 
         Raises
@@ -354,19 +355,26 @@ class CLOBSource:
         DataUnavailable
             If no data has been received yet or the buffer is marked stale.
         """
-        buf = self._buffer
-        if not buf.has_data or buf.stale:
-            raise DataUnavailable(
-                "No orderbook data available — buffer is empty or stale. "
-                "Call connect() and wait for the first WebSocket message."
-            )
+        async with self._lock:
+            buf = self._buffer
+            if not buf.has_data or buf.stale:
+                raise DataUnavailable(
+                    "No orderbook data available — buffer is empty or stale. "
+                    "Call connect() and wait for the first WebSocket message."
+                )
+            # Copy all fields before releasing the lock to avoid further races
+            bids = list(buf.bids)
+            asks = list(buf.asks)
+            tick_size = buf.tick_size
+            last_trade_price = buf.last_trade_price
+            last_trade_ts = buf.last_trade_ts
+            last_price_change_ts = buf.last_price_change_ts
 
-        bids = buf.bids
-        asks = buf.asks
-
+        # Compute depth outside the lock using the copied lists
+        # bids are sorted descending; best bid is bids[0] (highest price)
+        # asks are sorted ascending; best ask is asks[0] (lowest price)
         best_bid = bids[0][0] if bids else Decimal("0")
         best_ask = asks[0][0] if asks else Decimal("0")
-        tick_size = buf.tick_size
 
         bids_depth = _depth_within_ticks(bids, best_bid, tick_size, side="bid")
         asks_depth = _depth_within_ticks(asks, best_ask, tick_size, side="ask")
@@ -376,9 +384,9 @@ class CLOBSource:
             best_ask=best_ask,
             bids_depth_5tick=bids_depth,
             asks_depth_5tick=asks_depth,
-            last_trade_price=buf.last_trade_price,
-            last_trade_ts=buf.last_trade_ts,
-            last_price_change_ts=buf.last_price_change_ts,
+            last_trade_price=last_trade_price,
+            last_trade_ts=last_trade_ts,
+            last_price_change_ts=last_price_change_ts,
             received_at=datetime.now(tz=timezone.utc),
         )
 
@@ -433,7 +441,7 @@ class CLOBSource:
         if token_id in self._reward_cache:
             cached, cached_at = self._reward_cache[token_id]
             age = (datetime.now(tz=timezone.utc) - cached_at).total_seconds()
-            if age < self._reward_cache_ttl:
+            if age < _REWARD_CACHE_TTL_SECONDS:
                 return cached
 
         url = f"{_REST_BASE}/rewards/config"
@@ -533,8 +541,6 @@ class CLOBSource:
         while self._running:
             try:
                 async with websockets.connect(_WS_URL) as ws:
-                    self._reset_backoff()
-
                     # Subscribe to all required channels
                     subscribe_msg = json.dumps({
                         "auth": {},
@@ -548,6 +554,7 @@ class CLOBSource:
                         token_id,
                     )
 
+                    _backoff_reset_done = False
                     async for raw in ws:
                         if not self._running:
                             break
@@ -558,6 +565,12 @@ class CLOBSource:
                                 messages = [messages]
                             for msg in messages:
                                 await self._handle_ws_message(msg)
+                            # Reset backoff only after the first successfully
+                            # parsed and handled message to avoid resetting on
+                            # a connection that closes right after the handshake
+                            if not _backoff_reset_done:
+                                self._reset_backoff()
+                                _backoff_reset_done = True
                         except json.JSONDecodeError as exc:
                             logger.warning(
                                 "_run_websocket: JSON parse error: %s (raw=%r)", exc, raw
@@ -604,9 +617,9 @@ class CLOBSource:
     async def _handle_ws_message(self, msg: dict) -> None:
         """Dispatch a parsed WebSocket message to the appropriate handler."""
         msg_type = msg.get("event_type") or msg.get("type") or ""
-        self.source_timestamp = datetime.now(tz=timezone.utc)
 
         async with self._lock:
+            self.source_timestamp = datetime.now(tz=timezone.utc)
             if msg_type == "book":
                 self._apply_book_snapshot_unlocked(msg)
             elif msg_type == "price_change":
