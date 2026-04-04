@@ -74,6 +74,7 @@ Log smaller fixes, UI tweaks, docs updates, or tooling improvements here—work 
 | **v2.1.0-p4** | Sprint 12 ticket 12-05: DB migration for `pm.features` TimescaleDB hypertable | 2026-04-04 | Database / migrations | `services/data/alembic/versions/003_create_pm_features_hypertable.py` with JSONB feature storage and (market_id, captured_at DESC) index |
 | **v2.1.0-p5** | Sprint 12 ticket 12-04: `FeatureBuilder` with all 4 feature families (market state, microstructure, probabilistic, regime) | 2026-04-04 | Features / builder | `services/features/polymarket/builder.py`; 5s tick loop, `asyncio.Queue` output, `_trade_tape` deque, minimum-hold regime filter, staleness flag |
 | **v2.1.0-p6** | Sprint 12 ticket 12-06: `FeatureStore` asyncpg read/write for `pm.features` hypertable | 2026-04-04 | Features / store | `services/features/polymarket/store.py`; `write`, `read_latest`, `read_window`, `FeatureStoreError`; exported from `services/features/polymarket/__init__.py` |
+| **v2.1.0-p7** | Sprint 12 ticket 12-07: Session integration — `FeatureBuilder` wired into `SessionOrchestrator`; `PolymarketMMStrategy.on_market_data` accepts `Union[FeatureSnapshot, Any]` | 2026-04-04 | Features / session | `services/polymarket/session.py` step 4b startup + `_feature_consumer` coroutine + step 8b shutdown; `packages/strategies/polymarket_mm_strategy.py` near_close_flag + liquidity_score suppression gates; optional `FeatureStore` behind `DB_URL` env var |
 
 
 ---
