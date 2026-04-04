@@ -70,6 +70,7 @@ Log smaller fixes, UI tweaks, docs updates, or tooling improvements here—work 
 | **v2.0.0-p5** | Project docs: README, `docs/INDEX.md`, `docs/FEATURES.md`, `docs/plans/README.md` aligned with Sprint 10 | 2026-04-03 | Docs | Cross-links to spec, summary, quickstart, operations runbook |
 | **v2.1.0-p1** | Sprint 12 ticket 12-01: `FeatureSnapshot` + `FeatureRecord` schemas; `services/features/polymarket/` scaffold | 2026-04-04 | Features / schemas | Adds 4-family feature snapshot, DB record wrapper, `SourceTimestamps` dataclass |
 | **v2.1.0-p2** | Sprint 12 ticket 12-02: `CLOBSource` async data source with WebSocket buffer, REST recovery, reward config, fee rate, heartbeat loop | 2026-04-04 | Features / data sources | `services/features/polymarket/sources/clob.py` + `sources/__init__.py`; `DataUnavailable`, `OrderbookState`, `RewardConfig` |
+| **v2.1.0-p3** | Sprint 12 ticket 12-03: `BinanceSource` async data source; polls 1m klines (60-bar rolling buffer) and perpetual futures premium index | 2026-04-04 | Features / data sources | `services/features/polymarket/sources/binance.py` + `sources/__init__.py`; `KlineBar`, `PremiumIndex` exported |
 
 
 ---
