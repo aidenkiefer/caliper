@@ -72,6 +72,7 @@ Log smaller fixes, UI tweaks, docs updates, or tooling improvements here—work 
 | **v2.1.0-p2** | Sprint 12 ticket 12-02: `CLOBSource` async data source with WebSocket buffer, REST recovery, reward config, fee rate, heartbeat loop | 2026-04-04 | Features / data sources | `services/features/polymarket/sources/clob.py` + `sources/__init__.py`; `DataUnavailable`, `OrderbookState`, `RewardConfig` |
 | **v2.1.0-p3** | Sprint 12 ticket 12-03: `BinanceSource` async data source; polls 1m klines (60-bar rolling buffer) and perpetual futures premium index | 2026-04-04 | Features / data sources | `services/features/polymarket/sources/binance.py` + `sources/__init__.py`; `KlineBar`, `PremiumIndex` exported |
 | **v2.1.0-p4** | Sprint 12 ticket 12-05: DB migration for `pm.features` TimescaleDB hypertable | 2026-04-04 | Database / migrations | `services/data/alembic/versions/003_create_pm_features_hypertable.py` with JSONB feature storage and (market_id, captured_at DESC) index |
+| **v2.1.0-p5** | Sprint 12 ticket 12-04: `FeatureBuilder` with all 4 feature families (market state, microstructure, probabilistic, regime) | 2026-04-04 | Features / builder | `services/features/polymarket/builder.py`; 5s tick loop, `asyncio.Queue` output, `_trade_tape` deque, minimum-hold regime filter, staleness flag |
 
 
 ---
