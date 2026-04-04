@@ -68,6 +68,7 @@ Log smaller fixes, UI tweaks, docs updates, or tooling improvements here—work 
 | **v2.0.0-p3** | Polymarket tickets 11-15: executor, safety layer, recorder, session orchestrator, CLI         | 2026-03-25 | Polymarket service | `docs/plans/tickets/10-11` through `10-15`; 8 new files, 50+ tests               |
 | **v2.0.0-p4** | Polymarket tickets 16-20: shared schemas, API router, data API client, integration test, docs | 2026-03-25 | Polymarket service | `docs/plans/tickets/10-16` through `10-20`; 10 new files, complete documentation |
 | **v2.0.0-p5** | Project docs: README, `docs/INDEX.md`, `docs/FEATURES.md`, `docs/plans/README.md` aligned with Sprint 10 | 2026-04-03 | Docs | Cross-links to spec, summary, quickstart, operations runbook |
+| **v2.1.0-p1** | Sprint 12 ticket 12-01: `FeatureSnapshot` + `FeatureRecord` schemas; `services/features/polymarket/` scaffold | 2026-04-04 | Features / schemas | Adds 4-family feature snapshot, DB record wrapper, `SourceTimestamps` dataclass |
 
 
 ---
