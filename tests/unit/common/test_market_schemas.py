@@ -1,6 +1,8 @@
 from decimal import Decimal
+from uuid import UUID
 
 import pytest
+from pydantic import ValidationError
 
 from packages.common.market_schemas import (
     MarketType,
@@ -31,9 +33,11 @@ def test_unified_signal_directional():
         horizon_seconds=3600,
         strategy_id="sma_v1",
     )
+    assert isinstance(s.signal_id, UUID)
     assert s.asset_id == "AAPL"
     assert s.confidence == Decimal("0.75")
     assert s.metadata == {}
+    assert s.created_at.tzinfo is not None
 
 
 def test_unified_signal_market_making():
@@ -52,7 +56,7 @@ def test_unified_signal_market_making():
 
 
 def test_unified_signal_confidence_validation():
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         UnifiedSignal(
             asset_id="AAPL",
             market_type=MarketType.EQUITY,
@@ -64,8 +68,21 @@ def test_unified_signal_confidence_validation():
         )
 
 
+def test_unified_signal_horizon_validation():
+    with pytest.raises(ValidationError):
+        UnifiedSignal(
+            asset_id="AAPL",
+            market_type=MarketType.EQUITY,
+            signal_type=SignalType.DIRECTIONAL,
+            direction="long",
+            confidence=Decimal("0.5"),
+            horizon_seconds=0,
+            strategy_id="sma_v1",
+        )
+
+
 def test_unified_signal_direction_validation():
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         UnifiedSignal(
             asset_id="AAPL",
             market_type=MarketType.EQUITY,
