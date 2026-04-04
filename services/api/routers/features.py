@@ -14,7 +14,7 @@ import logging
 from datetime import datetime
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from packages.common.polymarket_schemas import FeatureSnapshot
 from services.features.polymarket.store import FeatureStore, FeatureStoreError
@@ -50,6 +50,7 @@ def _get_feature_store() -> FeatureStore:
 )
 async def get_latest_features(
     market_id: str,
+    store: FeatureStore = Depends(_get_feature_store),
 ) -> FeatureSnapshot:
     """
     Fetch the most recent feature snapshot from pm.features.
@@ -59,7 +60,6 @@ async def get_latest_features(
         HTTPException: 404 if no features exist for the market.
         HTTPException: 500 on unexpected store errors.
     """
-    store = _get_feature_store()
     try:
         await store.connect()
         try:
@@ -94,6 +94,7 @@ async def get_features_history(
     start: datetime = Query(..., description="Window start (inclusive)"),
     end: datetime = Query(..., description="Window end (inclusive)"),
     limit: int = Query(100, ge=1, le=_MAX_LIMIT, description="Max rows to return (hard cap 1000)"),
+    store: FeatureStore = Depends(_get_feature_store),
 ) -> List[FeatureSnapshot]:
     """
     Fetch FeatureSnapshot records within [start, end] ordered by captured_at ASC.
@@ -113,8 +114,6 @@ async def get_features_history(
 
     # Cap limit server-side regardless of validated query param
     effective_limit = min(limit, _MAX_LIMIT)
-
-    store = _get_feature_store()
     try:
         await store.connect()
         try:
