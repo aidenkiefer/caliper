@@ -22,10 +22,34 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
 
+from dataclasses import dataclass
+from typing import Optional as _Optional
+
 from packages.common.ml_schemas import ModelInput, ModelPrediction, ModelInferenceOutput
-from packages.strategies.base import Signal
 from services.ml.confidence.gating import ConfidenceGating, ConfidenceConfig
 from services.ml.confidence.uncertainty import compute_entropy
+
+
+@dataclass
+class Signal:
+    """
+    Minimal gated-signal object returned by ModelInferenceAdapter.
+
+    Defined here to break the circular import that previously existed between
+    services.ml.inference.adapter and packages.strategies.base.
+
+    Fields mirror the legacy packages.strategies.base.Signal for backward compat.
+    """
+
+    symbol: str
+    side: str        # 'BUY', 'SELL', or 'ABSTAIN'
+    strength: float  # model confidence 0–1
+    price: _Optional[object] = None
+    quantity: _Optional[object] = None
+    reason: _Optional[str] = None
+
+    def __repr__(self) -> str:
+        return f"Signal({self.symbol}, {self.side}, strength={self.strength:.2f})"
 
 
 class ModelInferenceAdapter:

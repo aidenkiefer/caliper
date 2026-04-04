@@ -27,7 +27,8 @@ from packages.common.schemas import (
     TimeInForce,
 )
 from packages.common.ml_schemas import ModelInferenceOutput
-from .base import Strategy, Signal, PortfolioState
+from packages.common.market_schemas import MarketType, SignalType, UnifiedSignal
+from .base import Strategy, PortfolioState
 
 from services.features.pipeline import FeaturePipeline
 from services.ml.inference.adapter import ModelInferenceAdapter
@@ -50,7 +51,10 @@ class MLDirectionStrategyV1(Strategy):
         - high_confidence_threshold: High confidence band (default: 0.85)
         - prediction_log_path: Where to log predictions (default: logs/predictions.jsonl)
         - min_bars_for_features: Minimum bars needed for feature computation (default: 200)
+        - horizon_seconds: Signal validity window in seconds (default: 3600)
     """
+
+    market_type = MarketType.EQUITY
 
     def __init__(self, strategy_id: str, config: Dict[str, Any]):
         super().__init__(strategy_id, config)
@@ -120,7 +124,7 @@ class MLDirectionStrategyV1(Strategy):
         if len(self.price_history) > max_history:
             self.price_history = self.price_history[-max_history:]
 
-    def generate_signals(self, portfolio: PortfolioState) -> List[Signal]:
+    def generate_signals(self, portfolio: PortfolioState) -> List[UnifiedSignal]:
         """
         Generate ML-based trading signals.
 
@@ -128,33 +132,30 @@ class MLDirectionStrategyV1(Strategy):
         1. Check if we have enough bars for feature computation
         2. Compute features via FeaturePipeline
         3. Run model inference via adapter (includes confidence gating)
-        4. Convert ModelInferenceOutput to Signal
+        4. Convert gated output to UnifiedSignal
         5. Log prediction with explanation
         """
-        # Need enough bars for feature computation
         if len(self.price_history) < self.min_bars_for_features:
             return []
 
         latest_bar = self.price_history[-1]
+        horizon = self.config.get("horizon_seconds", 3600)
 
         try:
             # Step 1: Compute features
             features_df = self.feature_pipeline.compute_features(self.price_history)
-
-            # Get latest feature row (after dropna)
             features_df = features_df.dropna()
             if len(features_df) == 0:
                 return []
 
-            latest_features_row = features_df.iloc[-1]
-
-            # Convert to dictionary, excluding timestamp
             feature_dict = {
-                k: float(v) for k, v in latest_features_row.to_dict().items() if k != "timestamp"
+                k: float(v)
+                for k, v in features_df.iloc[-1].to_dict().items()
+                if k != "timestamp"
             }
 
             # Step 2: Run model inference (includes confidence gating)
-            signal = self.adapter.predict_and_convert(
+            gated = self.adapter.predict_and_convert(
                 symbol=latest_bar.symbol,
                 timestamp=latest_bar.timestamp,
                 features=feature_dict,
@@ -176,58 +177,77 @@ class MLDirectionStrategyV1(Strategy):
                 timestamp=latest_bar.timestamp,
             )
 
-            # Step 4: Log prediction with explanation
-            self._log_prediction(signal, inference_output, explanation, latest_bar)
+            # Map gated side to UnifiedSignal direction
+            direction_map = {"BUY": "long", "SELL": "short", "ABSTAIN": "none"}
+            direction = direction_map.get(gated.side, "none")
 
-            return [signal]
+            unified_signal = UnifiedSignal(
+                asset_id=latest_bar.symbol,
+                market_type=MarketType.EQUITY,
+                signal_type=SignalType.DIRECTIONAL,
+                direction=direction,
+                confidence=Decimal(str(gated.strength)),
+                horizon_seconds=horizon,
+                strategy_id=self.strategy_id,
+            )
+
+            # Step 4: Log prediction with explanation
+            self._log_prediction(unified_signal, inference_output, explanation, latest_bar)
+
+            return [unified_signal]
 
         except Exception as e:
-            # If inference fails, return ABSTAIN signal and log error
             print(f"⚠ Inference failed: {e}")
-            error_signal = Signal(
-                symbol=latest_bar.symbol,
-                side="ABSTAIN",
-                strength=0.0,
-                reason=f"Inference error: {str(e)[:100]}",
+            error_signal = UnifiedSignal(
+                asset_id=latest_bar.symbol,
+                market_type=MarketType.EQUITY,
+                signal_type=SignalType.DIRECTIONAL,
+                direction="none",
+                confidence=Decimal("0.0"),
+                horizon_seconds=horizon,
+                strategy_id=self.strategy_id,
+                metadata={"error": str(e)[:100]},
             )
             return [error_signal]
 
-    def risk_check(self, signals: List[Signal], portfolio: PortfolioState) -> List[Order]:
+    def risk_check(self, signals: List[UnifiedSignal], portfolio: PortfolioState) -> List[Order]:
         """
         Convert signals to orders with risk checks.
 
-        Note: ABSTAIN signals are already filtered out by backtest/execution
-        engines before reaching here, but we double-check for safety.
+        Note: ABSTAIN signals (direction="none") are already filtered out by
+        backtest/execution engines before reaching here, but we double-check
+        for safety.
         """
         orders = []
 
         for signal in signals:
-            # Skip ABSTAIN signals
-            if signal.side == "ABSTAIN":
+            # Skip abstain signals
+            if signal.direction == "none":
                 continue
 
             # Check if we already have a position
             existing_position = next(
-                (p for p in portfolio.positions if p.symbol == signal.symbol), None
+                (p for p in portfolio.positions if p.symbol == signal.asset_id), None
             )
 
-            # Calculate position size
-            if signal.side == "BUY":
-                # Don't buy if we already have a position
+            # Use last known close price for position sizing
+            last_price = self.price_history[-1].close if self.price_history else None
+
+            if signal.direction == "long":
                 if existing_position and existing_position.quantity > 0:
                     continue
 
-                # Calculate quantity based on position size percentage
+                if last_price is None:
+                    continue
+
                 order_value = portfolio.equity * self.position_size_pct
-                quantity = Decimal(
-                    str(order_value / float(signal.price or self.price_history[-1].close))
-                )
+                quantity = Decimal(str(order_value / float(last_price)))
 
                 if quantity > 0:
                     order = Order(
-                        order_id=None,  # Will be generated by execution engine
+                        order_id=None,
                         strategy_id=self.strategy_id,
-                        symbol=signal.symbol,
+                        symbol=signal.asset_id,
                         contract_type="STOCK",
                         side=OrderSide.BUY,
                         quantity=quantity,
@@ -239,16 +259,14 @@ class MLDirectionStrategyV1(Strategy):
                     )
                     orders.append(order)
 
-            elif signal.side == "SELL":
-                # Only sell if we have a position
+            elif signal.direction == "short":
                 if not existing_position or existing_position.quantity <= 0:
                     continue
 
-                # Sell entire position
                 order = Order(
                     order_id=None,
                     strategy_id=self.strategy_id,
-                    symbol=signal.symbol,
+                    symbol=signal.asset_id,
                     contract_type="STOCK",
                     side=OrderSide.SELL,
                     quantity=abs(existing_position.quantity),
@@ -264,7 +282,7 @@ class MLDirectionStrategyV1(Strategy):
 
     def _log_prediction(
         self,
-        signal: Signal,
+        signal: UnifiedSignal,
         inference_output: ModelInferenceOutput,
         explanation: Dict[str, Any],
         bar: PriceBar,

@@ -6,7 +6,7 @@ from .ml_direction_v1 import MLDirectionStrategyV1
 
 __all__ = [
     "Strategy",
-    "Signal",
+    "Signal",  # legacy — use UnifiedSignal in new code
     "PortfolioState",
     "SMACrossoverStrategy",
     "MLDirectionStrategyV1",
