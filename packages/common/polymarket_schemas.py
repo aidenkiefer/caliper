@@ -136,9 +136,9 @@ class FeatureSnapshot(BaseModel):
     captured_at: datetime  # UTC
 
     time_to_close_seconds: float
-    time_since_open_seconds: float
+    time_since_open_seconds: float  # Family 1 table; not in schema block but included per spec
 
-    # --- Family 1: microstructure ---
+    # --- Family 1: market state ---
     mid_price: Decimal
     implied_probability: Decimal
     spread: Decimal
@@ -148,7 +148,7 @@ class FeatureSnapshot(BaseModel):
     time_since_last_trade: float
     time_since_last_price_change: float
 
-    # --- Family 2: flow / reward ---
+    # --- Family 2: microstructure ---
     order_book_imbalance: Decimal
     trade_flow_imbalance_1m: Decimal
     trade_flow_imbalance_5m: Decimal
@@ -160,7 +160,7 @@ class FeatureSnapshot(BaseModel):
     reward_max_spread: Optional[Decimal] = None
     reward_min_size: Optional[Decimal] = None
 
-    # --- Family 3: BTC macro ---
+    # --- Family 3: probabilistic (BTC-derived) ---
     btc_distance_to_open: Decimal
     btc_rv_1m: Decimal
     btc_rv_5m: Decimal
@@ -170,7 +170,7 @@ class FeatureSnapshot(BaseModel):
     btc_funding_rate: Decimal
     btc_basis_proxy: Decimal
 
-    # --- Family 4: regime / meta ---
+    # --- Family 4: regime ---
     vol_regime: Literal["low", "medium", "high"]
     trend_regime: Literal["trending", "mean_reverting", "neutral"]
     time_bucket: Literal["early", "mid", "late"]
