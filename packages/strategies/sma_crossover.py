@@ -21,7 +21,8 @@ from packages.common.schemas import (
     OrderType,
     TimeInForce,
 )
-from .base import Strategy, Signal, PortfolioState
+from packages.common.market_schemas import MarketType, SignalType, UnifiedSignal
+from .base import Strategy, PortfolioState
 
 
 class SMACrossoverStrategy(Strategy):
@@ -34,6 +35,8 @@ class SMACrossoverStrategy(Strategy):
         - position_size_pct: Percentage of equity per position (default: 0.1 = 10%)
         - min_signal_strength: Minimum signal strength to trade (default: 0.5)
     """
+
+    market_type = MarketType.EQUITY
 
     def __init__(self, strategy_id: str, config: Dict[str, Any]):
         super().__init__(strategy_id, config)
@@ -65,7 +68,7 @@ class SMACrossoverStrategy(Strategy):
         if len(self.price_history) > 200:
             self.price_history = self.price_history[-200:]
 
-    def generate_signals(self, portfolio: PortfolioState) -> List[Signal]:
+    def generate_signals(self, portfolio: PortfolioState) -> List[UnifiedSignal]:
         """
         Generate signals based on SMA crossover.
 
@@ -111,7 +114,7 @@ class SMACrossoverStrategy(Strategy):
         prev_short_sma: float,
         prev_long_sma: float,
         latest_bar: PriceBar,
-    ) -> List[Signal]:
+    ) -> List[UnifiedSignal]:
         """Detect SMA crossover and generate signals."""
         signals = []
         current_cross = short_sma > long_sma
@@ -119,69 +122,78 @@ class SMACrossoverStrategy(Strategy):
 
         if current_cross and not previous_cross:
             signals.append(self._create_buy_signal(latest_bar, short_sma, long_sma))
-            self.last_signal = "BUY"
+            self.last_signal = "long"
         elif not current_cross and previous_cross:
             signals.append(self._create_sell_signal(latest_bar, short_sma, long_sma))
-            self.last_signal = "SELL"
+            self.last_signal = "short"
 
         return signals
 
-    def _create_buy_signal(self, bar: PriceBar, short_sma: float, long_sma: float) -> Signal:
-        """Create BUY signal for golden cross."""
-        return Signal(
-            symbol=bar.symbol,
-            side="BUY",
-            strength=1.0,
-            price=bar.close,
-            reason=f"Golden cross: SMA({self.short_period})={short_sma:.2f} > SMA({self.long_period})={long_sma:.2f}",
+    def _create_buy_signal(self, bar: PriceBar, short_sma: float, long_sma: float) -> UnifiedSignal:
+        """Create long signal for golden cross."""
+        return UnifiedSignal(
+            asset_id=bar.symbol,
+            market_type=MarketType.EQUITY,
+            signal_type=SignalType.DIRECTIONAL,
+            direction="long",
+            confidence=Decimal("1.0"),
+            horizon_seconds=86400,
+            strategy_id=self.strategy_id,
+            metadata={"reason": f"Golden cross: SMA({self.short_period})={short_sma:.2f} > SMA({self.long_period})={long_sma:.2f}"},
         )
 
-    def _create_sell_signal(self, bar: PriceBar, short_sma: float, long_sma: float) -> Signal:
-        """Create SELL signal for death cross."""
-        return Signal(
-            symbol=bar.symbol,
-            side="SELL",
-            strength=1.0,
-            price=bar.close,
-            reason=f"Death cross: SMA({self.short_period})={short_sma:.2f} < SMA({self.long_period})={long_sma:.2f}",
+    def _create_sell_signal(self, bar: PriceBar, short_sma: float, long_sma: float) -> UnifiedSignal:
+        """Create short signal for death cross."""
+        return UnifiedSignal(
+            asset_id=bar.symbol,
+            market_type=MarketType.EQUITY,
+            signal_type=SignalType.DIRECTIONAL,
+            direction="short",
+            confidence=Decimal("1.0"),
+            horizon_seconds=86400,
+            strategy_id=self.strategy_id,
+            metadata={"reason": f"Death cross: SMA({self.short_period})={short_sma:.2f} < SMA({self.long_period})={long_sma:.2f}"},
         )
 
-    def risk_check(self, signals: List[Signal], portfolio: PortfolioState) -> List[Order]:
+    def risk_check(self, signals: List[UnifiedSignal], portfolio: PortfolioState) -> List[Order]:
         """
         Convert signals to orders with risk checks.
 
         Risk checks:
-        - Filter by minimum signal strength
+        - Filter by minimum confidence
         - Calculate position size based on equity
         - Don't open new position if already have one
         """
         orders = []
 
         for signal in signals:
-            # Filter by signal strength
-            if signal.strength < self.min_signal_strength:
+            # Filter by confidence (equivalent to old signal strength)
+            if signal.confidence < Decimal(str(self.min_signal_strength)):
                 continue
 
             # Check if we already have a position
             existing_position = next(
-                (p for p in portfolio.positions if p.symbol == signal.symbol), None
+                (p for p in portfolio.positions if p.symbol == signal.asset_id), None
             )
 
             # Calculate position size
-            if signal.side == "BUY":
+            if signal.direction == "long":
                 # Don't buy if we already have a position
                 if existing_position and existing_position.quantity > 0:
                     continue
 
-                # Calculate quantity based on position size percentage
+                # Use last known close price for sizing; skip if no history
+                if not self.price_history:
+                    continue
+                last_price = self.price_history[-1].close
                 order_value = portfolio.equity * self.position_size_pct
-                quantity = Decimal(str(order_value / float(signal.price)))
+                quantity = Decimal(str(order_value / float(last_price)))
 
                 if quantity > 0:
                     order = Order(
-                        order_id=None,  # Will be generated by execution engine
+                        order_id=None,
                         strategy_id=self.strategy_id,
-                        symbol=signal.symbol,
+                        symbol=signal.asset_id,
                         contract_type="STOCK",
                         side=OrderSide.BUY,
                         quantity=quantity,
@@ -193,7 +205,7 @@ class SMACrossoverStrategy(Strategy):
                     )
                     orders.append(order)
 
-            elif signal.side == "SELL":
+            elif signal.direction == "short":
                 # Only sell if we have a position
                 if not existing_position or existing_position.quantity <= 0:
                     continue
@@ -202,7 +214,7 @@ class SMACrossoverStrategy(Strategy):
                 order = Order(
                     order_id=None,
                     strategy_id=self.strategy_id,
-                    symbol=signal.symbol,
+                    symbol=signal.asset_id,
                     contract_type="STOCK",
                     side=OrderSide.SELL,
                     quantity=abs(existing_position.quantity),

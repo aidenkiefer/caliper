@@ -267,3 +267,42 @@ class PositionNotFoundError(BrokerError):
     """Raised when position is not found."""
 
     pass
+
+
+class OrderbookLevel(BaseModel):
+    """Single price level in an order book."""
+
+    price: Decimal = Field(..., description="Price at this level")
+    size: Decimal = Field(..., description="Total size available at this level")
+
+
+class OrderbookSnapshot(BaseModel):
+    """Top-of-book snapshot for a single asset.
+
+    Note: `bids` and `asks` must be pre-sorted (bids descending by price,
+    asks ascending by price). `best_bid` and `best_ask` read index 0 directly.
+    """
+
+    asset_id: str = Field(..., description="Symbol or market ID")
+    bids: List[OrderbookLevel] = Field(default_factory=list)
+    asks: List[OrderbookLevel] = Field(default_factory=list)
+
+    @property
+    def best_bid(self) -> Optional[Decimal]:
+        return self.bids[0].price if self.bids else None
+
+    @property
+    def best_ask(self) -> Optional[Decimal]:
+        return self.asks[0].price if self.asks else None
+
+    @property
+    def midpoint(self) -> Optional[Decimal]:
+        if self.best_bid is None or self.best_ask is None:
+            return None
+        return (self.best_bid + self.best_ask) / 2
+
+    @property
+    def spread(self) -> Optional[Decimal]:
+        if self.best_bid is None or self.best_ask is None:
+            return None
+        return self.best_ask - self.best_bid

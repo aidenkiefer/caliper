@@ -25,9 +25,13 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from packages.strategies.polymarket_mm_strategy import PolymarketMMStrategy
 from uuid import UUID
 
+from packages.strategies.base import PortfolioState
 from services.polymarket.config import PolymarketConfig
 from services.polymarket.data_feed import DataFeed
 from services.polymarket.executor import Executor
@@ -35,6 +39,7 @@ from services.polymarket.market_discovery import MarketDiscovery
 from services.polymarket.quoting_engine import QuotingEngine
 from services.polymarket.recorder import Recorder
 from services.polymarket.safety import SafetyLayer
+from services.polymarket.schemas import QuoteDecision
 from services.polymarket.wallet import WalletManager
 
 logger = logging.getLogger(__name__)
@@ -70,6 +75,7 @@ class SessionOrchestrator:
         safety_layer: SafetyLayer,
         recorder: Recorder,
         wallet_manager: WalletManager,
+        strategy: Optional[PolymarketMMStrategy] = None,
     ) -> None:
         self._market_discovery = market_discovery
         self._data_feed = data_feed
@@ -78,6 +84,7 @@ class SessionOrchestrator:
         self._safety_layer = safety_layer
         self._recorder = recorder
         self._wallet_manager = wallet_manager
+        self._strategy = strategy
 
         # Running sum of realised P&L in USDC for the current session.
         # Updated via the fill callback registered on the executor.
@@ -227,13 +234,38 @@ class SessionOrchestrator:
                     await asyncio.sleep(config.requote_interval_seconds)
                     continue
 
-                # 7f. Compute quotes
-                quote = self._quoting_engine.compute_quotes(
-                    orderbook_state=state,
-                    inventory_yes=self._executor.inventory_delta,
-                    config=config,
-                    tick_size=market.tick_size,
-                )
+                # 7f. Compute quotes via strategy (if provided) or fall back to quoting engine
+                if self._strategy is not None:
+                    self._strategy.update_inventory(self._executor.inventory_delta)
+                    self._strategy.on_market_data(state)
+                    _portfolio = PortfolioState(
+                        equity=Decimal(str(balance)),
+                        cash=Decimal(str(balance)),
+                        positions=[],
+                    )
+                    _signals = self._strategy.generate_signals(_portfolio)
+                    if not _signals:
+                        logger.debug("Strategy suppressed quotes this cycle.")
+                        await asyncio.sleep(config.requote_interval_seconds)
+                        continue
+                    _sig = _signals[0]
+                    _bid_size = Decimal(_sig.metadata["bid_size"])
+                    _ask_size = Decimal(_sig.metadata["ask_size"])
+                    quote = QuoteDecision(
+                        bid_price=Decimal(_sig.metadata["bid_price"]) if _bid_size > Decimal("0") else None,
+                        bid_size=_bid_size,
+                        ask_price=Decimal(_sig.metadata["ask_price"]) if _ask_size > Decimal("0") else None,
+                        ask_size=_ask_size,
+                        should_quote_bid=_bid_size > Decimal("0"),
+                        should_quote_ask=_ask_size > Decimal("0"),
+                    )
+                else:
+                    quote = self._quoting_engine.compute_quotes(
+                        orderbook_state=state,
+                        inventory_yes=self._executor.inventory_delta,
+                        config=config,
+                        tick_size=market.tick_size,
+                    )
 
                 # 7g. Place quotes
                 quote_version += 1

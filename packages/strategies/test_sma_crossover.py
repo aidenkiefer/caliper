@@ -4,7 +4,7 @@ Test script for SMA Crossover Strategy.
 Verifies that the strategy generates signals correctly on static data.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 from packages.common.schemas import PriceBar, TradingMode
@@ -32,7 +32,7 @@ def create_test_bars(symbol: str = "AAPL", days: int = 100) -> list[PriceBar]:
         bar = PriceBar(
             symbol=symbol,
             exchange=None,
-            timestamp=datetime.now() - timedelta(days=days - i),
+                timestamp=datetime.now(timezone.utc) - timedelta(days=days - i),
             timeframe="1day",
             open=Decimal(str(price)),
             high=Decimal(str(price * 1.02)),
@@ -75,8 +75,8 @@ def test_strategy_signals():
     for i, bar in enumerate(bars):
         strategy.on_market_data(bar)
 
-        # Generate signals every 5 bars (simulate periodic signal generation)
-        if i % 5 == 0 and i >= 50:  # Need at least 50 bars for long SMA
+        # Generate signals after each bar once we have enough history
+        if i >= 50:  # Need at least 50 bars for long SMA
             portfolio = PortfolioState(
                 equity=Decimal("100000"),
                 cash=Decimal("100000"),
@@ -89,7 +89,7 @@ def test_strategy_signals():
                 for signal in signals:
                     signals_generated.append((i, signal))
                     print(f"\nBar {i} ({bar.timestamp.date()}): {signal}")
-                    print(f"  Reason: {signal.reason}")
+                    print(f"  Reason: {signal.metadata.get('reason', 'N/A')}")
 
     # Verify we got signals
     assert len(signals_generated) > 0, "Strategy should generate at least one signal"

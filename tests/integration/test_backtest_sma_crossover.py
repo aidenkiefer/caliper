@@ -188,9 +188,9 @@ class TestSignalGeneration:
         # (depends on price action, but should have crossovers)
         # We verify the signal structure rather than count
         for signal in signals_generated:
-            assert signal.symbol == "AAPL"
-            assert signal.side in ["BUY", "SELL"]
-            assert 0.0 <= signal.strength <= 1.0
+            assert signal.asset_id == "AAPL"
+            assert signal.direction in ["long", "short"]
+            assert Decimal("0") <= signal.confidence <= Decimal("1")
 
     def test_strategy_requires_sufficient_data_for_signals(
         self, sma_crossover_strategy: SMACrossoverStrategy
