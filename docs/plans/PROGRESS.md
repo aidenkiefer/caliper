@@ -76,6 +76,7 @@ Log smaller fixes, UI tweaks, docs updates, or tooling improvements here—work 
 | **v2.1.0-p6** | Sprint 12 ticket 12-06: `FeatureStore` asyncpg read/write for `pm.features` hypertable | 2026-04-04 | Features / store | `services/features/polymarket/store.py`; `write`, `read_latest`, `read_window`, `FeatureStoreError`; exported from `services/features/polymarket/__init__.py` |
 | **v2.1.0-p7** | Sprint 12 ticket 12-07: Session integration — `FeatureBuilder` wired into `SessionOrchestrator`; `PolymarketMMStrategy.on_market_data` accepts `Union[FeatureSnapshot, Any]` | 2026-04-04 | Features / session | `services/polymarket/session.py` step 4b startup + `_feature_consumer` coroutine + step 8b shutdown; `packages/strategies/polymarket_mm_strategy.py` near_close_flag + liquidity_score suppression gates; optional `FeatureStore` behind `DB_URL` env var |
 | **v2.2.0-p2** | Sprint 12 ticket 12-08: features API router | 2026-04-04 | API | `services/api/routers/features.py`; `GET /v1/features/{market_id}/latest` (404 if none) and `GET /v1/features/{market_id}/history` (start/end/limit, 422 on invalid range, 503 if DB_URL unset); registered in `services/api/main.py` |
+| **v2.2.0-p3** | Sprint 12 ticket 12-09: unit tests for feature layer | 2026-04-04 | Tests | `tests/unit/features/`: 4 test modules covering all formula families, Pydantic schema validation, FeatureStore asyncpg mock read/write, and regime discretization + minimum-hold filter; 60+ explicit numeric assertions |
 
 
 ---
