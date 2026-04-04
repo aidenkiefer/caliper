@@ -15,6 +15,22 @@ This document defines all REST API endpoints for the quantitative ML trading pla
 - **Typed:** Pydantic models for request/response validation
 - **Documented:** Auto-generated OpenAPI/Swagger docs at `/docs`
 
+### Polymarket session analytics (Sprint 10)
+
+Read-only endpoints for **`pm.*`** data produced by **`services/polymarket/`** (optional bot). Shapes are defined in **`packages/common/polymarket_schemas.py`**; router: **`services/api/routers/polymarket.py`**.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/v1/polymarket/sessions` | List sessions (filters as implemented) |
+| `GET` | `/v1/polymarket/sessions/{session_id}` | Session detail |
+| `GET` | `/v1/polymarket/sessions/{session_id}/orders` | Orders for session |
+| `GET` | `/v1/polymarket/sessions/{session_id}/fills` | Fills (incl. adverse-selection fields) |
+| `GET` | `/v1/polymarket/sessions/{session_id}/snapshots` | Order book snapshots (paginated) |
+| `GET` | `/v1/polymarket/sessions/{session_id}/pnl` | PnL breakdown |
+| `GET` | `/v1/polymarket/sessions/{session_id}/toxic-flow` | Per-minute toxic flow metrics |
+
+**Operations:** **[docs/POLYMARKET-QUICKSTART.md](POLYMARKET-QUICKSTART.md)** · **[docs/runbooks/polymarket-operations.md](runbooks/polymarket-operations.md)** · **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)**
+
 ---
 
 ## Key Decisions
@@ -717,10 +733,6 @@ Alternative docs at `/redoc`
 
 ---
 
-## Next Steps
+## Maintenance
 
-1. Implement FastAPI app structure with routers
-2. Create Pydantic models for all request/response schemas
-3. Set up JWT authentication with NextAuth.js integration
-4. Configure rate limiting with slowapi
-5. Write OpenAPI spec documentation
+Routers and Pydantic models evolve in **`services/api/`** and **`packages/common/`**. When adding or changing endpoints, update this document and **[docs/INDEX.md](INDEX.md)**. OpenAPI remains the live reference at **`/docs`** on a running API.

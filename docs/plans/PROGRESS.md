@@ -38,12 +38,12 @@ Track major work blocks, features, and versions in this table.
 
 | Version    | Milestone / sprint                                     | Status | Completed  | Remaining | Spec / plan                                                     | Summary / notes                                |
 | ---------- | ------------------------------------------------------ | ------ | ---------- | --------- | --------------------------------------------------------------- | ---------------------------------------------- |
-| **v1.0.0** | **Sprint 1: Infrastructure & Data**                    | Done   | 2026-02-02 | 0         | `plans/task_plan.md`                                            | `plans/SPRINT1_SUMMARY.md`                     |
-| **v1.1.0** | **Sprint 2: Feature Pipeline & Strategy Core**         | Done   | 2026-02-02 | 0         | `plans/task_plan.md`                                            | `plans/SPRINT2_SUMMARY.md`                     |
-| **v1.2.0** | **Sprint 3: Backtesting & Reporting**                  | Done   | 2026-02-02 | 0         | `plans/task_plan.md`                                            | `plans/SPRINT3_SUMMARY.md`                     |
-| **v1.3.0** | **Sprint 4: Dashboard & API**                          | Done   | 2026-02-02 | 0         | `plans/task_plan.md`                                            | `plans/SPRINT4_SUMMARY.md`                     |
-| **v1.4.0** | **Sprint 5: Execution & Risk**                         | Done   | 2026-02-02 | 0         | `plans/task_plan.md`                                            | `plans/SPRINT5_SUMMARY.md`                     |
-| **v1.5.0** | **Sprint 6: ML Safety & Interpretability**             | Done   | 2026-02-02 | 0         | `plans/task_plan.md`                                            | `plans/SPRINT6_SUMMARY.md`                     |
+| **v1.0.0** | **Sprint 1: Infrastructure & Data**                    | Done   | 2026-02-02 | 0         | `docs/plans/task_plan.md`                                       | `docs/plans/summaries/SPRINT1_SUMMARY.md`      |
+| **v1.1.0** | **Sprint 2: Feature Pipeline & Strategy Core**         | Done   | 2026-02-02 | 0         | `docs/plans/task_plan.md`                                       | `docs/plans/summaries/SPRINT2_SUMMARY.md`      |
+| **v1.2.0** | **Sprint 3: Backtesting & Reporting**                  | Done   | 2026-02-02 | 0         | `docs/plans/task_plan.md`                                       | `docs/plans/summaries/SPRINT3_SUMMARY.md`      |
+| **v1.3.0** | **Sprint 4: Dashboard & API**                          | Done   | 2026-02-02 | 0         | `docs/plans/task_plan.md`                                       | `docs/plans/summaries/SPRINT4_SUMMARY.md`      |
+| **v1.4.0** | **Sprint 5: Execution & Risk**                         | Done   | 2026-02-02 | 0         | `docs/plans/task_plan.md`                                       | `docs/plans/summaries/SPRINT5_SUMMARY.md`      |
+| **v1.5.0** | **Sprint 6: ML Safety & Interpretability**             | Done   | 2026-02-02 | 0         | `docs/plans/task_plan.md`                                       | `docs/plans/summaries/SPRINT6_SUMMARY.md`      |
 | **v1.6.0** | **Sprint 7: First ML model end-to-end**                | Done   | 2026-02-02 | 0         | `docs/plans/specs/sprint-7-first-ml-model-spec.md`              | `docs/SPRINTS-7-8-9-SUMMARY.md`                |
 | **v1.7.0** | **Sprint 8: ML observability, safety, and evaluation** | Done   | 2026-02-02 | 0         | `docs/plans/specs/sprint-8-observability-safety-spec.md`        | `docs/SPRINT-8-COMPLETE.md`                    |
 | **v1.8.0** | **Sprint 9: Model observatory dashboard**              | Done   | 2026-02-02 | 0         | `docs/plans/specs/sprint-9-model-observatory-dashboard-spec.md` | `docs/SPRINT-9-COMPLETE.md`                    |
@@ -79,7 +79,7 @@ Items discussed or spec'd but not yet fully implemented. Track deferred features
 
 | Type             | Item                                                 | Source / reference                | Notes                                                                |
 | ---------------- | ---------------------------------------------------- | --------------------------------- | -------------------------------------------------------------------- |
-| **Future phase** | Iterate on model-centric dashboard and ML evaluation | `plans/progress.md`               | Tracker marks Sprints 7-9 complete and points to continued iteration |
+| **Future phase** | Iterate on model-centric dashboard and ML evaluation | `docs/plans/DETAILED-SPRINT-PROGRESS.md` | Long-form sprint checklists; see also backlog below |
 | **Future phase** | Polymarket Phase 2+ (inventory skew, dynamic spread, hybrid model) | `docs/plans/specs/polymarket-btc-trading-spec.md` §10 | V1 complete; tune from `pm.*` data before funded scale-up |
 | **Fix / patch**  | Render API server issue                              | `docs/render-api-server-issue.md` | Existing issue doc suggests deployment/runtime follow-up work        |
 
@@ -123,17 +123,17 @@ If your project maintains linked specs, summaries, or concept docs, index them h
 | `docs/plans/tickets/10-*` | Sprint 10 Polymarket market-making tickets |
 
 
-### Summaries (`plans/` and `docs/`)
+### Summaries (`docs/plans/` and `docs/`)
 
 
 | Summary                                                 | Scope                                         |
 | ------------------------------------------------------- | --------------------------------------------- |
-| `plans/SPRINT1_SUMMARY.md`                              | Sprint 1 summary                              |
-| `plans/SPRINT2_SUMMARY.md`                              | Sprint 2 summary                              |
-| `plans/SPRINT3_SUMMARY.md`                              | Sprint 3 summary                              |
-| `plans/SPRINT4_SUMMARY.md`                              | Sprint 4 summary                              |
-| `plans/SPRINT5_SUMMARY.md`                              | Sprint 5 summary                              |
-| `plans/SPRINT6_SUMMARY.md`                              | Sprint 6 summary                              |
+| `docs/plans/summaries/SPRINT1_SUMMARY.md`               | Sprint 1 summary                              |
+| `docs/plans/summaries/SPRINT2_SUMMARY.md`               | Sprint 2 summary                              |
+| `docs/plans/summaries/SPRINT3_SUMMARY.md`               | Sprint 3 summary                              |
+| `docs/plans/summaries/SPRINT4_SUMMARY.md`               | Sprint 4 summary                              |
+| `docs/plans/summaries/SPRINT5_SUMMARY.md`               | Sprint 5 summary                              |
+| `docs/plans/summaries/SPRINT6_SUMMARY.md`               | Sprint 6 summary                              |
 | `docs/SPRINTS-7-8-9-SUMMARY.md`                         | Cross-sprint summary for Sprints 7-9          |
 | `docs/SPRINT-8-COMPLETE.md`                             | Sprint 8 completion notes                     |
 | `docs/SPRINT-9-COMPLETE.md`                             | Sprint 9 completion notes                     |

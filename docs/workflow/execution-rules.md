@@ -61,9 +61,9 @@
 
 - **Repo map:** `docs/INDEX.md`. **Human docs:** `docs/workflow/philosophy.md`
 - **Specs:** `docs/plans/specs/`. Ticket/spec hub: `docs/plans/README.md`
-- **Tickets:** `docs/plans/tickets/`. Sprint summaries: `docs/SPRINTS-7-8-9-SUMMARY.md` and `plans/*SUMMARY*.md`
+- **Tickets:** `docs/plans/tickets/`. Sprint summaries: `docs/SPRINTS-7-8-9-SUMMARY.md` and `docs/plans/summaries/*SUMMARY*.md`
 - **Progress log:** `docs/plans/PROGRESS.md` — workflow-era dated completion notes
-- **Historical tracker:** `plans/progress.md` — broader sprint completion history
+- **Historical tracker:** `docs/plans/DETAILED-SPRINT-PROGRESS.md` — broader sprint completion history
 - **Core references:** `docs/architecture.md`, `docs/api-contracts.md`, `docs/data-contracts.md`, `docs/risk-policy.md`, `docs/security.md`, `docs/dashboard-spec.md`, `docs/design-guidelines.md`
 - **Runbooks:** `docs/runbooks/`
 - **Ticket template:** `docs/workflow/ticket-template.md`. **Skill map:** `docs/workflow/skill-map.md`

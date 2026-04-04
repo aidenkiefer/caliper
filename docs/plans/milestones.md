@@ -6,11 +6,11 @@
 **Target:** Day 1  
 **Status:** ✅ Complete  
 **Deliverables:**
-- [x] Folder structure created (`/plans`, `/docs`, `/adr`)
-- [x] `task_plan.md` created with agent assignments
-- [x] `findings.md` created with research insights
-- [x] `progress.md` created for tracking
-- [x] `milestones.md` created (this file)
+- [x] Folder structure created (`docs/plans`, `/docs`, `/adr`) — planning docs now live under **`docs/plans/`**
+- [x] `docs/plans/task_plan.md` created with agent assignments
+- [x] `docs/plans/findings.md` created with research insights
+- [x] `docs/plans/DETAILED-SPRINT-PROGRESS.md` (checklists) for tracking
+- [x] `docs/plans/milestones.md` created (this file)
 
 ### Milestone 2: Parallel Agent Documentation ✅ COMPLETE
 **Target:** Day 2-3  
@@ -36,7 +36,7 @@
 **Target:** Day 5  
 **Status:** ✅ Complete  
 **Deliverables:**
-- [x] Cursor Implementation Sprint section added to `task_plan.md`
+- [x] Cursor Implementation Sprint section added to `docs/plans/task_plan.md`
 - [x] Implementation task breakdown created
 - [x] Final planning review complete
 - [x] Handoff documentation ready

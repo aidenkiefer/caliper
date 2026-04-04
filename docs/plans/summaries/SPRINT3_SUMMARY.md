@@ -249,7 +249,7 @@ All acceptance criteria met:
 - ✅ All tests pass
 - ✅ Documentation updated
 - ✅ Architecture reviewed
-- ✅ `plans/task_plan.md` ready to be marked complete
+- ✅ `docs/plans/task_plan.md` ready to be marked complete
 
 **Integration test status:** ✅ Complete (one test marked `xfail` for known issue, non-blocking)
 

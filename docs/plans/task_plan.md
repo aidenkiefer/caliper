@@ -18,7 +18,7 @@ This document outlines the planning phase deliverables for building a quantitati
 **Focus:**
 - System components and boundaries  
 - Data flow between services
-- Service separation (data, features, backtest, execution, risk, monitoring)
+- Service separation (data, features, backtest, execution, risk, ml, api; optional polymarket — not a separate `monitoring` microservice)
 - Deployment topology
 
 ### 🗄️ Agent B — Data & DB Lead

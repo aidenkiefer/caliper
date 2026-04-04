@@ -1,8 +1,26 @@
-# Plans: Specs & Tickets
+# Plans: Specs, tickets, and legacy planning
 
-This folder holds **specs** (read-only context for agents) and **tickets** (one-at-a-time executable tasks) for **Sprints 7–10**, following the bounded workflow in `docs/workflow/workflow.md`.
+This folder is the **single home** for planning docs (the old repository root `plans/` directory was removed; everything lives here now).
 
-## Workflow
+- **Sprints 7–10:** `specs/` and `tickets/` — bounded agent workflow per `docs/workflow/workflow.md`.
+- **Sprints 1–6 and planning-phase artifacts:** see **Legacy planning** below.
+
+**Milestone versions, patch notes, and backlog:** **[PROGRESS.md](PROGRESS.md)**. **Repo root overview:** [README.md](../../README.md).
+
+## Legacy planning (Sprints 1–6 + research)
+
+| File | Purpose |
+|------|---------|
+| [task_plan.md](task_plan.md) | Original multi-sprint task plan and agent handoff (planning phase + Cursor sprints). |
+| [DETAILED-SPRINT-PROGRESS.md](DETAILED-SPRINT-PROGRESS.md) | Long-form per-sprint checklists (formerly `plans/progress.md`). |
+| [findings.md](findings.md) | Planning research insights and design decisions. |
+| [milestones.md](milestones.md) | Early milestone schedule (planning + implementation phases). |
+| [more-features.md](more-features.md) | Advanced ML safety / drift / gating feature notes (aligned with Sprint 6 themes). |
+| [even-more-features.md](even-more-features.md) | Model observatory / control-plane notes (aligned with Sprints 8–9 themes). |
+| [SPRINT_SKILL_OPTIMIZATIONS.md](SPRINT_SKILL_OPTIMIZATIONS.md) | Sprint 1–2 DB/code optimizations from skills review. |
+| [summaries/SPRINT1_SUMMARY.md](summaries/SPRINT1_SUMMARY.md) … [summaries/SPRINT6_SUMMARY.md](summaries/SPRINT6_SUMMARY.md) | Per-sprint completion summaries. |
+
+## Workflow (Sprints 7–10)
 
 - **Specs** (`specs/`) = rules, constraints, design intent. Agents read them as context but **do not execute** from the spec alone.
 - **Tickets** (`tickets/`) = small, bounded tasks. Agents **act only on the ticket** they are given. Each ticket references one or more specs and lists Allowed Files and tool budgets.
@@ -18,7 +36,7 @@ This folder holds **specs** (read-only context for agents) and **tickets** (one-
 | [specs/sprint-9-model-observatory-dashboard-spec.md](specs/sprint-9-model-observatory-dashboard-spec.md) | Model Observatory Dashboard: registry, detail, ML viz, comparison, tuning, lifecycle, drift UI, HITL review, sandbox. |
 | [specs/polymarket-btc-trading-spec.md](specs/polymarket-btc-trading-spec.md) | **Sprint 10:** Polymarket hourly BTC market-making — parallel `services/polymarket/`, `pm.*` schema, V1 MM + Phase 2/3 roadmap. |
 
-Sprints 7–9 specs reference skills from `plans/task_plan.md` where applicable. Sprint 10 was executed as 20 tickets (`10-01`–`10-20`); see [summaries/SPRINT-10-POLYMARKET-COMPLETE.md](summaries/SPRINT-10-POLYMARKET-COMPLETE.md) for the completion narrative.
+Sprints 7–9 specs reference skills from [task_plan.md](task_plan.md) where applicable. Sprint 10 was executed as 20 tickets (`10-01`–`10-20`); see [summaries/SPRINT-10-POLYMARKET-COMPLETE.md](summaries/SPRINT-10-POLYMARKET-COMPLETE.md) for the completion narrative.
 
 ## Tickets
 

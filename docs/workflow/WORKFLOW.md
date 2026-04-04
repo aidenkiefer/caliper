@@ -59,7 +59,7 @@ This document defines how multiple Composer instances work together in parallel 
    - `docs/floorplan.md`
    - `docs/research.md`
    - `docs/architecture.md`
-   - `plans/task_plan.md` (current sprint)
+   - `docs/plans/task_plan.md` (current sprint)
    - `adr/*.md` (architectural decisions)
    - `agents/skills/skills/using-superpowers/SKILL.md`
 
@@ -109,7 +109,7 @@ This document defines how multiple Composer instances work together in parallel 
 2. Run acceptance tests for each agent
 3. Check consistency across agents
 4. Update documentation
-5. Mark sprint tasks complete in `plans/task_plan.md`
+5. Mark sprint tasks complete in `docs/plans/task_plan.md`
 
 ---
 
@@ -219,7 +219,7 @@ Each agent must provide:
 1. All agents complete
 2. Each agent provides summary
 3. Integrator merges and validates
-4. Integrator updates `plans/task_plan.md`
+4. Integrator updates `docs/plans/task_plan.md`
 
 ---
 
@@ -230,7 +230,7 @@ Each agent must provide:
 - **Architecture:** `docs/architecture.md`
 - **Data Contracts:** `docs/data-contracts.md`
 - **API Contracts:** `docs/api-contracts.md`
-- **Sprint Plan:** `plans/task_plan.md`
+- **Sprint Plan:** `docs/plans/task_plan.md`
 - **ADRs:** `adr/*.md`
 
 ---
@@ -249,7 +249,7 @@ You are the Sprint Orchestrator for Caliper.
 
 Read:
 - docs/WORKFLOW.md (this file)
-- plans/task_plan.md (current sprint)
+- docs/plans/task_plan.md (current sprint)
 - agents/briefs/*.md (all agent briefs)
 
 Goal: Complete Sprint N using multi-agent parallel workflow.

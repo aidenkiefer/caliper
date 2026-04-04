@@ -40,7 +40,7 @@ quant/
 │   ├── environments/        # .env.example, environment config
 │   └── strategies/          # YAML strategy configs (e.g. sma_crossover_v1.yaml)
 ├── docs/                    # Architecture, contracts, runbooks, workflow
-├── plans/                   # task_plan.md, progress.md, sprint summaries
+├── docs/plans/              # specs, tickets, PROGRESS.md, task_plan.md, sprint summaries
 ├── tests/                   # Unit and integration tests (pytest)
 ├── adr/                     # Architecture decision records
 ├── docker-compose.yml       # Postgres (TimescaleDB), Redis, API
@@ -159,7 +159,7 @@ cd services/data && poetry run alembic upgrade head   # Migrations
 | 8 | ML Observability, Safety & Evaluation | Not Started |
 | 9 | Model Observatory Dashboard | Not Started |
 
-Detailed tasks and verification criteria: `plans/task_plan.md` and `plans/progress.md`.
+Detailed tasks and verification criteria: `docs/plans/task_plan.md` and `docs/plans/DETAILED-SPRINT-PROGRESS.md`.
 
 ---
 
@@ -176,8 +176,9 @@ Detailed tasks and verification criteria: `plans/task_plan.md` and `plans/progre
 | **docs/FEATURES.md** | Implemented vs planned features, capabilities by sprint. |
 | **docs/security.md** | Secrets, auth, security policies. |
 | **deep-review.md** | Current ML state, pipeline explanation, implemented vs missing, recommendations. |
-| **plans/task_plan.md** | Sprint definitions, actionable implementation checklists, success criteria. |
-| **plans/progress.md** | Sprint status, checkboxes, roadmap, next actions. |
+| **docs/plans/task_plan.md** | Sprint definitions, actionable implementation checklists, success criteria. |
+| **docs/plans/DETAILED-SPRINT-PROGRESS.md** | Sprint status, checkboxes, roadmap (long-form). |
+| **docs/plans/PROGRESS.md** | Milestone versions, patches, backlog (canonical log). |
 | **docs/runbooks/backtest-verification.md** | How to verify backtest engine and P&L. |
 | **docs/runbooks/api-verification.md** | How to verify API endpoints. |
 | **docs/runbooks/execution-verification.md** | How to verify execution and risk. |
@@ -237,5 +238,5 @@ Testing and QA are handled by the human. Running builds and tests burns tokens a
 ## Summary
 
 - **What this is:** A quantitative ML trading platform (Caliper/quant) with backtest, execution, risk, and ML safety infrastructure. One rule-based strategy (SMA Crossover) is live; the first ML model is planned for Sprint 7.
-- **Where to look:** `services/` for backend logic, `packages/` for shared schemas and strategies, `apps/dashboard` for the UI, `docs/` and `plans/` for design and status.
+- **Where to look:** `services/` for backend logic, `packages/` for shared schemas and strategies, `apps/dashboard` for the UI, `docs/` (including `docs/plans/`) for design and status.
 - **What to respect:** Risk policy, Strategy and schema contracts, and the existing ML building blocks (confidence gating, SHAP, drift, baselines, HITL) when adding or changing ML-related features.

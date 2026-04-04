@@ -2,7 +2,9 @@
 
 ## Summary
 
-This document defines the **single source of truth** for all data schemas used across the quantitative ML trading platform. These contracts ensure that all services (data ingestion, feature engineering, backtesting, execution, dashboard) speak the same language.
+This document defines the **single source of truth** for canonical data schemas used across the quantitative ML trading platform. These contracts ensure that services (data ingestion, feature engineering, backtesting, execution, dashboard) speak the same language.
+
+**Polymarket (`pm.*`):** Prediction-market session, order, fill, and telemetry tables live in the **`pm`** Postgres schema (TimescaleDB hypertables for time-series). They are **not** part of the equity order/position model. See migration **`services/data/alembic/versions/002_create_polymarket_schema.py`**, API **`/v1/polymarket/*`**, and **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)** for the full table list and field semantics.
 
 **Design Principles:**
 - **Explicit over Implicit:** Every field has a defined type, format, and validation rule

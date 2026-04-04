@@ -13,7 +13,7 @@
 #### ✅ Architecture: Monorepo Structure
 **Rationale:** From floorplan.md - separates concerns while keeping code together
 - `/apps/dashboard` - Next.js UI (Vercel)
-- `/services/*` - Python services (data, features, backtest, execution, risk, monitoring)
+- `/services/*` - Python services (data, features, backtest, execution, risk, ml, api; optional **polymarket**). *No standalone `services/monitoring` in repo—metrics via API + ML modules.*
 - `/packages/*` - Shared code (strategies, models, common utilities)
 
 #### ✅ Data Layer: Postgres + Object Storage

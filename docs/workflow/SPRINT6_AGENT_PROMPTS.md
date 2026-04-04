@@ -120,7 +120,7 @@ You MUST invoke these skills before coding:
 📚 CONTEXT DOCUMENTS TO READ
 
 Before coding, read these documents in order:
-1. plans/more-features.md (CRITICAL - full ML safety specs)
+1. docs/plans/more-features.md (CRITICAL - full ML safety specs)
 2. docs/workflow/sprint-6-multi.md (Sprint 6 task details)
 3. docs/architecture.md (Current architecture)
 4. agents/briefs/BACKEND.md (Your agent brief)
@@ -1110,7 +1110,7 @@ STEP 2: Invoke Required Skills
 📚 CONTEXT DOCUMENTS TO READ
 
 1. docs/workflow/sprint-6-multi.md (Sprint 6 details)
-2. plans/more-features.md (ML safety feature specs)
+2. docs/plans/more-features.md (ML safety feature specs)
 3. docs/architecture.md (Current architecture)
 4. agents/briefs/ARCHITECT.md (Your agent brief)
 
@@ -1306,7 +1306,7 @@ STEP 2: Invoke Required Skills
 📚 CONTEXT DOCUMENTS TO READ
 
 1. docs/workflow/sprint-6-multi.md (Sprint 6 details and acceptance criteria)
-2. plans/more-features.md (ML safety feature specs)
+2. docs/plans/more-features.md (ML safety feature specs)
 3. agents/briefs/QA.md (Your agent brief)
 
 ═══════════════════════════════════════════════════════════════
@@ -1935,7 +1935,7 @@ Expected: All tests pass
 📝 PHASE 2: SPRINT SUMMARY (Task L3)
 ═══════════════════════════════════════════════════════════════
 
-Create `plans/SPRINT6_SUMMARY.md` with this structure:
+Create `docs/plans/summaries/SPRINT6_SUMMARY.md` with this structure:
 
 ```markdown
 # Sprint 6 Summary: ML Safety & Interpretability Core
@@ -2059,20 +2059,20 @@ Sprint 7: MLOps & Advanced Analysis
 📚 PHASE 3: DOCUMENTATION UPDATES (Tasks L4-L8)
 ═══════════════════════════════════════════════════════════════
 
-## L4. Update plans/task_plan.md
+## L4. Update docs/plans/task_plan.md
 
 Mark Sprint 6 tasks as complete:
 - [ ] Change all Sprint 6 items from `[ ]` to `[x]`
 - [ ] Add "✅ COMPLETE" to Sprint 6 header
 
-## L5. Update plans/progress.md
+## L5. Update docs/plans/DETAILED-SPRINT-PROGRESS.md
 
 - [ ] Update "Current Phase" to "Implementation - Sprint 6 ✅ COMPLETE"
 - [ ] Update "Last Updated" date
 - [ ] Add Sprint 6 completed items list
 - [ ] Update "Next Actions" to reference Sprint 7
 
-## L6. Update plans/milestones.md
+## L6. Update docs/plans/milestones.md
 
 - [ ] Mark "Days 15-18: ML Safety & Interpretability" as ✅ COMPLETE
 - [ ] Check off all Sprint 6 deliverables
@@ -2101,10 +2101,10 @@ Mark Sprint 6 tasks as complete:
 
 After all updates, verify:
 
-- [ ] plans/SPRINT6_SUMMARY.md exists and is complete
-- [ ] plans/task_plan.md shows Sprint 6 complete
-- [ ] plans/progress.md reflects current state
-- [ ] plans/milestones.md shows Sprint 6 deliverables checked
+- [ ] docs/plans/summaries/SPRINT6_SUMMARY.md exists and is complete
+- [ ] docs/plans/task_plan.md shows Sprint 6 complete
+- [ ] docs/plans/DETAILED-SPRINT-PROGRESS.md reflects current state
+- [ ] docs/plans/milestones.md shows Sprint 6 deliverables checked
 - [ ] README.md shows Sprint 6 complete, Sprint 7 next
 - [ ] docs/FEATURES.md includes ML safety features
 - [ ] All file paths in documentation are correct

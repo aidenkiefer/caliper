@@ -2,14 +2,17 @@
 
 ## Summary
 
-This document defines the system architecture for a modular quantitative ML trading platform. The platform supports multiple trading strategies (stocks and options), emphasizes risk management (target level 6-7), and separates concerns between trading services (Python backend) and monitoring dashboard (Next.js on Vercel).
+This document defines the system architecture for **Caliper**: a modular quantitative platform spanning **equities** (Alpaca-oriented: strategies, backtest, ML loop, RiskManager → OMS) and an **optional** **Polymarket** prediction-market surface (hourly BTC binary market-making in `services/polymarket/`). Both tracks share **Postgres/TimescaleDB** for persistence and analytics; they **do not** share the same order path (Polymarket bypasses `packages/strategies` and `services/execution`).
 
-**Core Principle:** Separation of concerns with clear boundaries. Each service has a single responsibility, communicates via well-defined contracts, and can be developed, tested, and deployed independently.
+The platform supports multiple equity strategies (stocks; options-ready schemas), emphasizes risk management (target level 6–7), and separates the Python trading stack from the **Next.js** dashboard (Vercel or local). For milestone versions and backlog, see **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**.
 
-**Deployment Model:**
-- **Trading Services:** Containerized Python services running on VM/cloud infrastructure (AWS/GCP/DigitalOcean)
-- **Dashboard:** Next.js application deployed to Vercel
-- **Communication:** REST API (FastAPI) serving dashboard and external integrations
+**Core principle:** Separation of concerns with clear boundaries. Each component has a focused responsibility, communicates via well-defined contracts, and can be developed, tested, and deployed independently.
+
+**Deployment model:**
+- **Python services:** Run locally or on VM/cloud; `docker-compose` today runs **Postgres, Redis, and the API** (not every service as its own container).
+- **Optional Polymarket bot:** Typically run via CLI on a host with wallet secrets; records to the same DB **`pm.*`** schema when configured.
+- **Dashboard:** Next.js application (local dev or Vercel).
+- **Communication:** REST (FastAPI) for the dashboard and control/read APIs.
 
 ---
 
@@ -23,7 +26,7 @@ This document defines the system architecture for a modular quantitative ML trad
 - Simplified dependency management and versioning
 - Better suited for small team or solo developer
 
-**Trade-off:** Monorepo can become unwieldy at scale, but for v1 with ~8 services, this is optimal.
+**Trade-off:** Monorepo can become unwieldy at scale; for this codebase the Python surface area is **data, features, backtest, execution, risk, ml, api**, plus optional **`polymarket`**.
 
 ### ✅ Service-Oriented Architecture (SOA)
 **Decision:** Decompose system into independent services  
@@ -32,15 +35,17 @@ This document defines the system architecture for a modular quantitative ML trad
 - Failure isolation (if feature pipeline fails, execution can continue with last known features)
 - Technology flexibility (could use different languages/frameworks per service if needed)
 
-**Services:**
-1. **data** - Market data ingestion and normalization
-2. **features** - Feature engineering pipeline
-3. **research** - Model training and experimentation (notebooks + scripts)
-4. **backtest** - Backtesting engine
-5. **execution** - Paper and live trade execution
-6. **risk** - Risk management and circuit breakers
-7. **monitoring** - Metrics collection, logging, alerts
-8. **api** - FastAPI backend serving dashboard
+**Implemented Python services / packages (by folder):**
+1. **data** — Market data ingestion, Alembic migrations (equity + **`pm.*`** Polymarket schema)
+2. **features** — Feature engineering pipeline
+3. **ml** — Training, inference adapters, drift, confidence gating, explainability, baselines, HITL, performance tracking
+4. **backtest** — Backtesting engine and walk-forward optimization
+5. **execution** — OMS and broker adapters (Alpaca); **equity path only**
+6. **risk** — RiskManager, kill switch, circuit breaker; **equity path only**
+7. **api** — FastAPI backend (dashboard, controls, ML, **`/v1/polymarket/*`** read APIs)
+8. **polymarket** *(optional)* — CLOB market-making bot, CLI, session orchestration; **not** a substitute for `execution`/`risk`
+
+**Not implemented as a standalone repo service:** there is **no** `services/monitoring/` today. Metrics and health are exposed via **`services/api`** (and ML observability via **`services/ml`** + dashboard). A dedicated monitoring/alerting service remains a possible future slice.
 
 ### ✅ Event-Driven + Polling Hybrid
 **Decision:** Use event-driven architecture for real-time signals, polling for dashboard updates  
@@ -743,8 +748,8 @@ class CircuitBreaker:
 ```
 
 **Technology:**
-- Python 3.11+, real-time metrics from monitoring service
-- Database: Risk limits stored in `risk_limits` table
+- Python 3.11+; portfolio health computed in **`services/risk`** from positions/equity (no separate monitoring microservice)
+- Database: Risk limits stored in `risk_limits` table (as deployed; some paths use in-memory or config-driven limits—see `services/risk`)
 - Kill switch state persisted in `kill_switch_state` table
 - Integration with execution service for order rejection
 
@@ -824,22 +829,16 @@ Strategy generates signal
 
 ---
 
-### 7. Monitoring, Metrics & Alerts (`services/monitoring`)
+### 7. Observability, metrics, and alerts (current implementation)
 
-**Responsibilities:**
-- Collect metrics from all services (PnL, Sharpe, fill rates, latency)
-- Log aggregation and structured logging
-- Alert generation (Slack, email, SMS)
-- Health checks for services
+There is **no** dedicated `services/monitoring` process in the repo. Observability is **distributed** across:
 
-**Metrics:**
-- Trading: PnL, Sharpe/Sortino, max drawdown, win rate, turnover
-- System: Data feed status, API latency, error rates
+- **`services/api`** — `/v1/health`, `/v1/metrics`, run/strategy/position endpoints; **Polymarket** read APIs under **`/v1/polymarket/*`** for `pm.*` session analytics (see `docs/api-contracts.md`).
+- **`services/ml`** — Drift, health scores, performance tracking, explanations (used by dashboard and API routers).
+- **`apps/dashboard`** — Model Observatory (Sprints 7–9), platform overview, runs, controls UI.
+- **Polymarket service** — Structured logging to files; **TimescaleDB `pm.*`** tables for order book snapshots, fills, PnL, toxic flow (see Sprint 10 summary).
 
-**Technology:**
-- Python structlog for logging
-- Prometheus + Grafana (optional for v2)
-- Simple alerting via Slack webhooks or email (SendGrid)
+**Future (optional):** Centralized metrics collection (Prometheus/Grafana), log aggregation, and paging integrations can be added without changing the core trading boundaries above.
 
 ---
 
@@ -1126,8 +1125,8 @@ The API service will query Postgres tables directly:
 - `orders` - Order history (from execution service)
 - `runs` - Backtest and live session records (from backtest service)
 - `trades` - Trade history (from backtest/execution services)
-- `metrics` - Aggregated performance metrics (from monitoring service)
-- `alerts` - System alerts and notifications (from monitoring service)
+- `metrics` / performance views — Exposed via API routers (mock or DB-backed per deployment); not a separate monitoring microservice
+- **`pm.*`** — Polymarket session, order, fill, snapshot, and analytics tables (written by `services/polymarket`, read via **`/v1/polymarket/*`**)
 
 **Query Patterns:**
 - **Aggregation:** `GET /metrics/summary` aggregates across multiple strategies using SQL GROUP BY and window functions
@@ -1239,15 +1238,20 @@ Dashboard (Next.js) → API (FastAPI) → Database (Postgres)
             Backtest Service → Reports
 ```
 
-### Strategy Execution Flow
+### Strategy Execution Flow (equity)
 ```
 Market Data → Feature Pipeline → Strategy Plugin → Risk Check → Execution Engine → Broker
                                          ↓
-                                   Monitoring Service
+                              API + Dashboard (metrics, health, runs)
                                          ↓
-                                   Metrics Database
+                              Postgres / TimescaleDB (as wired per deployment)
+```
+
+### Polymarket flow (optional, Sprint 10)
+```
+Gamma/CLOB/Binance → services/polymarket (session, quoting, safety) → Polygon CLOB
                                          ↓
-                                     Dashboard
+                              TimescaleDB pm.* (recorder) + GET /v1/polymarket/* (API)
 ```
 
 ### Backtest Flow
@@ -1265,13 +1269,13 @@ Historical Data → Feature Pipeline → Strategy Plugin → Backtest Engine →
 
 ### Local Development
 ```
-docker-compose.yml:
+docker-compose.yml (see repo root):
   - postgres (TimescaleDB)
   - redis
-  - data service
-  - features service
-  - api service
-  - monitoring service
+  - api (FastAPI; mounts repo for local dev)
+
+Other Python services (backtest, execution, risk, ml, polymarket) are run via Poetry from the host
+or your own orchestration—not currently defined as separate compose services.
 ```
 
 ### Production
@@ -1325,13 +1329,12 @@ Object Storage:
 - `get_positions()` → Current positions
 - `reconcile_positions(expected, actual)` → Discrepancies
 
-#### 5. Monitoring Agent
-**Purpose:** Track system health  
+#### 5. Observability Agent (conceptual)
+**Purpose:** Track system health and model/market quality  
 **Tools:**
-- `collect_metrics(service_name)` → Metrics snapshot
-- `check_service_health(service_name)` → Healthy/Unhealthy
-- `send_alert(message, severity)` → Alert sent
-- `generate_daily_summary()` → Summary report
+- Query **`/v1/health`**, **`/v1/metrics`**, drift/performance endpoints
+- Inspect **`pm.*`** session data after Polymarket runs (SQL or API)
+- `send_alert(message, severity)` → External channel (not built in as a single service)
 
 ### Memory Strategy
 - **Short-term:** Redis for session state (active orders, current signals)
@@ -1430,10 +1433,6 @@ Object Storage:
 
 ---
 
-## Next Steps
+## Document maintenance
 
-1. **Implement Data Contracts** - Define exact schemas in `data-contracts.md`
-2. **Specify API Contracts** - Define all endpoints in `api-contracts.md`
-3. **Finalize Risk Policy** - Codify rules in `risk-policy.md`
-4. **Design Dashboard** - Create wireframes and component hierarchy in `dashboard-spec.md`
-5. **Create ADRs** - Document key decisions (monorepo, SOA, database choice) in `/adr`
+Core contracts and policies live in **`docs/data-contracts.md`**, **`docs/api-contracts.md`**, **`docs/risk-policy.md`**, **`docs/dashboard-spec.md`**, and **`adr/`**. When adding services or schemas, update those files and **[docs/INDEX.md](INDEX.md)**. Milestone status: **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**.

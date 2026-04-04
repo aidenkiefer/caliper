@@ -1067,8 +1067,8 @@ Documentation:
 - [ ] docs/architecture.md updated
 
 Task 7: Update Progress
-- Mark Sprint 4 tasks complete in plans/task_plan.md
-- Update plans/progress.md
+- Mark Sprint 4 tasks complete in docs/plans/task_plan.md
+- Update docs/plans/DETAILED-SPRINT-PROGRESS.md
 - Create SPRINT4_SUMMARY.md
 
 ═══════════════════════════════════════════════════════════════
@@ -1141,7 +1141,7 @@ Task 7: Update Progress
 | Docker Updates | DevOps | ✅ Assigned |
 | Environment Vars | DevOps | ✅ Assigned |
 
-**All tasks from `plans/task_plan.md` Sprint 4 section are covered.**
+**All tasks from `docs/plans/task_plan.md` Sprint 4 section are covered.**
 
 ---
 

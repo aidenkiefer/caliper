@@ -2,6 +2,8 @@
 
 This is the primary doc map for agent and human navigation in the `quant/` repo.
 
+**Platform overview & onboarding:** root **[README.md](../README.md)** (equities + optional Polymarket, sprint status). **Milestone log:** **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**.
+
 ## Core system docs
 
 | Doc | Path | Use when |
@@ -32,10 +34,14 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 
 | Doc | Path | Use when |
 |---|---|---|
-| Historical progress tracker | `plans/progress.md` | Reviewing full sprint completion history |
-| Historical planning handoff | `plans/task_plan.md` | Reviewing original sprint/task decomposition |
-| Specs + tickets hub | `docs/plans/README.md` | Understanding spec/ticket workflow (Sprints 7–10) |
-| Workflow progress log | `docs/plans/PROGRESS.md` | Logging completed workflow-era milestones and patches |
+| Detailed sprint checklists | `docs/plans/DETAILED-SPRINT-PROGRESS.md` | Per-sprint checkbox history (legacy `plans/progress.md`) |
+| Original task plan (Sprints 1–6) | `docs/plans/task_plan.md` | Planning-phase decomposition and handoff |
+| Plans folder hub | `docs/plans/README.md` | Specs/tickets (7–10), legacy Sprints 1–6 artifacts, file index |
+| Workflow progress log | `docs/plans/PROGRESS.md` | Versioned milestones, patches, backlog |
+| Planning findings | `docs/plans/findings.md` | Original research / design decisions |
+| Early milestones doc | `docs/plans/milestones.md` | Planning-phase milestone checklist |
+| ML / observatory concept notes | `docs/plans/more-features.md`, `docs/plans/even-more-features.md` | Pre-spec feature narratives (Sprint 6 & 8–9 themes) |
+| Sprint 1–2 skill optimizations | `docs/plans/SPRINT_SKILL_OPTIMIZATIONS.md` | DB/code tweaks from skills review |
 | Sprint 7 spec | `docs/plans/specs/sprint-7-first-ml-model-spec.md` | First ML model end-to-end work |
 | Sprint 8 spec | `docs/plans/specs/sprint-8-observability-safety-spec.md` | Observability, drift, explainability, baselines |
 | Sprint 9 spec | `docs/plans/specs/sprint-9-model-observatory-dashboard-spec.md` | Model dashboard and model-centric UX |
@@ -78,8 +84,9 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 | ML service | `services/ml/` | Training, inference, confidence, drift, explainability, HITL, baselines |
 | Risk service | `services/risk/` | Risk manager, kill switch, circuit breaker |
 | Polymarket service | `services/polymarket/` | Optional CLOB market-making bot; CLI + `pm.*` DB schema; parallel to equity stack |
-| Shared schemas | `packages/common/` | Pydantic schemas and shared contracts (includes `polymarket_schemas.py`) |
-| Strategies | `packages/strategies/` | Strategy ABC and strategy implementations |
+| Shared schemas | `packages/common/` | Pydantic schemas and shared contracts (includes `polymarket_schemas.py`, `ml_schemas.py`) |
+| Strategies | `packages/strategies/` | Strategy ABC and implementations (rule-based + ML direction strategy) |
+| Models package | `packages/models/` | Reserved stub for shared model utilities (minimal today) |
 
 ## Navigation rule
 

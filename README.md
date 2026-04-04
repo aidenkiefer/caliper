@@ -1,10 +1,18 @@
 # Caliper
 
-A modular quantitative ML trading platform for stocks and options with risk management, backtesting, and live execution capabilities. The repo also includes an **optional parallel service** for **Polymarket** hourly BTC binary market-making (Sprint 10): same shared Postgres/TimescaleDB for observability, separate execution path from the equity Strategy / OMS stack.
+**Caliper** is a quantitative trading and research platform built around two complementary tracks that share the same engineering values—interpretability, baselines, strict risk discipline, and **paper or dust capital first**—and the same **Postgres/TimescaleDB** backbone for analytics.
+
+1. **Equities (Sprints 1–9)** — Alpaca-oriented workflow: market data and features, `Strategy` plugins and backtests, ML training and inference with safety tooling (drift, confidence gating, explainability, HITL), execution through **RiskManager → OMS → Alpaca**, and a **Model Observatory** dashboard for lifecycle and evaluation.
+
+2. **Prediction markets (Sprint 10, optional)** — A standalone **Polymarket** service for hourly BTC **Up/Down** binary markets: market discovery, WebSocket order book + Binance reference prices, **post-only** market making with its own safety layer, rich telemetry (queue position, adverse selection, toxic flow, regime tags), and **`pm.*`** TimescaleDB schema plus REST endpoints on the main API for session analytics. It does **not** route through the equity `Strategy` / Alpaca stack; capital and controls are separate.
+
+Sprint 10 is **Phase 1** of a three-phase Polymarket roadmap: collect empirical data with small size, then iterate on inventory skew, dynamic spread, and (later) directional models—see **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)**.
 
 ## Project Status
 
-**Current phase:** Core platform through **Sprint 9** ✅; **Sprint 10 (Polymarket PoC)** ✅ complete — operational setup (wallet, env, migration) still required before live sessions.
+**Current phase:** Core platform **Sprints 1–9** ✅ and **Sprint 10 (Polymarket V1)** ✅ complete (**v2.0.0** milestone). Before funded Polymarket sessions, complete operational setup (wallet, env, migration, dry-run)—see **[docs/POLYMARKET-QUICKSTART.md](docs/POLYMARKET-QUICKSTART.md)**.
+
+**Milestone log:** **[docs/plans/PROGRESS.md](docs/plans/PROGRESS.md)** (versions, patch notes, backlog). **Doc map:** **[docs/INDEX.md](docs/INDEX.md)**.
 
 **Sprint 1:** ✅ Complete (Infrastructure & Data)  
 **Sprint 2:** ✅ Complete (Feature Pipeline & Strategy Core)  
@@ -17,17 +25,17 @@ A modular quantitative ML trading platform for stocks and options with risk mana
 **Sprint 9:** ✅ Complete (Model Observatory Dashboard)  
 **Sprint 10:** ✅ Complete (Polymarket BTC hourly market-making — `services/polymarket/`)
 
-See **[docs/SPRINTS-7-8-9-SUMMARY.md](docs/SPRINTS-7-8-9-SUMMARY.md)** for Sprints 7–9. For Polymarket: **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)**, **[docs/POLYMARKET-QUICKSTART.md](docs/POLYMARKET-QUICKSTART.md)**, **[docs/runbooks/polymarket-operations.md](docs/runbooks/polymarket-operations.md)**.
+See **[docs/SPRINTS-7-8-9-SUMMARY.md](docs/SPRINTS-7-8-9-SUMMARY.md)** for Sprints 7–9. For Polymarket: **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)** (architecture, `pm.*` tables, safety, Phase 2/3 roadmap), **[docs/POLYMARKET-QUICKSTART.md](docs/POLYMARKET-QUICKSTART.md)**, **[docs/runbooks/polymarket-operations.md](docs/runbooks/polymarket-operations.md)**.
 
 ## Architecture
 
 This is a monorepo containing:
 
-- **`apps/dashboard`** - ✅ Next.js dashboard (Sprint 4)
-- **`services/`** - Python microservices: data, features, backtest, execution, risk, monitoring, api, plus **`polymarket`** (Sprint 10 — optional CLOB market-making bot; not wired through `Strategy` / Alpaca OMS)
-- **`packages/`** - Shared libraries (common schemas, strategies, models)
-- **`docs/`** - Architecture and design documentation
-- **`configs/`** - Configuration files (strategies, environments)
+- **`apps/dashboard`** — Next.js app: platform overview, strategies, runs, health, settings, and **Model Observatory** (Sprints 4, 9).
+- **`services/`** — Python services: **data** (migrations, including `pm.*`), **features**, **backtest**, **execution**, **risk**, **ml**, **api** (FastAPI, including `/v1/polymarket/*`), and **`polymarket`** (Sprint 10 — optional Typer CLI `polymarket-session`, CLOB/Gamma/Binance adapters, session orchestration).
+- **`packages/`** — **`common`** (shared Pydantic schemas, including `polymarket_schemas`), **`strategies`** (rule and ML strategy plugins), **`models`** (stub package reserved for shared model utilities).
+- **`docs/`** — Architecture, contracts, runbooks, specs, and workflow guides.
+- **`configs/`** — Strategy YAML, environment templates.
 
 ## Technology Stack
 
@@ -35,7 +43,7 @@ This is a monorepo containing:
 - **Database:** PostgreSQL with TimescaleDB extension
 - **Cache:** Redis
 - **Frontend:** Next.js 14 (App Router), React, TypeScript
-- **ML:** scikit-learn, XGBoost (planned), pandas/numpy for indicators
+- **ML:** scikit-learn, pandas/numpy; SHAP/permutation explainers support tree models (e.g. XGBoost/LightGBM) when wired in
 
 ## Getting Started
 
@@ -92,7 +100,7 @@ cd services/api
 poetry run uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 # Option 2: Using Makefile
-make dev-api
+make api-dev
 ```
 
 The API will be available at:
@@ -111,7 +119,7 @@ npm install
 npm run dev
 
 # Option 2: Using Makefile
-make dev-dashboard
+make dashboard-dev
 ```
 
 The dashboard will be available at http://localhost:3000
@@ -125,7 +133,7 @@ Start everything with Docker Compose:
 docker-compose up -d
 
 # Or use Makefile
-make dev
+make up
 ```
 
 ## Project Structure
@@ -133,7 +141,7 @@ make dev
 ```
 quant/
 ├── apps/
-│   └── dashboard/          # ✅ Next.js dashboard (Sprint 4)
+│   └── dashboard/          # ✅ Next.js dashboard + Model Observatory (Sprints 4, 9)
 ├── services/
 │   ├── data/               # ✅ Data ingestion service (Sprint 1)
 │   ├── features/           # ✅ Feature engineering (Sprint 2)
@@ -141,13 +149,12 @@ quant/
 │   ├── api/                # ✅ FastAPI backend (Sprint 4)
 │   ├── execution/          # ✅ Trade execution (Sprint 5)
 │   ├── risk/               # ✅ Risk management (Sprint 5)
-│   ├── ml/                 # ✅ ML Safety & Interpretability (Sprint 6)
-│   ├── polymarket/         # ✅ Polymarket BTC hourly MM (Sprint 10; own CLI + DB pm.*)
-│   └── monitoring/         # Metrics & alerts (planned)
+│   ├── ml/                 # ✅ ML training, drift, gating, explainability, baselines, HITL (Sprints 6–8)
+│   └── polymarket/         # ✅ Polymarket BTC hourly MM (Sprint 10; CLI, pm.* schema)
 ├── packages/
-│   ├── common/             # ✅ Shared schemas & utilities
-│   ├── strategies/         # ✅ Strategy plugins (Sprint 2)
-│   └── models/             # ML model utilities (planned)
+│   ├── common/             # ✅ Shared schemas (incl. polymarket API models)
+│   ├── strategies/         # ✅ Strategy plugins (Sprint 2+; incl. ML strategy)
+│   └── models/             # Stub / future shared model utilities
 ├── docs/                    # Documentation
 ├── configs/                 # Configuration files
 ├── tests/                   # Test suites
@@ -159,6 +166,8 @@ quant/
 ## Documentation
 
 ### Core Documentation
+- **Doc index (start here):** [`docs/INDEX.md`](docs/INDEX.md)
+- **Progress & versions:** [`docs/plans/PROGRESS.md`](docs/plans/PROGRESS.md)
 - **Architecture:** [`docs/architecture.md`](docs/architecture.md)
 - **Data Contracts:** [`docs/data-contracts.md`](docs/data-contracts.md)
 - **API Contracts:** [`docs/api-contracts.md`](docs/api-contracts.md)
@@ -167,19 +176,21 @@ quant/
 - **Dashboard Spec:** [`docs/dashboard-spec.md`](docs/dashboard-spec.md)
 
 ### Sprint Summaries
-- **Sprint 1:** [`plans/SPRINT1_SUMMARY.md`](plans/SPRINT1_SUMMARY.md) - Infrastructure & Data
-- **Sprint 2:** [`plans/SPRINT2_SUMMARY.md`](plans/SPRINT2_SUMMARY.md) - Feature Pipeline & Strategy Core
-- **Sprint 3:** [`plans/SPRINT3_SUMMARY.md`](plans/SPRINT3_SUMMARY.md) - Backtesting & Reporting
-- **Sprint 4:** [`plans/SPRINT4_SUMMARY.md`](plans/SPRINT4_SUMMARY.md) - Dashboard & API
-- **Sprint 5:** [`plans/SPRINT5_SUMMARY.md`](plans/SPRINT5_SUMMARY.md) - Execution & Risk
-- **Sprint 6:** [`plans/SPRINT6_SUMMARY.md`](plans/SPRINT6_SUMMARY.md) - ML Safety & Interpretability
+- **Sprint 1:** [`docs/plans/summaries/SPRINT1_SUMMARY.md`](docs/plans/summaries/SPRINT1_SUMMARY.md) - Infrastructure & Data
+- **Sprint 2:** [`docs/plans/summaries/SPRINT2_SUMMARY.md`](docs/plans/summaries/SPRINT2_SUMMARY.md) - Feature Pipeline & Strategy Core
+- **Sprint 3:** [`docs/plans/summaries/SPRINT3_SUMMARY.md`](docs/plans/summaries/SPRINT3_SUMMARY.md) - Backtesting & Reporting
+- **Sprint 4:** [`docs/plans/summaries/SPRINT4_SUMMARY.md`](docs/plans/summaries/SPRINT4_SUMMARY.md) - Dashboard & API
+- **Sprint 5:** [`docs/plans/summaries/SPRINT5_SUMMARY.md`](docs/plans/summaries/SPRINT5_SUMMARY.md) - Execution & Risk
+- **Sprint 6:** [`docs/plans/summaries/SPRINT6_SUMMARY.md`](docs/plans/summaries/SPRINT6_SUMMARY.md) - ML Safety & Interpretability
 - **Sprints 7–9:** [`docs/SPRINTS-7-8-9-SUMMARY.md`](docs/SPRINTS-7-8-9-SUMMARY.md) - First ML Model, Observability & Safety, Model Observatory Dashboard
 - **Sprint 10:** [`docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md`](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md) - Polymarket BTC market-making (full summary)
+- **Specs & tickets hub (Sprints 7–10):** [`docs/plans/README.md`](docs/plans/README.md)
 
 ### Polymarket (Sprint 10)
 - **Quick start:** [`docs/POLYMARKET-QUICKSTART.md`](docs/POLYMARKET-QUICKSTART.md)
 - **Operations runbook:** [`docs/runbooks/polymarket-operations.md`](docs/runbooks/polymarket-operations.md)
 - **Spec:** [`docs/plans/specs/polymarket-btc-trading-spec.md`](docs/plans/specs/polymarket-btc-trading-spec.md)
+- **Early ticket batch notes:** [`docs/plans/POLYMARKET-TICKETS-1-5-SUMMARY.md`](docs/plans/POLYMARKET-TICKETS-1-5-SUMMARY.md)
 - **Service docs:** [`services/polymarket/docs/`](services/polymarket/docs/) (SETUP, CONFIG, RUNBOOK)
 
 ### Multi-Agent Workflow
@@ -199,7 +210,7 @@ quant/
 
 ## Development Roadmap
 
-See [`plans/task_plan.md`](plans/task_plan.md) for the full implementation plan.
+See [`docs/plans/task_plan.md`](docs/plans/task_plan.md) for the original sprint plan and [`docs/plans/PROGRESS.md`](docs/plans/PROGRESS.md) for the current milestone log (including patch-level ship notes and backlog). Long-form checklists: [`docs/plans/DETAILED-SPRINT-PROGRESS.md`](docs/plans/DETAILED-SPRINT-PROGRESS.md).
 
 **Sprint 1:** ✅ Infrastructure & Data (Complete)
 - [x] Monorepo setup
@@ -290,12 +301,14 @@ See [`plans/task_plan.md`](plans/task_plan.md) for the full implementation plan.
 - [x] Human-in-the-loop review mode (model-centric)
 - [x] Model sandbox / what-if (parameter sandbox, preview)
 
-**Sprint 10:** ✅ Polymarket BTC hourly market-making (Complete)
-- [x] Parallel service `services/polymarket/` (Gamma/CLOB/Binance/Data API adapters, wallet, session orchestrator, CLI `polymarket-session`)
-- [x] V1 fixed-spread post-only quoting, heartbeat, safety layer, TimescaleDB `pm.*` schema (migration in `services/data`)
-- [x] Rich telemetry (queue position, adverse selection, toxic flow by minute, regime tags)
-- [x] API router `services/api/routers/polymarket.py` + `packages/common/polymarket_schemas.py`
-- [x] Unit/integration tests and service-local docs; see **[docs/POLYMARKET-QUICKSTART.md](docs/POLYMARKET-QUICKSTART.md)** to run
+**Sprint 10:** ✅ Polymarket BTC hourly market-making (Complete) — **Phase 1** (data collection; Phases 2–3 = advanced MM + directional model per spec)
+- [x] Parallel service `services/polymarket/` (Gamma/CLOB/Binance/**Data API** adapters, Polygon wallet + EIP-712 signing, USDC split/merge, session orchestrator, Typer CLI `polymarket-session`, `python -m polymarket`)
+- [x] V1 **symmetric fixed-spread**, **post-only** quoting; 10s heartbeat (platform cancels if stale); **multi-gate safety** (session loss limit, Binance staleness, wind-down, inventory cap, emergency shutdown)
+- [x] **Fee model** (pre/post Mar 30 curve); DST-aware **market discovery** for hourly BTC Up/Down windows
+- [x] TimescaleDB **`pm.*`** schema: **8 tables**, **3 hypertables** (order book snapshots, Binance candles, PnL snapshots); recorder + regime tags at session end
+- [x] Gap-filling analytics fields: queue-ahead estimates, adverse selection (5s/10s midpoint), toxic flow per minute, reward-eligibility proxies, quote-version attribution
+- [x] FastAPI **`GET /v1/polymarket/sessions`** (+ detail, orders, fills, snapshots, PnL, toxic-flow); shared **`packages/common/polymarket_schemas.py`**
+- [x] **130+** unit and **5** integration tests (mocked APIs); service docs (**SETUP**, **CONFIG**, **RUNBOOK**); run via **[docs/POLYMARKET-QUICKSTART.md](docs/POLYMARKET-QUICKSTART.md)**
 
 ## Security Notice
 

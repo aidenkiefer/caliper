@@ -455,8 +455,8 @@ Your Tasks:
    - Verify tests pass
 
 5. Update Progress
-   - Mark Sprint 4 tasks complete in plans/task_plan.md
-   - Update plans/progress.md
+   - Mark Sprint 4 tasks complete in docs/plans/task_plan.md
+   - Update docs/plans/DETAILED-SPRINT-PROGRESS.md
    - Create SPRINT4_SUMMARY.md
 
 Output Format:
@@ -517,7 +517,7 @@ Output Format:
 - [ ] Backtest results visible in dashboard
 - [ ] All tests pass
 - [ ] Documentation updated
-- [ ] `plans/task_plan.md` marked complete
+- [ ] `docs/plans/task_plan.md` marked complete
 
 ---
 

@@ -22,7 +22,7 @@ You are the Sprint Orchestrator for Caliper.
 
 Read:
 - docs/WORKFLOW.md
-- plans/task_plan.md (current sprint)
+- docs/plans/task_plan.md (current sprint)
 - agents/briefs/*.md
 
 Goal: Complete Sprint N using multi-agent parallel workflow.
@@ -133,7 +133,7 @@ Each agent must provide:
 - **Workflow:** `docs/WORKFLOW.md` (full protocol)
 - **Agent Briefs:** `agents/briefs/*.md`
 - **Skills:** `agents/skills/skills/`
-- **Sprint Plan:** `plans/task_plan.md`
+- **Sprint Plan:** `docs/plans/task_plan.md`
 
 ---
 
@@ -169,7 +169,7 @@ Agent Prompts:
 **Integrator:**
 - Merges outputs
 - Runs `poetry run pytest`
-- Updates `plans/task_plan.md`
+- Updates `docs/plans/task_plan.md`
 - ✅ Sprint 2 Complete
 
 ---

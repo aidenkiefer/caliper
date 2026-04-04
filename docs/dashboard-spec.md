@@ -2,7 +2,7 @@
 
 ## Summary
 
-This document specifies the User Interface and Experience (UI/UX) for the monitoring dashboard. The dashboard is the command center for the trading platform, providing observability into active strategies, risk metrics, and system health, as well as control commands (kill switches, config updates).
+This document specifies the User Interface and Experience (UI/UX) for the Caliper dashboard. The dashboard is the command center for the **equities** stack: observability into strategies, runs, risk-related controls, system health, and (Sprints 7–9) the **Model Observatory** for ML lifecycle and evaluation. **Polymarket** session analytics are primarily API/SQL today (`/v1/polymarket/*`, `pm.*`); deep live Polymarket UI is a future enhancement (see Polymarket spec §Phase 2+).
 
 **Tech Stack:**
 - **Framework:** Next.js 14 (App Router)
@@ -218,24 +218,16 @@ This document specifies the User Interface and Experience (UI/UX) for the monito
 
 ---
 
-## Implementation Tasks
+## Implementation status
 
-### Sprint 4 (Complete)
-*   [x] Initialize Next.js 14 project (`npx create-next-app`).
-*   [x] Install ShadCN/UI components (Card, Table, Button, Dialog).
-*   [ ] Setup NextAuth with Custom Credentials provider connecting to FastAPI.
-*   [x] Create API Client (Axios/Fetch) hook wrapper for querying Python backend.
-*   [x] Build "Global Layout" shell with Sidebar navigation.
-*   [x] Implement "Overview" page widgets.
+Sprints **4**, **6**, and **9** delivered the core dashboard described in this spec (layout, overview, strategies/runs/health/settings, Help/tooltips/Vercel from Sprint 6, Model Observatory from Sprint 9). For a feature-level list, see **[docs/FEATURES.md](FEATURES.md)**.
 
-### Sprint 6 (Backlog)
-*   [ ] Create `Tooltip` wrapper component with consistent styling.
-*   [ ] Create `glossary.ts` data file with term definitions.
-*   [ ] Add tooltips to StatsCard component (Overview page).
-*   [ ] Add tooltips to table headers (Strategies, Runs, Positions).
-*   [ ] Build `/help` page with searchable glossary.
-*   [ ] Add `?` icon to sidebar navigation linking to Help page.
-*   [ ] Create `vercel.json` with build and routing configuration.
-*   [ ] Configure environment variables (`NEXT_PUBLIC_API_URL`).
-*   [ ] Set up API rewrites to proxy `/api/*` to FastAPI backend.
-*   [ ] Deploy to Vercel with production and preview environments.
+**May still be partial vs this checklist:** NextAuth wired end-to-end to FastAPI (verify in `apps/dashboard/`). Treat remaining items below as verify-in-code, not as open sprint backlog.
+
+| Area | Status (verify in repo) |
+|------|-------------------------|
+| Next.js 14 App Router shell, Shadcn/UI, SWR hooks | Delivered (Sprint 4+) |
+| Help page, glossary, tooltips | Delivered (Sprint 6) |
+| `vercel.json`, API URL env | Delivered (Sprint 6) |
+| Model Registry / detail / ML viz / lifecycle (Observatory) | Delivered (Sprint 9) |
+| NextAuth ↔ FastAPI JWT | Planned / partial — confirm against implementation |

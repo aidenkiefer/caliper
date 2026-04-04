@@ -768,12 +768,12 @@ Documentation:
 - [ ] ADR created (if needed)
 
 Task 5: Update Progress
-- Mark Sprint 3 tasks complete in plans/task_plan.md:
+- Mark Sprint 3 tasks complete in docs/plans/task_plan.md:
   - [x] Implement services/backtest using Backtrader or vectorbt
   - [x] Connect Strategy output to Backtest engine
   - [x] Generate HTML report
   - [x] Verification: Backtest Starter Strategy, ensure P&L math is correct
-- Update plans/progress.md with Sprint 3 completion
+- Update docs/plans/DETAILED-SPRINT-PROGRESS.md with Sprint 3 completion
 - Create SPRINT3_SUMMARY.md with:
   - What was built
   - Key decisions
@@ -836,8 +836,8 @@ Provide:
    - Documentation: X/Y met
 
 4. Documentation Updates
-   - plans/task_plan.md updated
-   - plans/progress.md updated
+   - docs/plans/task_plan.md updated
+   - docs/plans/DETAILED-SPRINT-PROGRESS.md updated
    - SPRINT3_SUMMARY.md created
 
 5. Sprint 3 Completion Confirmation
@@ -875,7 +875,7 @@ Provide:
 | Database Schema (if needed) | Data | ✅ Standby |
 | Infrastructure (if needed) | DevOps | ✅ Standby |
 
-**All tasks from `plans/task_plan.md` Sprint 3 section are covered.**
+**All tasks from `docs/plans/task_plan.md` Sprint 3 section are covered.**
 
 ---
 

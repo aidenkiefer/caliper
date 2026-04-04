@@ -140,10 +140,10 @@
 |------|-------------|--------------|
 | L1 | Verify all agent deliverables are complete | A-K complete |
 | L2 | Run all tests and verify acceptance criteria | L1 |
-| L3 | Write `plans/SPRINT6_SUMMARY.md` with tasks, files, skills per agent | L2 |
-| L4 | Update `plans/task_plan.md` - mark Sprint 6 complete | L3 |
-| L5 | Update `plans/progress.md` - update current phase and status | L3 |
-| L6 | Update `plans/milestones.md` - mark Sprint 6 deliverables complete | L3 |
+| L3 | Write `docs/plans/summaries/SPRINT6_SUMMARY.md` with tasks, files, skills per agent | L2 |
+| L4 | Update `docs/plans/task_plan.md` - mark Sprint 6 complete | L3 |
+| L5 | Update `docs/plans/DETAILED-SPRINT-PROGRESS.md` - update current phase and status | L3 |
+| L6 | Update `docs/plans/milestones.md` - mark Sprint 6 deliverables complete | L3 |
 | L7 | Update `README.md` - reflect Sprint 6 completion | L3 |
 | L8 | Update `docs/FEATURES.md` - add ML safety features | L3 |
 | L9 | Final verification that all docs reflect current project state | L4-L8 |
@@ -461,7 +461,7 @@
 
 ### Integrator Agent Deliverables
 
-1. **Sprint Summary** (`plans/SPRINT6_SUMMARY.md`)
+1. **Sprint Summary** (`docs/plans/summaries/SPRINT6_SUMMARY.md`)
    - Tasks completed by each agent
    - Files created/modified per agent
    - Skills used by each agent with evidence
@@ -469,9 +469,9 @@
    - Test results summary
 
 2. **Documentation Updates**
-   - `plans/task_plan.md` - Sprint 6 marked complete
-   - `plans/progress.md` - Current phase updated
-   - `plans/milestones.md` - Sprint 6 deliverables checked
+   - `docs/plans/task_plan.md` - Sprint 6 marked complete
+   - `docs/plans/DETAILED-SPRINT-PROGRESS.md` - Current phase updated
+   - `docs/plans/milestones.md` - Sprint 6 deliverables checked
    - `README.md` - Sprint 6 status and features
    - `docs/FEATURES.md` - ML safety features added
 
@@ -575,7 +575,7 @@ See `docs/workflow/SPRINT6_AGENT_PROMPTS.md` for copy-paste ready prompts for ea
 ## 📚 Reference Documents
 
 **Must Read:**
-- `plans/more-features.md` - Full ML safety feature specifications
+- `docs/plans/more-features.md` - Full ML safety feature specifications
 - `docs/dashboard-spec.md` - Help page and tooltip requirements
 - `docs/architecture.md` - Current architecture
 - `docs/risk-policy.md` - Risk context

@@ -13,7 +13,7 @@ Usage:
 
 References:
     - docs/sprint-7-ml-problem-definition.md
-    - plans/task_plan.md (Sprint 7, ticket 07-02)
+    - docs/plans/task_plan.md (Sprint 7, ticket 07-02)
 """
 
 import argparse

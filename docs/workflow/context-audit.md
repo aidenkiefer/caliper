@@ -44,7 +44,7 @@ Define the set of core reference documents to audit. Customize this list for you
 | Security | `docs/security.md` |
 | Index / doc map | `docs/INDEX.md` |
 | Progress log | `docs/plans/PROGRESS.md` |
-| Planning / roadmap | `plans/progress.md` |
+| Planning / roadmap | `docs/plans/DETAILED-SPRINT-PROGRESS.md` |
 | Specs + tickets hub | `docs/plans/README.md` |
 | Runbooks | `docs/runbooks/` |
 

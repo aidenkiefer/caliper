@@ -241,7 +241,7 @@ You are the Sprint Orchestrator for Sprint 3: Backtesting & Reporting.
 Read:
 - docs/sprint-3-multi.md (this file)
 - docs/WORKFLOW.md (multi-agent protocol)
-- plans/task_plan.md (Sprint 3 section)
+- docs/plans/task_plan.md (Sprint 3 section)
 - docs/architecture.md (backtest service design)
 - agents/briefs/BACKEND.md
 - agents/briefs/QA.md
@@ -464,8 +464,8 @@ Your Tasks:
    - Verify tests pass
 
 4. Update Progress
-   - Mark Sprint 3 tasks complete in plans/task_plan.md
-   - Update plans/progress.md
+   - Mark Sprint 3 tasks complete in docs/plans/task_plan.md
+   - Update docs/plans/DETAILED-SPRINT-PROGRESS.md
    - Create SPRINT3_SUMMARY.md
 
 Output Format:
@@ -618,7 +618,7 @@ cat reports/backtest_1.json | jq '.metrics'
 - [ ] All tests pass
 - [ ] Documentation updated
 - [ ] Architecture reviewed
-- [ ] `plans/task_plan.md` marked complete
+- [ ] `docs/plans/task_plan.md` marked complete
 
 ---
 

@@ -83,10 +83,10 @@
 |------|-------------|--------------|
 | G1 | Verify all agent deliverables are complete | A-F complete |
 | G2 | Run all tests and verify acceptance criteria | G1 |
-| G3 | Write `plans/SPRINT5_SUMMARY.md` with tasks, files, skills per agent | G2 |
-| G4 | Update `plans/task_plan.md` - mark Sprint 5 complete | G3 |
-| G5 | Update `plans/progress.md` - update current phase and status | G3 |
-| G6 | Update `plans/milestones.md` - mark Sprint 5 deliverables complete | G3 |
+| G3 | Write `docs/plans/summaries/SPRINT5_SUMMARY.md` with tasks, files, skills per agent | G2 |
+| G4 | Update `docs/plans/task_plan.md` - mark Sprint 5 complete | G3 |
+| G5 | Update `docs/plans/DETAILED-SPRINT-PROGRESS.md` - update current phase and status | G3 |
+| G6 | Update `docs/plans/milestones.md` - mark Sprint 5 deliverables complete | G3 |
 | G7 | Update `README.md` - reflect Sprint 5 completion | G3 |
 | G8 | Update `docs/FEATURES.md` - add execution/risk features | G3 |
 | G9 | Final verification that all docs reflect current project state | G4-G8 |
@@ -315,7 +315,7 @@
 
 ### Integrator Agent Deliverables
 
-1. **Sprint Summary** (`plans/SPRINT5_SUMMARY.md`)
+1. **Sprint Summary** (`docs/plans/summaries/SPRINT5_SUMMARY.md`)
    - Tasks completed by each agent
    - Files created/modified per agent
    - Skills used by each agent with evidence
@@ -323,9 +323,9 @@
    - Test results summary
 
 2. **Documentation Updates**
-   - `plans/task_plan.md` - Sprint 5 marked complete
-   - `plans/progress.md` - Current phase updated
-   - `plans/milestones.md` - Sprint 5 deliverables checked
+   - `docs/plans/task_plan.md` - Sprint 5 marked complete
+   - `docs/plans/DETAILED-SPRINT-PROGRESS.md` - Current phase updated
+   - `docs/plans/milestones.md` - Sprint 5 deliverables checked
    - `README.md` - Sprint 5 status and features
    - `docs/FEATURES.md` - Execution and risk features added
 

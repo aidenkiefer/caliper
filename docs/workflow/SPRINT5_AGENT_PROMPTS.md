@@ -871,7 +871,7 @@ curl http://localhost:8000/v1/health
 📝 PHASE 2: SPRINT SUMMARY (Task G3)
 ═══════════════════════════════════════════════════════════════
 
-Create `plans/SPRINT5_SUMMARY.md` with the following structure:
+Create `docs/plans/summaries/SPRINT5_SUMMARY.md` with the following structure:
 
 ```markdown
 # Sprint 5 Summary: Execution & Risk
@@ -1009,13 +1009,13 @@ Sprint 6: Polish & UX Enhancements
 📚 PHASE 3: DOCUMENTATION UPDATES (Tasks G4-G8)
 ═══════════════════════════════════════════════════════════════
 
-## G4. Update plans/task_plan.md
+## G4. Update docs/plans/task_plan.md
 
 Mark Sprint 5 tasks as complete:
 - [ ] Change all Sprint 5 items from `[ ]` to `[x]`
 - [ ] Add "✅ COMPLETE" to Sprint 5 header
 
-## G5. Update plans/progress.md
+## G5. Update docs/plans/DETAILED-SPRINT-PROGRESS.md
 
 - [ ] Update "Current Phase" to "Implementation - Sprint 5 ✅ COMPLETE"
 - [ ] Update "Last Updated" date
@@ -1023,7 +1023,7 @@ Mark Sprint 5 tasks as complete:
 - [ ] Update "Next Actions" to reference Sprint 6
 - [ ] Update "Blockers" to "None. Sprint 5 is complete."
 
-## G6. Update plans/milestones.md
+## G6. Update docs/plans/milestones.md
 
 - [ ] Mark "Days 13-14: Execution + Risk Hardening" as ✅ COMPLETE
 - [ ] Check off all Sprint 5 deliverables
@@ -1055,10 +1055,10 @@ Mark Sprint 5 tasks as complete:
 
 After all updates, verify:
 
-- [ ] plans/SPRINT5_SUMMARY.md exists and is complete
-- [ ] plans/task_plan.md shows Sprint 5 complete
-- [ ] plans/progress.md reflects current state
-- [ ] plans/milestones.md shows Sprint 5 deliverables checked
+- [ ] docs/plans/summaries/SPRINT5_SUMMARY.md exists and is complete
+- [ ] docs/plans/task_plan.md shows Sprint 5 complete
+- [ ] docs/plans/DETAILED-SPRINT-PROGRESS.md reflects current state
+- [ ] docs/plans/milestones.md shows Sprint 5 deliverables checked
 - [ ] README.md shows Sprint 5 complete, Sprint 6 next
 - [ ] docs/FEATURES.md includes execution/risk features
 - [ ] All file paths in documentation are correct

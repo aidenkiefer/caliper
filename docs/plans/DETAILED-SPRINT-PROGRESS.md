@@ -1,12 +1,15 @@
-# Progress Tracker
+# Detailed sprint checklists (legacy progress tracker)
 
-## Current Phase: Implementation - Sprints 7–9 ✅ COMPLETE
+Formerly repository root `plans/progress.md`. **Canonical milestone log** (versions, patches, backlog): **[PROGRESS.md](PROGRESS.md)**.
 
-**Last Updated:** 2026-02-02
+---
 
-**Completed:** Sprints 1-9 (Infrastructure through Model Observatory Dashboard)  
-**Current:** None (all planned sprints complete)  
-**Next Up:** Iteration on Sprints 7–9 (see [docs/SPRINTS-7-8-9-SUMMARY.md](../docs/SPRINTS-7-8-9-SUMMARY.md))
+## Current phase: Sprints 1–10 ✅ COMPLETE
+
+**Last Updated:** 2026-04-04
+
+**Completed:** Sprints 1–10 (through Polymarket V1 / **v2.0.0**).  
+**Next up:** Iteration on ML/dashboard evaluation; Polymarket Phase 2+ per [specs/polymarket-btc-trading-spec.md](specs/polymarket-btc-trading-spec.md); see also [SPRINTS-7-8-9-SUMMARY.md](../SPRINTS-7-8-9-SUMMARY.md).
 
 ---
 
@@ -260,15 +263,22 @@
 - [x] Preview effects before applying changes
 - [x] **Verification:** Safe experimentation without affecting live behavior
 
+### Sprint 10: Polymarket BTC hourly market-making - ✅ COMPLETE
+*Optional parallel surface: CLOB market making on Polymarket; shares Postgres/TimescaleDB (`pm.*`) for analytics; does not use equity OMS.*
+
+- [x] Service `services/polymarket/` (adapters, wallet, quoting, safety, recorder, CLI)
+- [x] Alembic migration for **`pm.*`** schema; FastAPI **`/v1/polymarket/*`** + `polymarket_schemas.py`
+- [x] Docs: [summaries/SPRINT-10-POLYMARKET-COMPLETE.md](summaries/SPRINT-10-POLYMARKET-COMPLETE.md), [POLYMARKET-QUICKSTART.md](../POLYMARKET-QUICKSTART.md), [polymarket-operations.md](../runbooks/polymarket-operations.md)
+
 ---
 
 ## Completed Artifacts
 
-### Planning Documentation
-- ✅ `/plans/task_plan.md` - 9-sprint implementation plan
-- ✅ `/plans/findings.md` - Research insights and decisions
-- ✅ `/plans/progress.md` - This file
-- ✅ `/plans/milestones.md` - Project milestones
+### Planning documentation (this folder)
+- ✅ [task_plan.md](task_plan.md) — Original sprint plan (Sprints 1–6 + handoff); specs/tickets for 7–10 live under `specs/` and `tickets/`
+- ✅ [findings.md](findings.md) — Research insights and decisions
+- ✅ [DETAILED-SPRINT-PROGRESS.md](DETAILED-SPRINT-PROGRESS.md) — This checklist file
+- ✅ [milestones.md](milestones.md) — Project milestones
 
 ### Technical Documentation
 - ✅ `/docs/architecture.md` - System architecture
@@ -278,13 +288,14 @@
 - ✅ `/docs/risk-policy.md` - Risk limits and kill switches
 - ✅ `/docs/dashboard-spec.md` - Next.js UI/UX spec
 
-### Implementation Documentation (in `plans/`)
-- ✅ `plans/SPRINT1_SUMMARY.md` - Sprint 1 deliverables
-- ✅ `plans/SPRINT2_SUMMARY.md` - Sprint 2 deliverables
-- ✅ `plans/SPRINT3_SUMMARY.md` - Sprint 3 deliverables
-- ✅ `plans/SPRINT4_SUMMARY.md` - Sprint 4 deliverables
-- ✅ `plans/SPRINT5_SUMMARY.md` - Sprint 5 deliverables
-- ✅ `plans/SPRINT_SKILL_OPTIMIZATIONS.md` - Skills-based improvements
+### Sprint summaries (`summaries/`)
+- ✅ [summaries/SPRINT1_SUMMARY.md](summaries/SPRINT1_SUMMARY.md) — Sprint 1 deliverables
+- ✅ [summaries/SPRINT2_SUMMARY.md](summaries/SPRINT2_SUMMARY.md) — Sprint 2 deliverables
+- ✅ [summaries/SPRINT3_SUMMARY.md](summaries/SPRINT3_SUMMARY.md) — Sprint 3 deliverables
+- ✅ [summaries/SPRINT4_SUMMARY.md](summaries/SPRINT4_SUMMARY.md) — Sprint 4 deliverables
+- ✅ [summaries/SPRINT5_SUMMARY.md](summaries/SPRINT5_SUMMARY.md) — Sprint 5 deliverables
+- ✅ [summaries/SPRINT6_SUMMARY.md](summaries/SPRINT6_SUMMARY.md) — Sprint 6 deliverables
+- ✅ [SPRINT_SKILL_OPTIMIZATIONS.md](SPRINT_SKILL_OPTIMIZATIONS.md) — Skills-based improvements (Sprints 1–2)
 
 ### Workflow Documentation (in `docs/workflow/`)
 - ✅ `docs/workflow/WORKFLOW.md` - Multi-agent protocol
@@ -322,21 +333,17 @@
 | 7 | First ML Model (End-to-End Loop) | ✅ Complete |
 | 8 | ML Observability, Safety & Evaluation | ✅ Complete |
 | 9 | Model Observatory Dashboard | ✅ Complete |
+| 10 | Polymarket BTC market-making (V1) | ✅ Complete |
 
 ---
 
 ## Next Actions
 
-1. ✅ Sprint 3 complete - Backtesting & Reporting implemented
-2. ✅ Sprint 4 complete - Dashboard & API implemented
-3. ✅ Sprint 5 complete - Execution & Risk implemented
-4. ✅ Sprint 6 complete - ML Safety & Interpretability Core
-5. ✅ Sprint 7 complete - First ML Model (End-to-End Loop)
-6. ✅ Sprint 8 complete - ML Observability, Safety & Evaluation
-7. ✅ Sprint 9 complete - Model Observatory Dashboard
+1. ✅ Sprints 1–10 delivered per rows above
+2. Track follow-on work in **[PROGRESS.md](PROGRESS.md)** (backlog table)
 
 ---
 
 ## Blockers
 
-**None.** All sprints 1–9 complete. See [docs/SPRINTS-7-8-9-SUMMARY.md](../docs/SPRINTS-7-8-9-SUMMARY.md) for documentation index and next steps.
+**None** for the scoped sprint plan. Deferred / future items: **[PROGRESS.md](PROGRESS.md)** → *Planned / in-progress (backlog)*.

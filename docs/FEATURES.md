@@ -1,7 +1,7 @@
 # Platform Features Overview
 
 **Last Updated:** 2026-04-03  
-**Status:** Sprint 10 Complete (core platform Sprints 1–9 + Polymarket PoC)
+**Status:** Sprints 1–10 complete — core equities + ML observatory (**v1.6–v1.8**) and Polymarket V1 (**v2.0.0**); see **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**
 
 This document provides a comprehensive overview of all implemented features, capabilities, and components in Caliper.
 
@@ -353,11 +353,14 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 ## 📚 Documentation
 
 ### Core Documentation
-- **Architecture** (`docs/architecture.md`) - System design and component overview
-- **Data Contracts** (`docs/data-contracts.md`) - Schema definitions
-- **API Contracts** (`docs/api-contracts.md`) - API endpoint specifications
-- **Risk Policy** (`docs/risk-policy.md`) - Risk management rules
-- **Security** (`docs/security.md`) - Security policies
+- **README** (`README.md`) — Platform overview, two-track (equities / Polymarket), sprint status
+- **Doc index** (`docs/INDEX.md`) — Navigation map
+- **Progress log** (`docs/plans/PROGRESS.md`) — Milestones, patches, backlog
+- **Architecture** (`docs/architecture.md`) — System design and component overview
+- **Data Contracts** (`docs/data-contracts.md`) — Schema definitions (incl. `pm.*` pointer)
+- **API Contracts** (`docs/api-contracts.md`) — API specifications (incl. Polymarket routes)
+- **Risk Policy** (`docs/risk-policy.md`) — Risk management rules (equity path)
+- **Security** (`docs/security.md`) — Security policies
 
 ### Implementation Documentation
 - **Sprint Summaries** - Detailed sprint completion reports (including `docs/SPRINT-8-COMPLETE.md`, `docs/SPRINT-9-COMPLETE.md`)
@@ -375,43 +378,31 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 
 ## 🔄 Data Flow
 
-### Current Workflow (Sprints 1-5)
+### Equities workflow (Sprints 1–9)
 
 ```
-1. Data Ingestion (Sprint 1)
-   Alpaca API → AlpacaProvider → Database (TimescaleDB)
-   
-2. Feature Engineering (Sprint 2)
-   Price Bars → FeaturePipeline → 30+ Features
-   
-3. Strategy Execution (Sprint 2)
-   Features + Price Bars → Strategy → Signals
-   
-4. Backtesting (Sprint 3)
-   Signals + Historical Data → BacktestEngine → Results
-   
-5. Reporting (Sprint 3)
-   Results → ReportGenerator → JSON/HTML Reports
+1. Data (Sprint 1)     AlpacaProvider → TimescaleDB (price bars)
+2. Features (Sprint 2) Price bars → FeaturePipeline → indicators / 30+ features
+3. Strategy (Sprint 2+) Signals from rule strategies (e.g. SMA) or ML (Sprint 7+)
+4. Backtest (Sprint 3) BacktestEngine → metrics, reports (JSON/HTML)
+5. API + Dashboard (Sprints 4, 9) FastAPI ↔ Next.js (runs, health, Model Observatory)
+6. Risk + Execution (Sprint 5) RiskManager → OMS → Alpaca (paper first)
+7. ML safety (Sprints 6–8) Drift, gating, explainability, baselines, HITL, performance APIs
+```
 
-6. API Layer (Sprint 4)
-   Results → FastAPI → REST Endpoints
+### Polymarket workflow (Sprint 10, optional)
 
-7. Dashboard (Sprint 4)
-   API → Next.js Dashboard → User Interface
-
-8. Risk Validation (Sprint 5)
-   Order Request → RiskManager → Approved/Rejected
-   
-9. Execution (Sprint 5)
-   Approved Order → OMS → BrokerClient → Alpaca Paper API
-   
-10. Controls (Sprint 5)
-    Dashboard → Kill Switch API → Block/Allow Trading
+```
+Gamma/CLOB/Binance → services/polymarket (discovery, feed, quoting, safety)
+                    → Polygon CLOB (post-only orders)
+                    → pm.* TimescaleDB (recorder)
+                    → GET /v1/polymarket/* (API) for session analytics
+(Does not use equity Strategy / execution / risk stack.)
 ```
 
 ---
 
-## 🚧 Planned Features (Sprint 6+)
+## Sprint completion reference (historical checklist)
 
 ### Sprint 5: Execution & Risk ✅ COMPLETE
 - ✅ Paper trading execution (Alpaca Paper API)
@@ -466,13 +457,13 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 - ✅ Operations docs: [POLYMARKET-QUICKSTART.md](POLYMARKET-QUICKSTART.md), [runbooks/polymarket-operations.md](runbooks/polymarket-operations.md)
 
 ### Future Enhancements
-- Polymarket Phase 2+ per [polymarket-btc-trading-spec.md](plans/specs/polymarket-btc-trading-spec.md) (inventory skew, dynamic spread, hybrid model, dashboard depth)
+- Polymarket Phase 2+ per [polymarket-btc-trading-spec.md](plans/specs/polymarket-btc-trading-spec.md) (inventory skew, dynamic spread, hybrid directional model, deeper dashboard integration)
 - Multi-asset portfolio backtesting
 - Limit/stop order simulation
 - Monte Carlo simulation
 - Advanced slippage models
-- Options strategy support
-- ML model integration (XGBoost)
+- Options data ingestion and strategy surfaces (schemas partially ready)
+- Additional production model families (e.g. XGBoost/LightGBM) beyond the first sklearn path
 - Real-time data streaming
 - WebSocket support for dashboard
 
@@ -483,7 +474,7 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 ### Codebase Statistics
 - **Total Lines of Code:** ~10,000+ lines (excluding Sprint 10 service additions)
 - **Services:** Core: data, features, backtest, api, execution, risk, ml; **optional:** `polymarket` (Sprint 10)
-- **Packages:** 2 implemented (common, strategies)
+- **Packages:** `common`, `strategies` (active); `models` (stub)
 - **Test Coverage:** 370+ core tests; additional unit/integration tests under `tests/unit/polymarket/` and `tests/integration/polymarket/`
 - **Documentation:** 20+ major documents plus Polymarket spec, summary, quickstart, and operations runbook
 - **ADRs:** 7 architecture decision records
@@ -515,10 +506,10 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 ## 🔗 Related Documentation
 
 - [Architecture Overview](architecture.md)
-- [Sprint 3 Summary](../plans/SPRINT3_SUMMARY.md)
-- [Sprint 4 Summary](../plans/SPRINT4_SUMMARY.md)
-- [Sprint 5 Summary](../plans/SPRINT5_SUMMARY.md)
-- [Sprint 6 Summary](../plans/SPRINT6_SUMMARY.md)
+- [Sprint 3 Summary](plans/summaries/SPRINT3_SUMMARY.md)
+- [Sprint 4 Summary](plans/summaries/SPRINT4_SUMMARY.md)
+- [Sprint 5 Summary](plans/summaries/SPRINT5_SUMMARY.md)
+- [Sprint 6 Summary](plans/summaries/SPRINT6_SUMMARY.md)
 - [Backtest Verification Runbook](runbooks/backtest-verification.md)
 - [ML Safety Verification Runbook](runbooks/ml-safety-verification.md)
 - [Execution Verification Runbook](runbooks/execution-verification.md)

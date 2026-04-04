@@ -23,7 +23,7 @@ Quantitative ML trading platform with backtesting, risk management, and a Next.j
 - **Specs:** `docs/plans/specs/`
 - **Tickets:** `docs/plans/tickets/`
 - **Progress:** `docs/plans/PROGRESS.md`
-- **Historical progress:** `plans/progress.md`
+- **Detailed sprint checklists:** `docs/plans/DETAILED-SPRINT-PROGRESS.md`
 - **Architecture:** `docs/architecture.md`
 - **API contracts:** `docs/api-contracts.md`
 - **Data contracts:** `docs/data-contracts.md`

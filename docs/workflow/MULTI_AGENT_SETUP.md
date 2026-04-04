@@ -71,7 +71,7 @@
 │  (Sprint Plan)  │
 └────────┬────────┘
          │
-         ├───> Reads: docs/WORKFLOW.md, plans/task_plan.md
+         ├───> Reads: docs/WORKFLOW.md, docs/plans/task_plan.md
          │
          ├───> Generates: Sprint Plan + Agent Prompts
          │
@@ -115,7 +115,7 @@
 
 1. `docs/WORKFLOW.md` - Understand the workflow
 2. `docs/MULTI_AGENT_QUICKSTART.md` - Quick reference
-3. `plans/task_plan.md` - Current sprint tasks
+3. `docs/plans/task_plan.md` - Current sprint tasks
 4. `agents/briefs/*.md` - All agent briefs
 
 ### For Each Agent
@@ -205,7 +205,7 @@ Task → Check Skills → Invoke Skill → Follow Checklist → Code
 
 - **`docs/WORKFLOW.md`** - Complete workflow protocol
 - **`agents/briefs/[ROLE].md`** - Your agent brief
-- **`plans/task_plan.md`** - Current sprint tasks
+- **`docs/plans/task_plan.md`** - Current sprint tasks
 
 ### Reference
 
@@ -236,7 +236,7 @@ Task → Check Skills → Invoke Skill → Follow Checklist → Code
 - [ ] All agents completed their tasks
 - [ ] Acceptance tests passed
 - [ ] Documentation updated
-- [ ] `plans/task_plan.md` marked complete
+- [ ] `docs/plans/task_plan.md` marked complete
 - [ ] No file ownership violations
 
 ---

@@ -2,45 +2,51 @@
 
 This document is a design review and feature-planning artifact for the Caliper (quant) codebase. It explains how the system works today, what is implemented versus planned, and how the project should evolve next. The audience is a developer with strong software and moderate ML background but minimal trading experience.
 
+> **Status (2026-04):** Sprints **7–10** shipped after much of this narrative was written. For **current** ML and dashboard state, see **[docs/SPRINTS-7-8-9-SUMMARY.md](docs/SPRINTS-7-8-9-SUMMARY.md)** and **[docs/plans/PROGRESS.md](docs/plans/PROGRESS.md)**. For **Polymarket**, see **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)**. Sections below mix **updated** snapshots with **older** paragraphs—use the linked docs as source of truth where they conflict.
+
 ---
 
 ## 1. Current ML and Model System (Explained for Non-Traders)
 
-### What Exists Today
+### What exists today (post–Sprint 9)
 
-**No trained ML model is currently used for trading.** The only live strategy is **SMA Crossover**, which is purely rule-based: it buys when a short moving average crosses above a long moving average (golden cross) and sells on the opposite crossover (death cross). All logic is in code; there is no model fitting or inference step.
+The repo includes a **first ML path** end-to-end: training scripts under **`services/ml/training/`**, a model interface in **`packages/common/ml_schemas.py`**, inference wiring via **`MLDirectionStrategyV1`** (`packages/strategies/ml_direction_v1.py`), confidence gating, text explainability, performance tracking, drift APIs, SHAP/permutation hooks, baselines/regret, and a **Model Observatory** in the dashboard. **Which strategy is active in your deployment** (SMA vs ML vs both) is a **configuration and operations** choice, not fixed in this doc.
 
-The codebase does, however, contain **ML-oriented infrastructure** intended for when you add real models:
+The following modules remain the **core safety/interpretability layer** (see Sprint 6–8 docs for detail):
 
-- **Confidence gating** (`services/ml/confidence/`): Defines a `ModelOutput` with `signal` (BUY/SELL/ABSTAIN), `confidence`, and `uncertainty`. A `ConfidenceGating` class applies configurable thresholds so that low-confidence predictions can be turned into ABSTAIN instead of BUY/SELL. No model is wired to this yet.
-- **SHAP explainability** (`services/ml/explainability/`): `ShapExplainer` takes a **tree-based model** (e.g. XGBoost, LightGBM, sklearn tree) and a feature DataFrame, and produces a `TradeExplanation` (feature contributions, direction, confidence). The backtest and execution paths do not call this; it is ready for the day you have a trained tree model and want to attach explanations to trades.
-- **Drift detection** (`services/ml/drift/`): Computes PSI, KL divergence, and mean shift between a **reference** (e.g. training) distribution and **current** feature or confidence distributions. It can produce a composite “health score” and alerts. It is not connected to any live data feed or model; you would supply reference and current data when you integrate a model.
-- **Baselines and regret** (`services/ml/baselines/`): Implements hold-cash, buy-and-hold, and a risk-controlled random baseline, plus a `RegretCalculator` to compare strategy performance vs those baselines. These are usable with any strategy (including SMA Crossover) for comparison.
-- **Human-in-the-loop** (`services/ml/hitl/`): Approval queue and recommendation schemas so that a “recommendation” can be held for human approve/reject before turning into an order. The plumbing exists; it is not yet in the critical path of the execution engine.
+- **Confidence gating** (`services/ml/confidence/`) — ABSTAIN and thresholding on model outputs.
+- **Explainability** (`services/ml/explainability/`) — SHAP, permutation, SimpleExplainer.
+- **Drift** (`services/ml/drift/`) — PSI, KL, health score, alerts.
+- **Baselines and regret** (`services/ml/baselines/`).
+- **HITL** (`services/ml/hitl/`) — recommendation queue schemas and flows.
 
-So: **inputs and outputs** for a future ML model are largely specified (features, confidence, ABSTAIN, explanations), but **no model is trained, loaded, or invoked** in the current pipeline.
+**Rule-based reference:** **SMA Crossover** remains the simple baseline strategy (`packages/strategies/sma_crossover.py`).
 
-### What a Future Model Would Look Like
+### Historical note (pre–Sprint 7 narrative)
 
-If you add an ML model (e.g. XGBoost):
+Earlier revisions of this file stated that **no** model was trained or invoked. That is **no longer** accurate for the codebase as of Sprints 7–9; keep the **conceptual** explanations below for how signals flow and what to watch for (leakage, drift, abstention), but verify filenames and wiring in the repo.
 
-- **Inputs:** The feature pipeline (`services/features/`) already computes 30+ features (SMA, EMA, RSI, MACD, Bollinger, ATR, Stochastic, returns, volatility, etc.) from price bars. A model would receive a feature vector (or DataFrame row) per bar or per symbol-bar.
-- **Outputs:** The system expects a **signal** (BUY/SELL/ABSTAIN) and a **confidence** (0–1). Confidence gating would then decide whether to downgrade to ABSTAIN. SHAP would consume the same feature row and the trained model to produce per-trade explanations.
-- **Training:** There is **no training pipeline** yet. No offline training job, no walk-forward training, and no model serialization/loading in the strategy layer. The **walk-forward engine** in backtest is for **strategy parameter optimization** (e.g. SMA periods), not for training ML models.
-- **Temporal splits:** Backtest supports date-range filtering and the walk-forward engine uses in-sample/out-of-sample windows, but those are for strategy parameters, not for training/validation/test of a model. You would need to add explicit train/validation/test splits and avoid future leakage when you introduce model training.
-- **Safeguards:** Abstention is supported in the backtest engine (ABSTAIN signals are recorded and excluded from orders). Confidence gating and drift detection are implemented as modules but not yet wired so that a live model’s outputs flow through them. Data leakage prevention would be your responsibility when you build the training pipeline (e.g. no future data in features, proper time-based splits).
+### Adding another model (e.g. XGBoost / LightGBM)
+
+The **first** sklearn-based direction model path is already sketched in code (training script, `MLDirectionStrategyV1`, schemas). For **additional** models:
+
+- **Inputs:** The feature pipeline (`services/features/`) computes 30+ features from price bars. A model typically consumes a feature vector (or row) per bar; the backtest engine still may not auto-invoke the feature pipeline—confirm wiring for your strategy.
+- **Outputs:** The system expects **signal** (BUY/SELL/ABSTAIN) and **confidence** (0–1) at the strategy boundary, with gating and explainability layered as in Sprints 6–8.
+- **Training:** Offline training lives under **`services/ml/training/`** (time-aware splits, leakage avoidance—see Sprint 7 docs). The **walk-forward engine** in backtest remains for **strategy parameter** search, not for substituting ML training.
+- **Temporal splits:** Use explicit train/validation/test discipline for any new model; reuse Sprint 7 patterns.
+- **Safeguards:** Abstention, drift, and explainability APIs exist; ensure new models are wired through the same contracts.
 
 ### Summary Table
 
-| Aspect | Current state |
-|--------|----------------|
-| Models used for signals | None (only rule-based SMA Crossover). |
-| Training | Not implemented. |
-| Validation / testing | Backtest and walk-forward exist for strategy params only. |
-| Temporal splits | Date filtering and walk-forward windows exist; no train/val/test for ML. |
-| Overfitting / leakage | No automated safeguards; would be addressed when training is added. |
-| Model adaptation | Models are static; no online learning or scheduled retraining. |
-| Confidence / abstention | Implemented in code (gating, backtest abstention tracking); not connected to a model. |
+| Aspect | Current state (verify in deployment) |
+|--------|-------------------------------------|
+| Models used for signals | **SMA Crossover** (rule) and **ML direction strategy** (trained sklearn path) exist in code; which runs in production is a config/ops choice. |
+| Training | **Implemented** for the first model path (`services/ml/training/`); extend for new model families as needed. |
+| Validation / testing | Backtest + walk-forward for rules; ML evaluation + observatory for model metrics (Sprints 8–9). |
+| Temporal splits | Sprint 7 training uses time-aware splitting; still your responsibility for new datasets/models. |
+| Overfitting / leakage | Practices documented in Sprint 7; not automatically enforced for arbitrary new pipelines. |
+| Model adaptation | Static artifacts + lifecycle UI; no online learning in core repo. |
+| Confidence / abstention | Gating and backtest ABSTAIN handling implemented; wired for ML strategy path. |
 
 ---
 
@@ -61,13 +67,13 @@ Here is how the system goes from market data to an order (or to a decision not t
 
 ### 3. Strategy logic vs ML
 
-- **Current:** The only plugged-in strategy is SMA Crossover. It uses only price history and moving averages; no ML model is involved.
-- **Signal shape:** Strategies produce a list of `Signal` objects (symbol, side BUY/SELL, strength, optional price/quantity/reason). The base strategy interface does not mandate ABSTAIN; the backtest engine explicitly handles `side == "ABSTAIN"` (recorded, then filtered out before risk check). So an ML strategy could emit ABSTAIN by convention (e.g. via confidence gating) and the rest of the pipeline already supports it.
+- **In repo:** **SMA Crossover** (rule-based) and **`MLDirectionStrategyV1`** (ML inference + gating) both implement the `Strategy` interface. Configure which strategy a run uses.
+- **Signal shape:** Strategies produce `Signal` objects (BUY/SELL/ABSTAIN). The backtest engine records ABSTAIN and excludes it from order simulation before risk check.
 
 ### 4. Signal generation
 
 - **When:** In backtest, `generate_signals(portfolio)` is called after each bar. In live/paper, the same interface would be used when new data is available.
-- **Determinism:** SMA Crossover is deterministic given the same bar history. A future ML model would add randomness only if the model or sampling is stochastic; the current pipeline does not inject randomness.
+- **Determinism:** SMA Crossover is deterministic given the same bar history. ML inference is deterministic for a fixed artifact and input unless you introduce stochastic models or sampling.
 
 ### 5. Risk checks and constraints
 
@@ -82,19 +88,19 @@ Here is how the system goes from market data to an order (or to a decision not t
 - **Sizing:** SMA Crossover uses a configurable fraction of equity per position (e.g. 10%). Risk checks can further cap size.
 - **Execution:** Orders that pass risk checks go to the OMS. The OMS uses a `BrokerClient` abstraction; the implemented client is Alpaca (paper). Orders move through states (e.g. PENDING → SUBMITTED → FILLED/REJECTED/CANCELLED). Position reconciliation compares local state to broker state and can pause trading on mismatch.
 
-### 7. Monitoring, logging, and feedback
+### 7. Observability, logging, and feedback
 
-- **Backtest:** Equity curve, trades, and performance metrics (Sharpe, max drawdown, win rate, profit factor, etc.) are computed and can be written to JSON/HTML reports. Abstention metrics (count and rate of ABSTAIN) are included in backtest metadata.
-- **Live/paper:** Intended to be covered by monitoring and API (metrics, positions, orders, health). API currently serves mock data for strategies, runs, positions; execution and risk code are real.
+- **Backtest:** Equity curve, trades, performance metrics, and abstention metadata in reports.
+- **API / dashboard:** Health and metrics routers exist; many dashboard list endpoints still use **mock** fixtures until wired to persistent stores—confirm `services/api/dependencies.py` and routers. **Polymarket** analytics: **`pm.*`** + **`GET /v1/polymarket/*`** when DB is wired.
 
 ### Where decisions are deterministic vs probabilistic
 
 - **Deterministic:** Strategy logic (SMA), risk checks, order state machine, fill simulation in backtest (slippage/commission are deterministic given config).
-- **Probabilistic:** Would come from an ML model (e.g. probability outputs turned into BUY/SELL/ABSTAIN via thresholds). Not present until a model is added.
+- **Probabilistic:** ML models output probabilities or scores that strategies map to BUY/SELL/ABSTAIN via thresholds and gating.
 
 ### When confidence is low or safeguards override
 
-- **Low confidence:** Confidence gating can map low confidence to ABSTAIN; the backtest engine already ignores ABSTAIN for order generation and only records it. In live execution, you would need to route model output through the gating layer before producing signals.
+- **Low confidence:** Gating maps low confidence to ABSTAIN; ensure your live loop uses the same path as backtest for the ML strategy.
 - **Safeguards override:** Risk manager and kill switch reject or block orders; no order is sent to the broker when they fail. Circuit breaker and kill switch are designed to halt new exposure when drawdown limits are hit.
 
 ---
@@ -104,41 +110,38 @@ Here is how the system goes from market data to an order (or to a decision not t
 ### Fully implemented and production-ready (logic and tests)
 
 - **Backtest engine:** Strategy loop, fill simulation (slippage, commission), position tracking, P&L, performance metrics, abstention tracking, date filtering. Walk-forward is for parameter optimization, not ML training.
-- **Strategy framework:** Base interface and SMA Crossover strategy; works with backtest and is compatible with the execution path.
+- **Strategy framework:** Base interface, SMA Crossover, and ML direction strategy; compatible with backtest and execution paths when configured.
 - **Execution:** OMS, broker adapter (Alpaca), order lifecycle, position reconciliation, idempotency via `client_order_id`.
 - **Risk:** RiskManager, kill switch, circuit breaker, order/strategy/portfolio limits as per risk policy.
-- **Feature pipeline:** Indicators and feature computation from bars; usable by code or by a future ML strategy.
-- **ML building blocks:** Drift (PSI, KL, mean shift, health score), confidence gating (including ABSTAIN), SHAP and permutation explainers, baselines and regret, HITL queue and schemas. These are implemented as libraries/schemas and API routes; they are not yet in the critical path of the single live strategy (SMA Crossover).
-- **Dashboard and API structure:** Next.js app, FastAPI routers, documented endpoints for health, metrics, strategies, runs, positions, drift, explanations, baselines, recommendations. Educational tooltips, help/glossary, explanation UI, approval queue UI, baseline comparison.
+- **Feature pipeline:** Indicators and feature computation from bars; used by ML training/inference paths where wired.
+- **ML building blocks:** Drift, confidence gating (ABSTAIN), SHAP/permutation, baselines/regret, HITL—implemented as libraries and API routes, integrated for the ML strategy and observatory (Sprints 6–9).
+- **Dashboard and API structure:** Next.js app (incl. Model Observatory), FastAPI routers for health, metrics, strategies, runs, positions, drift, explanations, baselines, recommendations, **Polymarket session reads**. Help/glossary, explanation UI, approval queue, baseline comparison.
+- **Polymarket (Sprint 10):** Optional `services/polymarket/` bot, **`pm.*`** schema, **`/v1/polymarket/*`** — parallel to equity OMS; see Sprint 10 summary.
 
-### Implemented but not wired to real data
+### Implemented but still deployment-dependent
 
-- **API:** Uses mock data for strategies, runs, positions, metrics. Database and auth are stubbed (see `dependencies.py`). So “production-ready” here means “code and contracts are in place,” not “serving live DB.”
-- **Drift / explanations:** Require reference and current feature data (and, for SHAP, a trained model). No automatic pipeline yet from a live model or data feed to these endpoints.
-- **HITL:** Approval queue and schemas exist; execution path does not yet require human approval before sending an order.
+- **API list endpoints:** May still use **mock** data for strategies, runs, positions depending on `dependencies.py` wiring; confirm per environment.
+- **Polymarket API:** Read endpoints are defined; live SQL wiring depends on DB configuration.
+- **HITL:** Schemas and UI exist; whether execution **requires** approval before submit is a product wiring choice.
 
-### Planned but not implemented
+### Planned or partial (direction of travel)
 
-- **Model training:** No training job, no train/val/test split, no model registry or versioning.
-- **Model in the loop:** No strategy that loads a trained model and calls it for predictions; no wiring of model output → confidence gating → signals → risk → execution.
-- **Feature registry, experiment registry, model registry backend:** Scheduled for Sprint 7 (MLOps).
-- **Dynamic capital allocation, failure-mode/stress simulation:** Planned.
-- **Model observatory dashboard (Sprint 8):** Model list/detail, ML performance charts, comparison, lifecycle controls, drift visualization UI, model-centric HITL, sandbox/what-if.
-- **Monitoring service:** Referenced in architecture; not present as a separate service in the repo.
-- **Data service:** Documented (Alpaca, DB); repo layout shows `services/data` in architecture; implementation depth not fully verified here. Backtest and execution assume data is available somehow.
+- **Full experiment / artifact registry** beyond what the observatory and file-based model artifacts provide today.
+- **Dedicated monitoring microservice** (Prometheus/Grafana, paging)—observability is currently API + ML modules + DB, not a separate `services/monitoring` process.
+- **Polymarket Phase 2+:** Inventory skew, dynamic spread, directional model, richer dashboard integration (see spec §10).
+- **Equity API persistence:** Replace or supplement mocks with durable DB reads/writes for runs and positions where not yet done.
 
-### Gaps between docs and code
+### Gaps to watch (docs vs running system)
 
-- **README/architecture** mention multiple strategies and “XGBoost-based” momentum; the only implemented strategy is SMA Crossover and it is rule-based. Mock strategy data in the API (e.g. “momentum_v1”, “mean_reversion_v1”) does not correspond to real strategy implementations.
-- **Dashboard/API** are described as viewing “backtest results”; the API currently returns mock runs/strategies/positions, so real backtest results are not yet persisted and served through this stack in a deployed flow (you can run backtests locally and get reports).
+- **Mock vs live:** Some API responses may not reflect persisted backtests or live broker state until wired—treat OpenAPI and `dependencies.py` as the judge.
+- **Strategy list in UI/API:** Display names may include placeholders that do not map 1:1 to checked-in strategy modules—verify `packages/strategies` and configs.
 
-### Critical missing pieces for experimentation, safety, and understanding
+### Hardening checklist (still worth doing)
 
-1. **Reproducible experiments:** No experiment or model registry; no link from “this backtest run” to “this model version / these features / this config.”
-2. **Model iteration:** No training pipeline, so no way to iterate on model type, features, or hyperparameters in a tracked way.
-3. **End-to-end wiring of ML safeguards:** Drift and confidence gating are not in the execution path; you cannot yet “run with confidence gating and drift alerts” in front of a real model.
-4. **Real data path to API/dashboard:** Replacing mocks with DB (and optional persistence of backtest results) so that the dashboard reflects real strategies, runs, and positions.
-5. **Clarity on “one strategy vs many”:** SMA Crossover is one strategy; multi-strategy allocation and risk are designed, but a single clear path (e.g. “one model, one strategy”) for the first ML model would reduce ambiguity.
+1. **Reproducibility:** Tie each reported run to config, data snapshot, and model artifact hashes where possible.
+2. **Operational ML:** Scheduled retrain, drift-driven alerts, and clear rollback for bad promotions.
+3. **Persistence:** Single source of truth for positions/orders/runs in DB for dashboard at scale.
+4. **Polymarket scale-up:** Phase 1 data collection before widening capital; tune from `pm.*` analytics.
 
 ---
 
@@ -184,44 +187,32 @@ These questions should guide the next design steps and sprint choices (e.g. “f
 
 ---
 
-## 7. Recommendations for Next Sprints
+## 7. Recommendations after Sprints 7–10
 
-### Near-term (next 1–2 sprints)
+Sprints **7–9** delivered the first ML loop, observability, and Model Observatory; **10** added Polymarket V1. Use this list as **iteration** priorities, not greenfield work.
 
-1. **Integrate one ML model end-to-end (learning path).**  
-   Pick a simple model (e.g. logistic regression or a small tree model) and a single symbol/universe. Implement a minimal training script: time-based train/val split, fit, serialize. Add a strategy (or extend the strategy interface) that loads this model, runs the feature pipeline on the same bars, calls the model for signal and confidence, and runs output through confidence gating (so low confidence → ABSTAIN). Wire that strategy into the backtest engine and verify abstention and metrics. No need for full MLOps yet; goal is to see “model → gating → backtest” work and to attach SHAP explanations to a few sample trades.
-2. **Replace API mocks with real data where it matters most.**  
-   At least: persist and serve real backtest runs (e.g. after each run, write summary and key metrics to DB and expose via existing runs API). Optionally: real strategies and positions from the execution layer. This makes the dashboard useful for real experimentation and demos.
-3. **HITL in the execution path (optional but high value).**  
-   Add a configuration flag “require_human_approval” for a strategy. When set, recommendations from that strategy go to the existing approval queue and only approved items become orders. Log approvals/rejections and agreement rate. This builds trust before increasing automation.
+### Near-term
 
-### Medium-term (Sprint 7–8)
+1. **Persistence and mocks:** Replace or narrow API mocks so runs, positions, and strategies reflect DB and broker state where you need truth for demos or ops.
+2. **HITL optional enforcement:** If desired, gate order submission on approval queue state for selected strategies.
+3. **Polymarket Phase 1 ops:** Run dust sessions, tune from `pm.*` (queue position, adverse selection, toxic flow), then plan Phase 2 quoting improvements per spec.
 
-4. **Experiment and model registry (Sprint 7).**  
-   Implement experiment registry (dataset version, feature set, model type, hyperparameters, metrics) and a minimal model registry (metadata, lifecycle state, health score link). This enables “which model is live?” and “why this backtest result?” without digging through code.
-5. **Drift and health in the loop.**  
-   When a model is live, feed current feature (and optionally confidence) distributions into the drift detector against a stored reference. Expose health score and alerts via API and dashboard; consider auto-pausing a model when health drops below a threshold (with clear logging and override).
-6. **Model observatory UI (Sprint 8).**  
-   Prioritize: model list and detail (config, training summary, health), prediction vs actual and calibration, and drift/health visualization. Then add comparison, lifecycle controls, and sandbox/what-if so the platform supports learning and tuning, not only monitoring.
+### Medium-term
 
-### Critical for learning and understanding
+4. **Experiment tracking:** Strengthen linkage from dashboard “run” or “model” views to dataset hashes, git SHA, and artifact paths (beyond current UI/API capabilities).
+5. **Automation:** Scheduled retrain, drift-based alerts with explicit playbooks, model promotion rules.
+6. **Observability service (optional):** If you outgrow API-only metrics, add Prometheus/Grafana or similar **without** blurring the equity vs Polymarket execution boundaries.
 
-- First ML model integrated with gating and explanations (above).
-- Persisted backtest runs and, when applicable, “run ↔ model/experiment” linkage.
-- Dashboard views for “why did we abstain?” and “how did this model perform last N days?”
+### Correctness and safety (ongoing)
 
-### Critical for correctness and safety
-
-- Keep risk and kill switch in front of every order.
-- Add HITL for the first ML strategy (or for low-confidence recommendations).
-- Wire drift/health to at least alerts, and optionally to auto-pause.
-- Document and test failure modes (e.g. missing data, broker down, drift spike) using the planned stress-simulation framework.
+- Equity orders: always through **RiskManager** / kill switch / circuit breaker.
+- Polymarket: respect **`services/polymarket` safety** and post-only discipline; do not route CLOB orders through equity risk code.
+- Stress and failure modes: use **`docs/runbooks/stress-scenarios.md`** and expand as new surfaces go live.
 
 ### Refactors for long-term maintainability
 
-- **Single entry point for “strategy output”:** Unify the shape of strategy output (signal + confidence + optional explanation_id) so that both rule-based and ML strategies can be treated the same by backtest and execution (and so ABSTAIN and explanations are first-class).
-- **Feature pipeline in backtest:** Optionally run the feature pipeline inside the backtest loop when the strategy is ML-based, so that the same feature computation is used in backtest and live, and so drift reference can be taken from backtest or training data.
-- **Config and secrets:** Centralize strategy and model config (and secrets) so that adding a new model or strategy does not require scattered edits. The existing YAML strategy config is a good start; extend it for “model_id” and “confidence_config” when you add the first ML strategy.
+- **Feature parity:** Where ML strategies are used, ensure backtest and live share the same feature computation path when feasible.
+- **Config:** Keep strategy YAML and env templates the single place for thresholds, model paths, and mode switches.
 
 ---
 
