@@ -28,8 +28,6 @@ class Signal:
         quantity=None,
         reason=None,
     ):
-        from datetime import datetime
-
         self.symbol = symbol
         self.side = side
         self.strength = strength
@@ -77,6 +75,15 @@ class Strategy(ABC):
         self.config = config
         self.initialized = False
         self.mode: Optional[TradingMode] = None
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        if not getattr(cls, "__abstractmethods__", None):
+            if not isinstance(getattr(cls, "market_type", None), MarketType):
+                raise TypeError(
+                    f"{cls.__name__} must declare a 'market_type: MarketType' class attribute. "
+                    f"Example: market_type = MarketType.EQUITY"
+                )
 
     @abstractmethod
     def initialize(self, mode: TradingMode) -> None:
@@ -128,7 +135,7 @@ class Strategy(ABC):
     def get_state(self) -> Dict[str, Any]:
         return {
             "strategy_id": self.strategy_id,
-            "market_type": str(self.market_type.value) if hasattr(self, "market_type") else None,
+            "market_type": self.market_type.value if hasattr(self, "market_type") else None,
             "initialized": self.initialized,
             "mode": str(self.mode) if self.mode else None,
         }

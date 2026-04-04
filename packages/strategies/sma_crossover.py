@@ -122,10 +122,10 @@ class SMACrossoverStrategy(Strategy):
 
         if current_cross and not previous_cross:
             signals.append(self._create_buy_signal(latest_bar, short_sma, long_sma))
-            self.last_signal = "BUY"
+            self.last_signal = "long"
         elif not current_cross and previous_cross:
             signals.append(self._create_sell_signal(latest_bar, short_sma, long_sma))
-            self.last_signal = "SELL"
+            self.last_signal = "short"
 
         return signals
 

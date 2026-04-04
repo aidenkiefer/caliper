@@ -72,3 +72,13 @@ def test_strategy_get_state_includes_market_type():
     state = s.get_state()
     assert "market_type" in state
     assert state["market_type"] == "EQUITY"
+
+
+def test_strategy_missing_market_type_raises():
+    """Concrete subclass without market_type should raise TypeError."""
+    with pytest.raises(TypeError, match="market_type"):
+        class BadStrategy(Strategy):
+            def initialize(self, mode): pass
+            def on_market_data(self, bar): pass
+            def generate_signals(self, portfolio): return []
+            def risk_check(self, signals, portfolio): return []
