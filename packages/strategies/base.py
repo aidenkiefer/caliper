@@ -137,5 +137,5 @@ class Strategy(ABC):
             "strategy_id": self.strategy_id,
             "market_type": self.market_type.value if hasattr(self, "market_type") else None,
             "initialized": self.initialized,
-            "mode": str(self.mode) if self.mode else None,
+            "mode": self.mode.value if self.mode else None,
         }
