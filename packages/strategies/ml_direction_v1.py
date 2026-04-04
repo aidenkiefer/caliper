@@ -80,6 +80,7 @@ class MLDirectionStrategyV1(Strategy):
 
         # Load model in initialize() to allow for mode-specific paths
         self.confidence_config = confidence_config
+        self.abstain_threshold = self.confidence_config.abstain_threshold
 
         # Internal state
         self.price_history: List[PriceBar] = []
@@ -221,7 +222,10 @@ class MLDirectionStrategyV1(Strategy):
         orders = []
 
         for signal in signals:
-            # Skip abstain signals
+            # Skip signals below minimum confidence threshold
+            if signal.confidence < Decimal(str(self.abstain_threshold)):
+                continue
+
             if signal.direction == "none":
                 continue
 
