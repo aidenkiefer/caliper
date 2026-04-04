@@ -11,11 +11,11 @@ from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import List, NamedTuple, Optional
+from typing import Any, List, NamedTuple, Optional
 
 import httpx
 
-from services.features.polymarket.sources import DataUnavailable
+from services.features.polymarket.sources.clob import DataUnavailable
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +74,8 @@ class BinanceSource:
 
     async def start(self) -> None:
         """Launch background polling tasks."""
+        if self._kline_task is not None:
+            raise RuntimeError("BinanceSource already running; call stop() first")
         self._kline_task = asyncio.create_task(self._poll_klines(), name="binance_klines")
         self._premium_task = asyncio.create_task(
             self._poll_premium_index(), name="binance_premium"
@@ -135,7 +137,7 @@ class BinanceSource:
 
     async def _fetch_with_retry(
         self, client: httpx.AsyncClient, url: str, params: dict
-    ) -> dict:
+    ) -> Any:
         """
         GET `url` with `params`, retrying up to _MAX_RETRIES times.
 
@@ -166,7 +168,7 @@ class BinanceSource:
             try:
                 async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT) as client:
                     raw = await self._fetch_with_retry(client, _KLINES_URL, _KLINES_PARAMS)
-                self._kline_buffer.clear()
+                new_bars: deque[KlineBar] = deque(maxlen=60)
                 for entry in raw:
                     bar = KlineBar(
                         open_time=datetime.fromtimestamp(entry[0] / 1000, tz=timezone.utc),
@@ -176,7 +178,8 @@ class BinanceSource:
                         close=Decimal(str(entry[4])),
                         volume=Decimal(str(entry[5])),
                     )
-                    self._kline_buffer.append(bar)
+                    new_bars.append(bar)
+                self._kline_buffer = new_bars  # atomic reference swap
                 self.source_timestamp = datetime.now(tz=timezone.utc)
             except asyncio.CancelledError:
                 raise
