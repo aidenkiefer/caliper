@@ -269,3 +269,53 @@ class TestRegimeMinimumHoldFilter:
         # Next tick introduces different label but only 1 consecutive
         result = f.apply("high")
         assert result == "low"  # still "low" — not yet 3× "high"
+
+
+# ===========================================================================
+# Standalone spec-required test functions
+# ===========================================================================
+
+def test_vol_regime_classification():
+    """Vol regime returns low/medium/high for different btc_rv_1m inputs."""
+    assert _vol_regime(0.00005) == "low"
+    assert _vol_regime(0.0005) == "medium"
+    assert _vol_regime(0.002) == "high"
+
+
+def test_trend_regime_classification():
+    """Trend regime returns trending/neutral/mean_reverting for different sign_persistence inputs."""
+    assert _trend_regime(0.8) == "trending"
+    assert _trend_regime(0.5) == "neutral"
+    assert _trend_regime(0.1) == "mean_reverting"
+
+
+def test_toxicity_regime_classification():
+    """Toxicity regime returns low/medium/high for different vpin inputs."""
+    assert _toxicity_regime(0.1) == "low"
+    assert _toxicity_regime(0.3) == "medium"
+    assert _toxicity_regime(0.6) == "high"
+
+
+def test_spread_regime_classification():
+    """Spread regime returns tight/normal/wide based on spread vs rolling median."""
+    history = [Decimal("0.05"), Decimal("0.05")]
+    assert _spread_regime(Decimal("0.05"), history) == "normal"
+    history_large = [Decimal("0.10"), Decimal("0.10")]
+    assert _spread_regime(Decimal("0.01"), history_large) == "tight"
+    history_small = [Decimal("0.02"), Decimal("0.02")]
+    assert _spread_regime(Decimal("0.10"), history_small) == "wide"
+
+
+def test_time_bucket_early_mid_late():
+    """Time bucket classifies early/mid/late based on seconds since open."""
+    assert _time_bucket(600.0) == "early"
+    assert _time_bucket(1800.0) == "mid"
+    assert _time_bucket(3300.0) == "late"
+
+
+def test_regime_minimum_hold_filter():
+    """MinHoldFilter only confirms a regime after 3 consecutive identical ticks."""
+    f = MinHoldFilter()
+    assert f.apply("low") is None   # 1 tick — not confirmed
+    assert f.apply("low") is None   # 2 ticks — not confirmed
+    assert f.apply("low") == "low"  # 3 consecutive — confirmed

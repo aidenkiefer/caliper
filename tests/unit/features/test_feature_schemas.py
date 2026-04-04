@@ -193,3 +193,15 @@ class TestFeatureSnapshotLiterals:
         d["spread_regime"] = spread_regime
         snap = FeatureSnapshot(**d)
         assert snap.spread_regime == spread_regime
+
+
+# ===========================================================================
+# Standalone spec-required test function
+# ===========================================================================
+
+def test_feature_snapshot_invalid_regime_literal():
+    """vol_regime='extreme' is not a valid Literal → ValidationError."""
+    d = _valid_snapshot_dict()
+    d["vol_regime"] = "extreme"
+    with pytest.raises(ValidationError):
+        FeatureSnapshot(**d)

@@ -261,3 +261,17 @@ class TestFeatureStoreNotConnected:
 
         with pytest.raises(RuntimeError, match="not connected"):
             await store.read_window("0xabc123", start, end)
+
+
+# ===========================================================================
+# Standalone spec-required test function
+# ===========================================================================
+
+@pytest.mark.asyncio
+async def test_not_connected_raises():
+    """Creating FeatureStore without connect() and calling write() raises RuntimeError."""
+    store = FeatureStore("postgresql://localhost/test")
+    snapshot = _valid_snapshot()
+
+    with pytest.raises(RuntimeError):
+        await store.write(snapshot)
