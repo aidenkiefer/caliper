@@ -69,6 +69,9 @@ async def get_latest_features(
     except FeatureStoreError as exc:
         logger.error("FeatureStore error in get_latest_features: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.error("Unexpected error in get_latest_features: %s", exc)
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     if snapshot is None:
         raise HTTPException(
@@ -112,18 +115,19 @@ async def get_features_history(
             detail="Query parameter 'start' must be before 'end'",
         )
 
-    # Cap limit server-side regardless of validated query param
-    effective_limit = min(limit, _MAX_LIMIT)
     try:
         await store.connect()
         try:
             snapshots = await store.read_window(
-                market_id, start, end, limit=effective_limit
+                market_id, start, end, limit=limit
             )
         finally:
             await store.close()
     except FeatureStoreError as exc:
         logger.error("FeatureStore error in get_features_history: %s", exc)
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.error("Unexpected error in get_features_history: %s", exc)
+        raise HTTPException(status_code=500, detail="Internal server error") from exc
 
     return snapshots
