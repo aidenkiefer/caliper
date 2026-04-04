@@ -115,11 +115,15 @@ class FeatureBuilder:
             "spread_regime": None,
         }
 
-        # Rolling spread history for median spread computation (24h at 1/tick)
+        # Rolling spread history for median spread computation (2h at 5s/tick: 1440×5s = 7200s)
         self._spread_history: Deque[Decimal] = deque(maxlen=1440)
 
         # Rolling liquidity score history for min-max normalization
         self._liq_history: Deque[float] = deque(maxlen=288)
+
+        # Fee-rate cache: re-fetch at most once per 60 seconds
+        self._cached_fee_rate: Optional[Decimal] = None
+        self._fee_rate_cached_at: Optional[datetime] = None
 
         # Background task handle
         self._tick_task: Optional[asyncio.Task] = None
@@ -227,7 +231,11 @@ class FeatureBuilder:
         premium_index = self._binance.get_premium_index()
 
         # Async REST lookups
-        fee_rate = await self._clob.fetch_fee_rate(self.token_id)
+        # Fee rate is cached for 60 seconds to avoid 12 REST calls/minute at 5s tick cadence.
+        if self._cached_fee_rate is None or (captured_at - self._fee_rate_cached_at).total_seconds() > 60:
+            self._cached_fee_rate = await self._clob.fetch_fee_rate(self.token_id)
+            self._fee_rate_cached_at = captured_at
+        fee_rate = self._cached_fee_rate
         reward_cfg = await self._clob.fetch_reward_config(self.token_id)
 
         # ------------------------------------------------------------------
@@ -303,7 +311,7 @@ class FeatureBuilder:
         trade_flow_imbalance_5m = buy_vol_5m - sell_vol_5m
 
         total_tape_vol = buy_vol_all + sell_vol_all
-        if total_tape_vol > Decimal("0") and total_vol_5m >= Decimal("0"):
+        if total_tape_vol > Decimal("0") and total_vol_5m > Decimal("0"):
             last_5min_volume_share = total_vol_5m / total_tape_vol
         else:
             last_5min_volume_share = Decimal("0")
@@ -458,7 +466,8 @@ class FeatureBuilder:
         toxicity_regime_filtered = _apply_hold_filter("toxicity_regime", raw_toxicity_regime)
         spread_regime_filtered = _apply_hold_filter("spread_regime", raw_spread_regime)
 
-        # Fall back to defaults for cold start
+        # Cold-start: emit raw label for first tick until 3 readings accumulate.
+        # The minimum-hold filter prevents *rapid switching* — not the first emission.
         vol_regime = vol_regime_filtered or raw_vol_regime
         trend_regime = trend_regime_filtered or raw_trend_regime
         toxicity_regime = toxicity_regime_filtered or raw_toxicity_regime
@@ -496,14 +505,11 @@ class FeatureBuilder:
         # ------------------------------------------------------------------
         # Staleness flag
         # ------------------------------------------------------------------
-        clob_age = (captured_at - ob.received_at).total_seconds()
-        binance_ts = self._binance.source_timestamp
-        binance_age = (
-            (captured_at - binance_ts).total_seconds()
-            if binance_ts is not None
-            else 0.0
-        )
-        data_staleness_flag = clob_age > 30 or binance_age > 30
+        # Use source_timestamp (when the exchange produced the data) rather than
+        # received_at (when we ingested it) so that CLOB lag is detected correctly.
+        clob_age = (captured_at - self._clob.source_timestamp).total_seconds()
+        binance_age = (captured_at - self._binance.source_timestamp).total_seconds()
+        data_staleness_flag = clob_age > 30.0 or binance_age > 30.0
 
         # ------------------------------------------------------------------
         # Assemble FeatureSnapshot
