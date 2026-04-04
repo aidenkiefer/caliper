@@ -48,13 +48,13 @@ Track major work blocks, features, and versions in this table.
 | **v1.7.0** | **Sprint 8: ML observability, safety, and evaluation** | Done   | 2026-02-02 | 0         | `docs/plans/specs/sprint-8-observability-safety-spec.md`        | `docs/SPRINT-8-COMPLETE.md`                    |
 | **v1.8.0** | **Sprint 9: Model observatory dashboard**              | Done   | 2026-02-02 | 0         | `docs/plans/specs/sprint-9-model-observatory-dashboard-spec.md` | `docs/SPRINT-9-COMPLETE.md`                    |
 | **v2.0.0** | **Sprint 10: Polymarket BTC market-making**            | Done   | 2026-03-25 | 0         | `docs/plans/specs/polymarket-btc-trading-spec.md`               | `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md` (see also `docs/plans/POLYMARKET-TICKETS-1-5-SUMMARY.md`) |
-| **v2.1.0** | **Sprint 11: Architecture refactor — unified pipeline** | Done  | 2026-04-04 | 0         | `docs/plans/2026-04-04-unified-architecture-refactor.md`        | Unified signal→allocator→risk→adapter; `UnifiedSignal`, `ExecutionAdapter`, `GlobalRiskManager`, `PolymarketMMStrategy`, `services/portfolio/` |
-| **v2.2.0** | **Sprint 12: Feature layer unification**               | Done   | 2026-04-04 | 0         | `docs/plans/specs/sprint-12-feature-layer-spec.md`              | Unified feature pipeline: 4 families (market state, microstructure, probabilistic, regime); `FeatureSnapshot` schema; `CLOBSource`/`BinanceSource` data sources; `FeatureBuilder` tick engine; `pm.features` hypertable; `FeatureStore`; session integration; API router; unit + integration tests. |
-| **v2.3.0** | **Sprint 13: Simulation + evaluation engine**          | Spec    | —          | —         | `docs/plans/specs/sprint-13-simulation-evaluation-spec.md`      | CLOB replay engine, execution/fee/latency modeling, adverse selection model, per-model evaluation metrics, walk-forward validation. |
-| **v2.4.0** | **Sprint 14: BTC probability model**                   | Spec    | —          | —         | `docs/plans/specs/sprint-14-probability-model-spec.md`          | Real-time P(BTC up) estimator; GLM + GBT; calibration; lead-lag tests; fee-aware backtest. |
-| **v2.5.0** | **Sprint 15: Regime detection + dynamic allocation**   | Spec    | —          | —         | `docs/plans/specs/sprint-15-regime-allocation-spec.md`          | Global + local regime detection (HMM + threshold); 5 regimes; strategy→regime performance matrix; HRP + risk parity + Kelly allocator. |
-| **v2.6.0** | **Sprint 16: Cross-sectional ranking + model fleet**   | Spec    | —          | —         | `docs/plans/specs/sprint-16-cross-sectional-fleet-spec.md`      | Multi-market edge ranking; 4 fleet strategies; paper trading orchestrator. |
-| **v2.7.0** | **Sprint 17: Reward density + wallet intelligence + signal aggregation** | Spec | — | —    | `docs/plans/specs/sprint-17-reward-density-wallet-spec.md`      | On-chain maker HHI; wallet profiling + clustering; composite signal aggregation; model lifecycle. |
+| **v2.1.0** | **Sprint 11: Architecture refactor — unified pipeline** | Done   | 2026-04-04 | 0         | `docs/plans/2026-04-04-unified-architecture-refactor.md`        | Unified signal→allocator→risk→adapter; `UnifiedSignal`, `ExecutionAdapter`, `GlobalRiskManager`, `PolymarketMMStrategy`, `services/portfolio/` |
+| **v2.2.0** | **Sprint 12: Feature layer unification**               | Done   | 2026-04-04 | 0         | `docs/plans/specs/sprint-12-feature-layer-spec.md`              | Unified feature pipeline: 4 families (market state, microstructure, probabilistic, regime); `FeatureSnapshot`; `CLOBSource`/`BinanceSource`; `FeatureBuilder`; `pm.features`; `FeatureStore`; session + API; tests. Tickets: `docs/plans/tickets/12-00-INDEX.md`. |
+| **v2.3.0** | **Sprint 13: Simulation + evaluation engine**          | Spec   | —          | —         | `docs/plans/specs/sprint-13-simulation-evaluation-spec.md`      | CLOB replay engine, execution/fee/latency modeling, adverse selection model, per-model evaluation metrics, walk-forward validation. |
+| **v2.4.0** | **Sprint 14: BTC probability model**                   | Spec   | —          | —         | `docs/plans/specs/sprint-14-probability-model-spec.md`          | Real-time P(BTC up) estimator; GLM + GBT; calibration; lead-lag tests (Granger, cross-correlation, event study, persistence curve); fee-aware backtest. |
+| **v2.5.0** | **Sprint 15: Regime detection + dynamic allocation**   | Spec   | —          | —         | `docs/plans/specs/sprint-15-regime-allocation-spec.md`        | Global + local regime detection (HMM + threshold); 5 regimes; strategy→regime performance matrix; HRP + risk parity + Kelly allocator; online adaptation. |
+| **v2.6.0** | **Sprint 16: Cross-sectional ranking + model fleet**   | Spec   | —          | —         | `docs/plans/specs/sprint-16-cross-sectional-fleet-spec.md`      | Multi-market edge ranking; 4 fleet strategies (MM v2, Directional, Hybrid, Regime-Aware); paper trading orchestrator; per-model dashboards. |
+| **v2.7.0** | **Sprint 17: Reward density + wallet intelligence + signal aggregation** | Spec | — | —    | `docs/plans/specs/sprint-17-reward-density-wallet-spec.md`    | On-chain maker HHI; wallet profiling + clustering; composite signal aggregation; model lifecycle (promote/pause/retire). |
 
 
 **Status progression:** Not started → Concept → Spec → Tickets → In progress → Done. Keep minor versions `<= 10`; group related patches to keep patch versions usually `<= 15`.
@@ -82,9 +82,11 @@ Log smaller fixes, UI tweaks, docs updates, or tooling improvements here—work 
 | **v2.1.0-p5** | Sprint 12 ticket 12-04: `FeatureBuilder` with all 4 feature families (market state, microstructure, probabilistic, regime) | 2026-04-04 | Features / builder | `services/features/polymarket/builder.py`; 5s tick loop, `asyncio.Queue` output, `_trade_tape` deque, minimum-hold regime filter, staleness flag |
 | **v2.1.0-p6** | Sprint 12 ticket 12-06: `FeatureStore` asyncpg read/write for `pm.features` hypertable | 2026-04-04 | Features / store | `services/features/polymarket/store.py`; `write`, `read_latest`, `read_window`, `FeatureStoreError`; exported from `services/features/polymarket/__init__.py` |
 | **v2.1.0-p7** | Sprint 12 ticket 12-07: Session integration — `FeatureBuilder` wired into `SessionOrchestrator`; `PolymarketMMStrategy.on_market_data` accepts `Union[FeatureSnapshot, Any]` | 2026-04-04 | Features / session | `services/polymarket/session.py` step 4b startup + `_feature_consumer` coroutine + step 8b shutdown; `packages/strategies/polymarket_mm_strategy.py` near_close_flag + liquidity_score suppression gates; optional `FeatureStore` behind `DB_URL` env var |
+| **v2.2.0-p1** | Sprint 12 ticket generation: 10 tickets + index for feature layer unification | 2026-04-04 | Planning | `docs/plans/tickets/12-00-INDEX.md` through `12-10-integration-test.md`; covers schemas, CLOB/Binance sources, feature builder, DB migration, feature store, session integration, API router, unit tests, integration test |
 | **v2.2.0-p2** | Sprint 12 ticket 12-08: features API router | 2026-04-04 | API | `services/api/routers/features.py`; `GET /v1/features/{market_id}/latest` (404 if none) and `GET /v1/features/{market_id}/history` (start/end/limit, 422 on invalid range, 503 if DB_URL unset); registered in `services/api/main.py` |
 | **v2.2.0-p3** | Sprint 12 ticket 12-09: unit tests for feature layer | 2026-04-04 | Tests | `tests/unit/features/`: 4 test modules covering all formula families, Pydantic schema validation, FeatureStore asyncpg mock read/write, and regime discretization + minimum-hold filter; 60+ explicit numeric assertions |
 | **v2.2.0-p4** | Sprint 12 ticket 12-10: integration tests for feature pipeline | 2026-04-04 | Tests | `tests/integration/features/test_feature_pipeline_integration.py`; 4 async tests — 3 consecutive snapshots (AC-7), deterministic output (AC-5), staleness flag set/clear; mock CLOBSource and BinanceSource, no network calls |
+| **v2.2.0-p5** | fix(12-10): pin mock timestamps for deterministic integration test output | 2026-04-04 | Tests | `tests/integration/features/test_feature_pipeline_integration.py` — fixed `MockCLOBSource`/`MockBinanceSource` wall-clock timestamps |
 
 
 ---
@@ -96,8 +98,11 @@ Items discussed or spec'd but not yet fully implemented. Track deferred features
 
 | Type             | Item                                                 | Source / reference                | Notes                                                                |
 | ---------------- | ---------------------------------------------------- | --------------------------------- | -------------------------------------------------------------------- |
-| **Future phase** | Iterate on model-centric dashboard and ML evaluation | `docs/plans/DETAILED-SPRINT-PROGRESS.md` | Long-form sprint checklists; see also backlog below |
-| **Future phase** | Polymarket Phase 2+ (inventory skew, dynamic spread, hybrid model) | `docs/plans/specs/polymarket-btc-trading-spec.md` §10 | V1 complete; tune from `pm.*` data before funded scale-up |
+| **Future phase** | `AlpacaAdapter.get_orderbook` stub — wire to Alpaca quotes endpoint | `services/execution/adapters/alpaca_adapter.py` | Low priority; not on critical path for Polymarket-focused sprints |
+| **Future phase** | `GlobalRiskManager._check_equity` is a no-op placeholder | `services/risk/global_risk_manager.py` | Open ticket for integrating per-strategy `RiskManager` into global layer |
+| **Future phase** | Retire `QuotingEngine` fallback in `session.py`      | `services/polymarket/session.py`  | Fallback still present; should be removed once `PolymarketMMStrategy` is validated |
+| **Future phase** | Iterate on model-centric dashboard and ML evaluation | `docs/plans/DETAILED-SPRINT-PROGRESS.md` | Long-form sprint checklists; v2.2.0–v2.7.0 roadmap now tracks this |
+| **Future phase** | Polymarket Phase 2+ (inventory skew, dynamic spread, hybrid model) | `docs/plans/specs/polymarket-btc-trading-spec.md` §10 | V1 complete; tune from `pm.*` data before funded scale-up; folded into v2.2.0+ sprint plan |
 | **Fix / patch**  | Render API server issue                              | `docs/render-api-server-issue.md` | Existing issue doc suggests deployment/runtime follow-up work        |
 
 
@@ -127,6 +132,13 @@ If your project maintains linked specs, summaries, or concept docs, index them h
 | [Sprint 8: Observability & safety](docs/plans/specs/sprint-8-observability-safety-spec.md) | Drift/health, baselines, explainability wiring |
 | [Sprint 9: Model dashboard](docs/plans/specs/sprint-9-model-observatory-dashboard-spec.md) | Model registry + detail views + comparisons    |
 | [Sprint 10: Polymarket BTC market-making](docs/plans/specs/polymarket-btc-trading-spec.md) | Hourly BTC binary market-making on Polymarket  |
+| Sprint 11: Architecture refactor — unified pipeline | See `docs/plans/2026-04-04-unified-architecture-refactor.md` (impl plan; no separate spec) |
+| [Sprint 12: Feature layer unification](docs/plans/specs/sprint-12-feature-layer-spec.md) | Unified feature pipeline: market state, microstructure, probabilistic, regime — tickets at `docs/plans/tickets/12-*` |
+| [Sprint 13: Simulation + evaluation engine](docs/plans/specs/sprint-13-simulation-evaluation-spec.md) *(planned)* | CLOB replay engine, latency/fee modeling, per-model evaluation |
+| [Sprint 14: BTC probability model](docs/plans/specs/sprint-14-probability-model-spec.md) *(planned)* | Real-time P(BTC up) estimator, calibration, lead-lag tests |
+| [Sprint 15: Regime detection + dynamic allocation](docs/plans/specs/sprint-15-regime-allocation-spec.md) *(planned)* | HMM/threshold regimes, strategy performance matrix, HRP allocator |
+| [Sprint 16: Cross-sectional ranking + model fleet](docs/plans/specs/sprint-16-cross-sectional-fleet-spec.md) *(planned)* | Multi-market edge ranking, 3–5 competing model fleet |
+| [Sprint 17: Reward density + wallet intelligence](docs/plans/specs/sprint-17-reward-density-wallet-spec.md) *(planned)* | On-chain HHI, wallet intelligence, composite signal aggregation |
 
 
 ### Tickets (`docs/plans/tickets/`)
@@ -138,6 +150,7 @@ If your project maintains linked specs, summaries, or concept docs, index them h
 | `docs/plans/tickets/08-*` | Sprint 8 observability/safety tickets      |
 | `docs/plans/tickets/09-*` | Sprint 9 model dashboard tickets           |
 | `docs/plans/tickets/10-*` | Sprint 10 Polymarket market-making tickets |
+| `docs/plans/tickets/12-*` | Sprint 12 feature layer unification tickets |
 
 
 ### Summaries (`docs/plans/` and `docs/`)
