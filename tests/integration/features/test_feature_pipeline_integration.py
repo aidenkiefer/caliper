@@ -39,8 +39,13 @@ _MARKET_CLOSE = _NOW + timedelta(hours=1)
 class MockCLOBSource:
     """Drop-in mock for CLOBSource — returns deterministic values, no I/O."""
 
-    def __init__(self, stale_seconds: float = 0.0) -> None:
+    def __init__(
+        self,
+        stale_seconds: float = 0.0,
+        fixed_ts: Optional[datetime] = None,
+    ) -> None:
         self._stale_seconds = stale_seconds
+        self._ts = fixed_ts if fixed_ts is not None else _NOW
 
     async def connect(self, token_id: str) -> None:
         pass
@@ -55,8 +60,8 @@ class MockCLOBSource:
             bids_depth_5tick=Decimal("500"),
             asks_depth_5tick=Decimal("450"),
             last_trade_price=Decimal("0.50"),
-            last_trade_ts=datetime.now(timezone.utc) - timedelta(seconds=5),
-            last_price_change_ts=datetime.now(timezone.utc) - timedelta(seconds=3),
+            last_trade_ts=self._ts - timedelta(seconds=5),
+            last_price_change_ts=self._ts - timedelta(seconds=3),
         )
 
     async def fetch_fee_rate(self, token_id: str) -> Decimal:
@@ -71,14 +76,19 @@ class MockCLOBSource:
 
     @property
     def source_timestamp(self) -> datetime:
-        return datetime.now(timezone.utc) - timedelta(seconds=self._stale_seconds)
+        return self._ts - timedelta(seconds=self._stale_seconds)
 
 
 class MockBinanceSource:
     """Drop-in mock for BinanceSource — returns deterministic values, no I/O."""
 
-    def __init__(self, stale_seconds: float = 0.0) -> None:
+    def __init__(
+        self,
+        stale_seconds: float = 0.0,
+        fixed_ts: Optional[datetime] = None,
+    ) -> None:
         self._stale_seconds = stale_seconds
+        self._ts = fixed_ts if fixed_ts is not None else _NOW
 
     async def start(self) -> None:
         pass
@@ -115,12 +125,12 @@ class MockBinanceSource:
             index_price=Decimal("50100"),
             last_funding_rate=Decimal("0.0001"),
             next_funding_time=datetime(2026, 4, 4, 16, 0, 0, tzinfo=timezone.utc),
-            received_at=datetime.now(timezone.utc),
+            received_at=self._ts,
         )
 
     @property
     def source_timestamp(self) -> datetime:
-        return datetime.now(timezone.utc) - timedelta(seconds=self._stale_seconds)
+        return self._ts - timedelta(seconds=self._stale_seconds)
 
 
 # ---------------------------------------------------------------------------
@@ -234,7 +244,8 @@ async def test_staleness_flag_set():
     stale_clob = MockCLOBSource(stale_seconds=45.0)
     builder = _make_builder(clob=stale_clob)
 
-    captured_at = datetime.now(timezone.utc)
+    # captured_at is _NOW; source_timestamp is _NOW - 45s → delta = 45s > 30s threshold
+    captured_at = _NOW
     snapshot = await builder._compute_snapshot(captured_at=captured_at)
 
     assert snapshot.data_staleness_flag is True
@@ -247,7 +258,8 @@ async def test_staleness_flag_clear_when_fresh():
     fresh_binance = MockBinanceSource(stale_seconds=0.0)
     builder = _make_builder(clob=fresh_clob, binance=fresh_binance)
 
-    captured_at = datetime.now(timezone.utc)
+    # captured_at matches _NOW; source_timestamp is also _NOW → delta = 0s < threshold
+    captured_at = _NOW
     snapshot = await builder._compute_snapshot(captured_at=captured_at)
 
     assert snapshot.data_staleness_flag is False
