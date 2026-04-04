@@ -43,6 +43,10 @@ class PolymarketAdapter(ExecutionAdapter):
 
     async def place_order(self, order: Order) -> OrderResult:
         """Submit a post-only limit order to the Polymarket CLOB."""
+        if order.limit_price is None:
+            raise ValueError(
+                "Polymarket requires a limit_price on all orders; market orders are not supported"
+            )
         side = "BUY" if order.side == OrderSide.BUY else "SELL"
         order_id = await self._clob.place_order(
             token_id=order.symbol,
@@ -92,7 +96,13 @@ class PolymarketAdapter(ExecutionAdapter):
         return []
 
     async def get_orderbook(self, asset_id: str) -> OrderbookSnapshot:
-        """Pull live order book state from the data feed."""
+        """
+        Return a synthetic top-of-book snapshot from the data feed.
+
+        Note: this feed represents a single Polymarket market at a time.
+        The `asset_id` parameter is echoed in the snapshot but the data
+        always comes from the feed's current market.
+        """
         state = self._feed.get_current_state()
         bids, asks = [], []
         if state.midpoint is not None and state.spread is not None:

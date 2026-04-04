@@ -22,6 +22,7 @@ def test_orderbook_snapshot_empty_side():
     assert snap.best_bid is None
     assert snap.best_ask is None
     assert snap.midpoint is None
+    assert snap.spread is None
 
 
 class ConcreteAdapter(ExecutionAdapter):

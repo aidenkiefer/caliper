@@ -277,7 +277,11 @@ class OrderbookLevel(BaseModel):
 
 
 class OrderbookSnapshot(BaseModel):
-    """Top-of-book snapshot for a single asset."""
+    """Top-of-book snapshot for a single asset.
+
+    Note: `bids` and `asks` must be pre-sorted (bids descending by price,
+    asks ascending by price). `best_bid` and `best_ask` read index 0 directly.
+    """
 
     asset_id: str = Field(..., description="Symbol or market ID")
     bids: List[OrderbookLevel] = Field(default_factory=list)
