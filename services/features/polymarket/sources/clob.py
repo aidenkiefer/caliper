@@ -475,6 +475,9 @@ class CLOBSource:
         Called on startup and after reconnect to ensure the buffer is
         populated before streaming begins.
 
+        Implements exponential backoff (1s, 2s, 4s, max 30s) for HTTP 425
+        (weekly CLOB restart), up to 5 retries.
+
         Parameters
         ----------
         token_id:
@@ -482,25 +485,36 @@ class CLOBSource:
         """
         url = f"{_REST_BASE}/book"
         params = {"token_id": token_id}
+        backoff = 1.0
+        max_retries = 5
+
         try:
-            async with httpx.AsyncClient(timeout=15.0) as client:
-                resp = await client.get(url, params=params)
-                if resp.status_code == 425:
-                    logger.warning(
-                        "restore_from_rest: HTTP 425 (weekly restart) for token_id=%s",
-                        token_id,
-                    )
-                    return
-                if resp.status_code != 200:
-                    logger.warning(
-                        "restore_from_rest: non-200 response %d for token_id=%s",
-                        resp.status_code,
-                        token_id,
-                    )
-                    return
-                data = resp.json()
-                await self._apply_book_snapshot(data)
-                logger.info("restore_from_rest: buffer populated for token_id=%s", token_id)
+            for attempt in range(max_retries):
+                async with httpx.AsyncClient(timeout=15.0) as client:
+                    resp = await client.get(url, params=params)
+                    if resp.status_code == 425:
+                        if attempt < max_retries - 1:
+                            await asyncio.sleep(min(backoff, 30.0))
+                            backoff = min(backoff * 2, 30.0)
+                            continue
+                        else:
+                            logger.error(
+                                "restore_from_rest: HTTP 425 after %d retries, giving up for token_id=%s",
+                                max_retries,
+                                token_id,
+                            )
+                            return
+                    elif resp.status_code != 200:
+                        logger.warning(
+                            "restore_from_rest: non-200 response %d for token_id=%s",
+                            resp.status_code,
+                            token_id,
+                        )
+                        return
+                    data = resp.json()
+                    await self._apply_book_snapshot(data)
+                    logger.info("restore_from_rest: buffer populated for token_id=%s", token_id)
+                    break
         except Exception as exc:  # noqa: BLE001
             logger.warning(
                 "restore_from_rest failed for token_id=%s: %s", token_id, exc
