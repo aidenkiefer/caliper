@@ -31,6 +31,7 @@ from .routers import (
     baselines,
     recommendations,
     polymarket,
+    features,
 )
 
 
@@ -206,6 +207,12 @@ app.include_router(
     polymarket.router,
     prefix=API_V1_PREFIX,
     tags=["polymarket"],
+)
+
+app.include_router(
+    features.router,
+    prefix=API_V1_PREFIX,
+    tags=["features"],
 )
 
 
