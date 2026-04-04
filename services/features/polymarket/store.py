@@ -12,6 +12,7 @@ from datetime import datetime
 from typing import List, Optional
 
 import asyncpg
+from pydantic import ValidationError
 
 from packages.common.polymarket_schemas import FeatureSnapshot
 
@@ -132,7 +133,15 @@ class FeatureStore:
 
         if row is None:
             return None
-        return FeatureSnapshot.model_validate(row["features"])
+        try:
+            return FeatureSnapshot.model_validate(row["features"])
+        except ValidationError as exc:
+            logger.error(
+                "FeatureStore.read_latest deserialization failed for market_id=%s: %s",
+                market_id,
+                exc,
+            )
+            raise FeatureStoreError(f"Malformed feature row: {exc}") from exc
 
     async def read_window(
         self,
@@ -167,4 +176,15 @@ class FeatureStore:
             )
             raise FeatureStoreError(str(exc)) from exc
 
-        return [FeatureSnapshot.model_validate(row["features"]) for row in rows]
+        results: List[FeatureSnapshot] = []
+        for row in rows:
+            try:
+                results.append(FeatureSnapshot.model_validate(row["features"]))
+            except ValidationError as exc:
+                logger.error(
+                    "FeatureStore.read_window deserialization failed for market_id=%s: %s",
+                    market_id,
+                    exc,
+                )
+                raise FeatureStoreError(f"Malformed feature row: {exc}") from exc
+        return results
