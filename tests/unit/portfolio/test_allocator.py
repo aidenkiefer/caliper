@@ -38,7 +38,9 @@ def test_allocator_basic_long():
 
 
 def test_allocator_respects_market_budget():
-    # PREDICTION budget = 2%; signal for large size should be capped
+    # PREDICTION budget = 2% of $100,000 = $2,000 max notional
+    # confidence=0.8 scales notional: effective = min(2%*100k, 5%*100k) * 0.8 = $1,600
+    # qty = floor($1,600 / $0.60) = 2666
     budget = CapitalBudget(
         total_equity=Decimal("100000"),
         market_budgets={
@@ -50,8 +52,40 @@ def test_allocator_respects_market_budget():
     allocator = Allocator(budget)
     signals = [_make_signal("BTC-UP", "long", MarketType.PREDICTION)]
     results = allocator.allocate(signals, current_price_map={"BTC-UP": Decimal("0.60")})
-    # Max notional = 2% of 100000 = $2000; qty <= $2000 / $0.60 = 3333
-    assert results[0].target_quantity <= Decimal("3334")
+    assert len(results) == 1
+    # Max notional for PREDICTION = 2% * $100,000 = $2,000; confidence=0.8 scales to $1,600
+    # $1,600 / $0.60 = 2666.67 → floor = 2666
+    assert results[0].target_quantity == Decimal("2666")
+
+
+def test_allocator_multi_signal_respects_total_market_budget():
+    # 3 EQUITY signals; budget = 10% of $10,000 = $1,000; each at price $100
+    # confidence=1.0, max_single_position_pct=0.1 → each could take $1,000 notional
+    # But total EQUITY budget is $1,000, so only the first signal gets filled; rest are dropped
+    budget = CapitalBudget(
+        total_equity=Decimal("10000"),
+        market_budgets={MarketType.EQUITY: Decimal("0.10")},
+        max_single_position_pct=Decimal("0.10"),
+    )
+    allocator = Allocator(budget)
+    signals = [
+        _make_signal("AAPL", "long", MarketType.EQUITY, confidence=Decimal("1.0")),
+        _make_signal("MSFT", "long", MarketType.EQUITY, confidence=Decimal("1.0")),
+        _make_signal("GOOG", "long", MarketType.EQUITY, confidence=Decimal("1.0")),
+    ]
+    results = allocator.allocate(
+        signals,
+        current_price_map={
+            "AAPL": Decimal("100"),
+            "MSFT": Decimal("100"),
+            "GOOG": Decimal("100"),
+        },
+    )
+    # First signal: budget=$1000, notional=$1000, qty=10
+    # Second signal: remaining=$0, skipped
+    assert len(results) == 1
+    assert results[0].asset_id == "AAPL"
+    assert results[0].target_quantity == Decimal("10")
 
 
 def test_allocator_skips_none_direction():

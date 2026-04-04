@@ -81,8 +81,17 @@ class Allocator:
         Returns
         -------
         List[AllocationResult]
+
+        Notes
+        -----
+        Per-market notional is tracked across all signals in this call so the
+        aggregate allocation for a market type does not exceed its budget.
         """
         results: List[AllocationResult] = []
+        # Track how much notional has been allocated per market type this cycle
+        allocated_notional: Dict[MarketType, Decimal] = {
+            mt: Decimal("0") for mt in self._budget.market_budgets
+        }
 
         for signal in signals:
             if signal.market_type not in self._budget.market_budgets:
@@ -108,11 +117,16 @@ class Allocator:
                 continue
 
             market_budget_pct = self._budget.market_budgets[signal.market_type]
-            market_notional = self._budget.total_equity * market_budget_pct
+            total_market_budget = self._budget.total_equity * market_budget_pct
 
-            # Cap to single-position limit
-            max_notional = self._budget.total_equity * self._budget.max_single_position_pct
-            effective_notional = min(market_notional, max_notional)
+            # Remaining budget for this market type
+            remaining_market_budget = total_market_budget - allocated_notional[signal.market_type]
+            if remaining_market_budget <= Decimal("0"):
+                continue
+
+            # Cap to single-position limit and remaining market budget
+            max_single_notional = self._budget.total_equity * self._budget.max_single_position_pct
+            effective_notional = min(remaining_market_budget, max_single_notional)
 
             # Confidence-scale the fraction
             fraction = (effective_notional / self._budget.total_equity) * signal.confidence
@@ -120,6 +134,9 @@ class Allocator:
 
             if quantity <= Decimal("0"):
                 continue
+
+            actual_notional = quantity * price
+            allocated_notional[signal.market_type] += actual_notional
 
             results.append(
                 AllocationResult(
