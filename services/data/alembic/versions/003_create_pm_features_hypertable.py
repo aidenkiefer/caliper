@@ -41,12 +41,17 @@ def upgrade() -> None:
     )
 
     # Index for efficient queries by market_id and time
-    op.execute("CREATE INDEX ON pm.features (market_id, captured_at DESC)")
+    op.create_index(
+        'ix_pm_features_market_id_captured_at',
+        'features',
+        ['market_id', sa.text('captured_at DESC')],
+        schema='pm',
+    )
 
 
 def downgrade() -> None:
     # Drop index first
-    op.execute("DROP INDEX IF EXISTS pm.features_market_id_captured_at_idx")
+    op.drop_index('ix_pm_features_market_id_captured_at', table_name='features', schema='pm')
 
     # Drop the hypertable
     op.execute("DROP TABLE IF EXISTS pm.features")
