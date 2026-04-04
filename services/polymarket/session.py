@@ -25,7 +25,10 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from packages.strategies.polymarket_mm_strategy import PolymarketMMStrategy
 from uuid import UUID
 
 from packages.strategies.base import PortfolioState
@@ -72,7 +75,7 @@ class SessionOrchestrator:
         safety_layer: SafetyLayer,
         recorder: Recorder,
         wallet_manager: WalletManager,
-        strategy=None,  # Optional[PolymarketMMStrategy]
+        strategy: Optional[PolymarketMMStrategy] = None,
     ) -> None:
         self._market_discovery = market_discovery
         self._data_feed = data_feed

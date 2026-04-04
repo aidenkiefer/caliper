@@ -88,6 +88,23 @@ def test_mm_strategy_suppresses_bid_when_inventory_at_cap():
     assert sig.metadata["ask_size"] == "50"
 
 
+def test_mm_strategy_suppresses_when_both_sides_zero():
+    """When inventory_cap=0 and inventory=0, both sides are gated → no signal."""
+    config = {
+        "market_id": "BTC-UP-2026-04-04T15",
+        "quote_spread": "0.02",
+        "quote_size": "50",
+        "inventory_cap": "0",  # cap at 0 → bid always suppressed
+    }
+    s = PolymarketMMStrategy("pm_mm_test", config)
+    s.initialize(TradingMode.LIVE)
+    s.update_inventory(Decimal("0"))  # ask also suppressed (inventory <= 0)
+    s.on_market_data(_make_ob_state(midpoint="0.55", spread="0.02"))
+    portfolio = PortfolioState(equity=Decimal("1000"), cash=Decimal("1000"), positions=[])
+    signals = s.generate_signals(portfolio)
+    assert signals == []
+
+
 def test_mm_strategy_risk_check_returns_empty():
     """MM strategy risk_check always returns [] — executor handles orders directly."""
     s = PolymarketMMStrategy("pm_mm_test", _CONFIG)
