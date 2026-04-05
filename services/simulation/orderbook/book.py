@@ -131,9 +131,18 @@ class SimulatedOrderBook:
             else:
                 actual_price = Decimal(str(key))
             queue: deque = book[key]
+            level_fill_size = Decimal(0)
             while remaining > 0 and queue:
                 order_id, level_size, ts = queue[0]
                 fill_size = min(remaining, level_size)
+                level_fill_size += fill_size
+                remaining -= fill_size
+                if fill_size >= level_size:
+                    queue.popleft()
+                else:
+                    queue[0] = (order_id, level_size - fill_size, ts)
+                    # remaining is now 0, loop will exit
+            if level_fill_size > 0:
                 fills.append(SimFill(
                     fill_id=f"{order.order_id}-fill-{fill_idx}",
                     order_id=order.order_id,
@@ -141,19 +150,13 @@ class SimulatedOrderBook:
                     token_id=order.token_id,
                     side=order.side,
                     fill_price=actual_price,
-                    fill_size=fill_size,
+                    fill_size=level_fill_size,
                     fill_time=order.submit_time,
                     maker_fill=False,
                     slippage_vs_mid=Decimal(0),  # caller sets this
                     mid_at_fill=Decimal(0),       # caller sets this
                 ))
                 fill_idx += 1
-                remaining -= fill_size
-                if fill_size >= level_size:
-                    queue.popleft()
-                else:
-                    queue[0] = (order_id, level_size - fill_size, ts)
-                    remaining = Decimal(0)
             if not queue:
                 keys_to_delete.append(key)
         for key in keys_to_delete:
