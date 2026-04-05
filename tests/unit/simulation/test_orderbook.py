@@ -53,8 +53,8 @@ def make_sell_order(price, size, order_type="taker"):
 def test_apply_snapshot_populates_book():
     book = SimulatedOrderBook()
     event = make_snapshot_event(
-        bids=[[0.45, 100], [0.44, 80]],
-        asks=[[0.55, 100], [0.56, 80]],
+        bids=[["0.45", "100"], ["0.44", "80"]],
+        asks=[["0.55", "100"], ["0.56", "80"]],
     )
     book.apply_snapshot(event)
     assert book.best_bid() == Decimal("0.45")
@@ -64,8 +64,8 @@ def test_apply_snapshot_populates_book():
 def test_apply_trade_removes_volume():
     book = SimulatedOrderBook()
     event = make_snapshot_event(
-        bids=[[0.45, 100], [0.44, 80]],
-        asks=[[0.55, 100], [0.56, 80]],
+        bids=[["0.45", "100"], ["0.44", "80"]],
+        asks=[["0.55", "100"], ["0.56", "80"]],
     )
     book.apply_snapshot(event)
     trade_event = SimEvent(
@@ -84,8 +84,8 @@ def test_apply_trade_removes_volume():
 def test_apply_trade_prunes_zero_level():
     book = SimulatedOrderBook()
     event = make_snapshot_event(
-        bids=[[0.45, 100], [0.44, 80]],
-        asks=[[0.55, 100], [0.56, 80]],
+        bids=[["0.45", "100"], ["0.44", "80"]],
+        asks=[["0.55", "100"], ["0.56", "80"]],
     )
     book.apply_snapshot(event)
     trade_event = SimEvent(
@@ -132,7 +132,7 @@ def test_apply_cancel_removes_order():
 
 def test_taker_single_level_full_fill():
     book = SimulatedOrderBook()
-    event = make_snapshot_event(bids=[], asks=[[0.55, 100]])
+    event = make_snapshot_event(bids=[], asks=[["0.55", "100"]])
     book.apply_snapshot(event)
     order = make_buy_order(0.60, 50, "taker")
     fills = book.match_market(order)
@@ -145,7 +145,7 @@ def test_taker_multi_level_partial_fills():
     book = SimulatedOrderBook()
     event = make_snapshot_event(
         bids=[],
-        asks=[[0.55, 30], [0.56, 40], [0.57, 30]],
+        asks=[["0.55", "30"], ["0.56", "40"], ["0.57", "30"]],
     )
     book.apply_snapshot(event)
     order = make_buy_order(0.60, 80, "taker")
@@ -159,7 +159,7 @@ def test_taker_fill_sizes_sum_to_order_size():
     book = SimulatedOrderBook()
     event = make_snapshot_event(
         bids=[],
-        asks=[[0.55, 30], [0.56, 40], [0.57, 30]],
+        asks=[["0.55", "30"], ["0.56", "40"], ["0.57", "30"]],
     )
     book.apply_snapshot(event)
     order = make_buy_order(0.60, 80, "taker")
@@ -170,8 +170,8 @@ def test_taker_fill_sizes_sum_to_order_size():
 def test_taker_slippage_vs_mid():
     book = SimulatedOrderBook()
     event = make_snapshot_event(
-        bids=[[0.45, 100]],
-        asks=[[0.55, 100]],
+        bids=[["0.45", "100"]],
+        asks=[["0.55", "100"]],
     )
     book.apply_snapshot(event)
     # mid = (0.45 + 0.55) / 2 = 0.50
@@ -185,8 +185,8 @@ def test_taker_slippage_vs_mid():
 def test_maker_post_only_rejection_would_cross():
     book = SimulatedOrderBook()
     event = make_snapshot_event(
-        bids=[[0.45, 100]],
-        asks=[[0.55, 100]],
+        bids=[["0.45", "100"]],
+        asks=[["0.55", "100"]],
     )
     book.apply_snapshot(event)
     matcher = OrderMatcher()
@@ -204,7 +204,7 @@ def test_maker_post_only_accepted_no_cross():
     book = SimulatedOrderBook()
     event = make_snapshot_event(
         bids=[],
-        asks=[[0.55, 100]],
+        asks=[["0.55", "100"]],
     )
     book.apply_snapshot(event)
     matcher = OrderMatcher()
@@ -219,8 +219,8 @@ def test_maker_post_only_accepted_no_cross():
 def test_would_cross_bid_at_or_above_ask():
     book = SimulatedOrderBook()
     event = make_snapshot_event(
-        bids=[[0.45, 100]],
-        asks=[[0.55, 100]],
+        bids=[["0.45", "100"]],
+        asks=[["0.55", "100"]],
     )
     book.apply_snapshot(event)
     matcher = OrderMatcher()
@@ -231,8 +231,8 @@ def test_would_cross_bid_at_or_above_ask():
 def test_would_cross_ask_at_or_below_bid():
     book = SimulatedOrderBook()
     event = make_snapshot_event(
-        bids=[[0.45, 100]],
-        asks=[[0.55, 100]],
+        bids=[["0.45", "100"]],
+        asks=[["0.55", "100"]],
     )
     book.apply_snapshot(event)
     matcher = OrderMatcher()

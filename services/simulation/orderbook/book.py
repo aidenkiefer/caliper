@@ -127,9 +127,9 @@ class SimulatedOrderBook:
             # For asks book: key = price (positive)
             # For bids book: key = -price (negative), actual_price = -key
             if sign == -1:
-                actual_price = -Decimal(str(key))
+                actual_price = -key
             else:
-                actual_price = Decimal(str(key))
+                actual_price = key
             queue: deque = book[key]
             level_fill_size = Decimal(0)
             while remaining > 0 and queue:
@@ -168,13 +168,13 @@ class SimulatedOrderBook:
         if not self._bids:
             return None
         key = self._bids.keys()[0]
-        return -Decimal(str(key))
+        return -key
 
     def best_ask(self) -> Optional[Decimal]:
         if not self._asks:
             return None
         key = self._asks.keys()[0]
-        return Decimal(str(key))
+        return key
 
     def mid_price(self) -> Optional[Decimal]:
         bid = self.best_bid()
