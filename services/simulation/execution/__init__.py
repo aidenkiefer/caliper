@@ -1,3 +1,5 @@
 """Simulation execution — FeeEngine, ExecutionSimulator"""
 
-__all__: list = []
+from services.simulation.execution.fee_engine import FeeEngine, FeeRegime
+
+__all__ = ["FeeEngine", "FeeRegime"]

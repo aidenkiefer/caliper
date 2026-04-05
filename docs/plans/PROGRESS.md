@@ -89,6 +89,7 @@ Log smaller fixes, UI tweaks, docs updates, or tooling improvements here—work 
 | **v2.2.0-p5** | fix(12-10): pin mock timestamps for deterministic integration test output | 2026-04-04 | Tests | `tests/integration/features/test_feature_pipeline_integration.py` — fixed `MockCLOBSource`/`MockBinanceSource` wall-clock timestamps |
 | **v2.3.0-p1** | Sprint 13 ticket 13-01: simulation + evaluation schemas; services/simulation/ and services/evaluation/ module scaffolding | 2026-04-04 | Schemas | SimEvent, SimOrder, SimFill, SimResult, PnLComponents; StrategyMetrics, RegimeMetrics, EvaluationReport, StrategyRanking |
 | **v2.3.0-p2** | Sprint 13 ticket 13-02: SimulatedOrderBook, OrderMatcher, and unit tests | 2026-04-04 | Simulation | `services/simulation/orderbook/book.py` (price-time priority limit book, SortedDict bids/asks); `services/simulation/orderbook/matching.py` (taker sweep, post-only maker); `tests/unit/simulation/test_orderbook.py` (13 test functions); `sortedcontainers` added to pyproject.toml |
+| **v2.3.0-p3** | Sprint 13 ticket 13-03: FeeEngine with pre/post Mar-30 regimes and unit tests | 2026-04-04 | Simulation | `services/simulation/execution/fee_engine.py` (`FeeRegime` dataclass with `for_date` cutoff logic, `FeeEngine` with `taker_fee`, `maker_rebate_estimate`, `liquidity_reward_credit`, `compute_pnl_components`); `tests/unit/simulation/test_fee_engine.py` (15 test functions); `services/simulation/execution/__init__.py` exports `FeeEngine`, `FeeRegime` |
 
 
 ---
