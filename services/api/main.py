@@ -32,6 +32,7 @@ from .routers import (
     recommendations,
     polymarket,
     features,
+    simulation,
 )
 
 
@@ -213,6 +214,12 @@ app.include_router(
     features.router,
     prefix=API_V1_PREFIX,
     tags=["features"],
+)
+
+app.include_router(
+    simulation.router,
+    prefix=API_V1_PREFIX,
+    tags=["simulation"],
 )
 
 
