@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any, Dict, List, Optional, Protocol, runtime_checkable
 
@@ -79,10 +79,15 @@ class SimulationRunner:
 
         # Compute statistics
         fill_count = len(fills)
-        submitted = max(engine.submitted_count, 1)
-        fill_rate = Decimal(fill_count) / Decimal(submitted)
+        if engine.submitted_count == 0:
+            fill_rate = Decimal("0")
+        else:
+            fill_rate = Decimal(fill_count) / Decimal(engine.submitted_count)
         maker_fills = sum(1 for f in fills if f.maker_fill)
-        maker_fill_rate = Decimal(maker_fills) / Decimal(max(fill_count, 1))
+        if fill_count == 0:
+            maker_fill_rate = Decimal("0")
+        else:
+            maker_fill_rate = Decimal(maker_fills) / Decimal(fill_count)
 
         # Serialize PnL components as Dict[str, Decimal]
         pnl_dict: Dict[str, Decimal] = {
@@ -94,8 +99,8 @@ class SimulationRunner:
             "ops_cost": pnl_components.ops_cost,
         }
 
-        start_time = self.events[0].timestamp if self.events else datetime(2000, 1, 1)
-        end_time = self.events[-1].timestamp if self.events else datetime(2000, 1, 1)
+        start_time = self.events[0].timestamp if self.events else datetime(2000, 1, 1, tzinfo=timezone.utc)
+        end_time = self.events[-1].timestamp if self.events else datetime(2000, 1, 1, tzinfo=timezone.utc)
 
         return SimResult(
             run_id=self.run_id,
