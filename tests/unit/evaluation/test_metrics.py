@@ -77,12 +77,11 @@ def test_sharpe_mixed_pnl_known_value():
 
     metrics = _make_metrics(hourly)
 
-    # Recompute expected Sharpe from daily series
+    # Recompute expected Sharpe from daily series using Decimal arithmetic
     daily = [Decimal("2") if i % 2 == 0 else Decimal("-1") for i in range(30)]
-    daily_floats = [float(d) for d in daily]
-    mean_d = statistics.mean(daily_floats)
-    std_d = statistics.stdev(daily_floats)
-    expected_sharpe = Decimal(str(round(mean_d / std_d * math.sqrt(252), 6)))
+    mean_d = statistics.mean(daily)
+    std_d = statistics.stdev(daily)
+    expected_sharpe = (mean_d - Decimal("0")) / std_d * Decimal(str(math.sqrt(252)))
 
     assert abs(metrics.sharpe_ratio - expected_sharpe) <= TOLERANCE
 

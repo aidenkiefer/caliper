@@ -65,12 +65,12 @@ def compute_metrics(
     data_points = len(daily)
 
     # Sharpe ratio (annualized)
+    _sqrt252 = Decimal(str(math.sqrt(252)))
     if data_points >= 2:
-        daily_floats = [float(d) for d in daily]
-        mean_d = statistics.mean(daily_floats)
-        std_d = statistics.stdev(daily_floats)
+        mean_d = statistics.mean(daily)
+        std_d = statistics.stdev(daily)
         if std_d > 0:
-            sharpe = Decimal(str(round((mean_d - float(risk_free_rate)) / std_d * math.sqrt(252), 6)))
+            sharpe = (mean_d - risk_free_rate) / std_d * _sqrt252
         else:
             sharpe = Decimal("0")
     else:
@@ -80,16 +80,15 @@ def compute_metrics(
 
     # Sortino ratio (annualized) — downside std only
     if data_points >= 2:
-        daily_floats = [float(d) for d in daily]
-        mean_d = statistics.mean(daily_floats)
-        neg = [d for d in daily_floats if d < 0]
+        mean_d = statistics.mean(daily)
+        neg = [d for d in daily if d < 0]
         if len(neg) >= 2:
             down_std = statistics.stdev(neg)
         elif len(neg) == 1:
             down_std = abs(neg[0])
         else:
-            down_std = 0.0
-        sortino = Decimal(str(round(mean_d / down_std * math.sqrt(252), 6))) if down_std > 0 else Decimal("0")
+            down_std = Decimal("0")
+        sortino = mean_d / down_std * _sqrt252 if down_std > 0 else Decimal("0")
     else:
         sortino = Decimal("0")
 
@@ -126,11 +125,10 @@ def compute_metrics(
         for i in range(0, len(daily), 7):
             rolling_7d.append(sum(daily[i:i + 7], Decimal(0)))
         if len(rolling_7d) >= 2:
-            r_floats = [float(x) for x in rolling_7d]
-            r_mean = statistics.mean(r_floats)
-            r_std = statistics.stdev(r_floats)
+            r_mean = statistics.mean(rolling_7d)
+            r_std = statistics.stdev(rolling_7d)
             if abs(r_mean) > 0:
-                stability = Decimal(str(round(max(0.0, min(1.0, 1.0 - r_std / abs(r_mean))), 6)))
+                stability = max(Decimal("0"), min(Decimal("1"), Decimal("1") - r_std / abs(r_mean)))
             else:
                 stability = Decimal("0")
         else:
