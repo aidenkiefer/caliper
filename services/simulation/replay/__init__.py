@@ -1,3 +1,5 @@
 """Simulation replay components — EventLoader, ReplayEngine"""
 
-__all__: list = []
+from services.simulation.replay.loader import EventLoader
+
+__all__ = ["EventLoader"]
