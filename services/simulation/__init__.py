@@ -2,6 +2,7 @@
 
 from services.simulation.schemas import SimEvent, SimOrder, SimFill, SimResult, PnLComponents
 from services.simulation.runner import SimulationRunner, SimStrategy
+from services.simulation.validation import SimulationValidator, ValidationResult
 
 __all__ = [
     "SimEvent",
@@ -11,4 +12,6 @@ __all__ = [
     "PnLComponents",
     "SimulationRunner",
     "SimStrategy",
+    "SimulationValidator",
+    "ValidationResult",
 ]
