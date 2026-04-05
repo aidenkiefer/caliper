@@ -1,9 +1,9 @@
 from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal
-from typing import Dict, List, Literal, Optional
+from typing import Dict, List, Literal
 from uuid import UUID
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 
 class StrategyMetrics(BaseModel):
@@ -27,7 +27,7 @@ class StrategyMetrics(BaseModel):
     regret_vs_hold_cash: Decimal
     regret_vs_buy_and_hold: Decimal
     regret_vs_random: Decimal
-    sharpe_confidence: Literal["low", "medium", "high"] = "high"
+    sharpe_confidence: Literal["low", "medium", "high"] = "low"
     data_points: int = 0
 
 

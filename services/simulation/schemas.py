@@ -2,8 +2,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Literal, Optional
-from pydantic import BaseModel, ConfigDict
+from typing import Any, Dict, List, Literal
+from pydantic import BaseModel
 
 
 class SimEvent(BaseModel):
@@ -54,7 +54,7 @@ class PnLComponents:
     @property
     def total(self) -> Decimal:
         return (self.spread_capture + self.inventory_drift + self.maker_rebate
-                + self.liquidity_reward + self.taker_fee + self.ops_cost)
+                + self.liquidity_reward - self.taker_fee - self.ops_cost)
 
 
 class SimResult(BaseModel):
