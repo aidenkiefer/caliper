@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from services.simulation.schemas import SimResult
 from services.evaluation.schemas import EvaluationReport, RegimeMetrics, StrategyMetrics, StrategyRanking
 
-router = APIRouter(prefix="/v1", tags=["simulation"])
+router = APIRouter(tags=["simulation"])
 
 # In-memory store for stub mode (run_id → {"status": str, "result": SimResult | None})
 _runs: Dict[str, Dict[str, Any]] = {}
@@ -129,14 +129,6 @@ def _stub_report(strategy_ids: List[str]) -> EvaluationReport:
     )
 
 
-@router.get("/evaluation/{strategy_id}/latest", response_model=EvaluationReport)
-def get_latest_evaluation(strategy_id: str) -> EvaluationReport:
-    """Returns latest EvaluationReport for the strategy (stub mode)."""
-    if not strategy_id:
-        raise HTTPException(status_code=404, detail="strategy_id is required")
-    return _stub_report([strategy_id])
-
-
 @router.get("/evaluation/compare", response_model=EvaluationReport)
 def compare_evaluations(strategy_ids: str = Query(...)) -> EvaluationReport:
     """Returns side-by-side EvaluationReport for comma-separated strategy_ids."""
@@ -146,6 +138,14 @@ def compare_evaluations(strategy_ids: str = Query(...)) -> EvaluationReport:
     if not ids:
         raise HTTPException(status_code=422, detail="strategy_ids must not be empty")
     return _stub_report(ids)
+
+
+@router.get("/evaluation/{strategy_id}/latest", response_model=EvaluationReport)
+def get_latest_evaluation(strategy_id: str) -> EvaluationReport:
+    """Returns latest EvaluationReport for the strategy (stub mode)."""
+    if not strategy_id:
+        raise HTTPException(status_code=404, detail="strategy_id is required")
+    return _stub_report([strategy_id])
 
 
 @router.get("/evaluation/{strategy_id}/regimes", response_model=List[RegimeMetrics])
