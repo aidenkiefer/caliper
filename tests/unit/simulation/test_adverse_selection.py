@@ -50,7 +50,8 @@ def test_informed_fraction_monotonically_increasing() -> None:
         )
 
 
-def test_pnl_lower_with_high_peak_informed() -> None:
+def test_informed_fraction_higher_with_higher_peak_near_close() -> None:
+    # AC-4 PnL comparison is covered by the integration test (test_simulation_pipeline.py)
     high_model = AdverseSelectionModel(peak_informed=Decimal("0.40"))
     low_model = AdverseSelectionModel(peak_informed=Decimal("0.0"))
     assert high_model.informed_fraction(30) > low_model.informed_fraction(30)
