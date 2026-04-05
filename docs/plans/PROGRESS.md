@@ -87,6 +87,7 @@ Log smaller fixes, UI tweaks, docs updates, or tooling improvements here—work 
 | **v2.2.0-p3** | Sprint 12 ticket 12-09: unit tests for feature layer | 2026-04-04 | Tests | `tests/unit/features/`: 4 test modules covering all formula families, Pydantic schema validation, FeatureStore asyncpg mock read/write, and regime discretization + minimum-hold filter; 60+ explicit numeric assertions |
 | **v2.2.0-p4** | Sprint 12 ticket 12-10: integration tests for feature pipeline | 2026-04-04 | Tests | `tests/integration/features/test_feature_pipeline_integration.py`; 4 async tests — 3 consecutive snapshots (AC-7), deterministic output (AC-5), staleness flag set/clear; mock CLOBSource and BinanceSource, no network calls |
 | **v2.2.0-p5** | fix(12-10): pin mock timestamps for deterministic integration test output | 2026-04-04 | Tests | `tests/integration/features/test_feature_pipeline_integration.py` — fixed `MockCLOBSource`/`MockBinanceSource` wall-clock timestamps |
+| **v2.3.0-p1** | Sprint 13 ticket 13-01: simulation + evaluation schemas; services/simulation/ and services/evaluation/ module scaffolding | 2026-04-04 | Schemas | SimEvent, SimOrder, SimFill, SimResult, PnLComponents; StrategyMetrics, RegimeMetrics, EvaluationReport, StrategyRanking |
 
 
 ---
