@@ -37,40 +37,69 @@ class EventLoader:
             events: List[SimEvent] = []
             snapshot_rows = await conn.fetch(
                 """
-                SELECT id::text, captured_at, market_id, token_id, snapshot_data
-                FROM pm.orderbook_snapshots
-                WHERE market_id = $1 AND token_id = $2
-                  AND captured_at >= $3 AND captured_at <= $4
-                ORDER BY captured_at
+                SELECT
+                    s.snapshot_id::text,
+                    s.timestamp,
+                    sess.market_condition_id,
+                    sess.token_id_yes,
+                    sess.token_id_no,
+                    s.best_bid,
+                    s.best_ask,
+                    s.midpoint,
+                    s.spread,
+                    s.bid_depth_1pct,
+                    s.ask_depth_1pct
+                FROM pm.orderbook_snapshots s
+                JOIN pm.sessions sess ON sess.session_id = s.session_id
+                WHERE sess.market_condition_id = $1
+                  AND (sess.token_id_yes = $2 OR sess.token_id_no = $2)
+                  AND s.timestamp >= $3 AND s.timestamp <= $4
+                ORDER BY s.timestamp
                 """,
                 market_id, token_id, start, end,
             )
             for row in snapshot_rows:
-                payload = row["snapshot_data"] if isinstance(row["snapshot_data"], dict) else json.loads(row["snapshot_data"])
+                best_bid = row["best_bid"]
+                best_ask = row["best_ask"]
+                bid_depth = row["bid_depth_1pct"]
+                ask_depth = row["ask_depth_1pct"]
+                payload = {
+                    "bids": [[str(best_bid), str(bid_depth)]] if best_bid is not None else [],
+                    "asks": [[str(best_ask), str(ask_depth)]] if best_ask is not None else [],
+                }
                 events.append(SimEvent(
-                    event_id=str(row["id"]),
-                    timestamp=row["captured_at"],
+                    event_id=str(row["snapshot_id"]),
+                    timestamp=row["timestamp"],
                     event_type="snapshot",
-                    market_id=row["market_id"],
-                    token_id=row["token_id"],
+                    market_id=row["market_condition_id"],
+                    token_id=token_id,
                     payload=payload,
                 ))
             trade_rows = await conn.fetch(
                 """
-                SELECT id::text, traded_at, market_id, token_id, side, price, size
-                FROM pm.trades
-                WHERE market_id = $1 AND token_id = $2
-                  AND traded_at >= $3 AND traded_at <= $4
-                ORDER BY traded_at
+                SELECT
+                    f.fill_id::text,
+                    f.filled_at,
+                    sess.market_condition_id,
+                    f.token_id,
+                    f.side,
+                    f.price,
+                    f.size
+                FROM pm.fills f
+                JOIN pm.sessions sess ON sess.session_id = f.session_id
+                WHERE sess.market_condition_id = $1
+                  AND f.token_id = $2
+                  AND f.filled_at >= $3 AND f.filled_at <= $4
+                ORDER BY f.filled_at
                 """,
                 market_id, token_id, start, end,
             )
             for row in trade_rows:
                 events.append(SimEvent(
-                    event_id=str(row["id"]),
-                    timestamp=row["traded_at"],
+                    event_id=str(row["fill_id"]),
+                    timestamp=row["filled_at"],
                     event_type="trade",
-                    market_id=row["market_id"],
+                    market_id=row["market_condition_id"],
                     token_id=row["token_id"],
                     payload={
                         "side": row["side"],
@@ -98,7 +127,6 @@ class EventLoader:
                 except Exception as exc:
                     logger.warning("Skipping line %d in %s: %s", line_num, path, exc)
         events.sort(key=lambda e: (e.timestamp, e.event_id))
-        self._detect_gaps(events)
         return events
 
     async def load(
@@ -112,7 +140,9 @@ class EventLoader:
         """File backend if file_path given, else database backend. File results filtered to [start, end]."""
         if file_path is not None:
             events = self.load_from_file(file_path)
-            return [e for e in events if start <= e.timestamp <= end]
+            filtered = [e for e in events if start <= e.timestamp <= end]
+            self._detect_gaps(filtered)
+            return filtered
         return await self.load_from_db(market_id, token_id, start, end)
 
     def _detect_gaps(
