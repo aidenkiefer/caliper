@@ -68,7 +68,7 @@ class ExecutionSimulator:
         """
         window = timedelta(seconds=1)
         # Remove entries outside the 1-second window
-        while self._throttle_queue and (submit_time - self._throttle_queue[0]) >= window:
+        while self._throttle_queue and (submit_time - self._throttle_queue[0]) > window:
             self._throttle_queue.popleft()
 
         if len(self._throttle_queue) >= self.config.max_orders_per_second:
