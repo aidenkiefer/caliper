@@ -37,18 +37,16 @@ class SimulationValidator:
     def __init__(self, db_url: Optional[str] = None) -> None:
         self._db_url = db_url
 
-    def check_determinism(self, runner) -> bool:
-        """
-        Run runner.run() twice. Compare serialized JSON. Return True if identical.
-        """
+    def check_determinism(self, runner) -> tuple[bool, "SimResult"]:
+        """Run runner.run() twice. Compare serialized JSON. Return (is_deterministic, first_result)."""
         result1 = runner.run()
         result2 = runner.run()
         json1 = result1.model_dump_json()
         json2 = result2.model_dump_json()
-        if json1 == json2:
-            return True
-        logger.warning("Determinism check FAILED: simulation produced different output on two runs")
-        return False
+        ok = json1 == json2
+        if not ok:
+            logger.warning("Determinism check FAILED: simulation produced different output on two runs")
+        return ok, result1
 
     def validate_fill_rate(self, sim_result: SimResult, real_fill_rate: Decimal) -> bool:
         """
@@ -100,16 +98,17 @@ class SimulationValidator:
         """
         Full validation: determinism, fill rate, slippage, optional PnL correlation.
         """
-        sim_result = runner.run()
-        determinism_ok = self.check_determinism(runner)
+        determinism_ok, sim_result = self.check_determinism(runner)  # 2 runs total, not 3
         fill_rate_ok = self.validate_fill_rate(sim_result, real_fill_rate)
         slippage_mean, slippage_std = self.compute_slippage_stats(sim_result.fills)
 
         pnl_correlation: Optional[Decimal] = None
-        if real_pnl_series is not None:
-            # Sim PnL series: just use [total_pnl] for single-run (hourly bucketing is callers' job)
-            sim_pnl_series = [sim_result.total_pnl]
-            pnl_correlation = self._pearson_correlation(sim_pnl_series, real_pnl_series)
+        if real_pnl_series is not None and len(real_pnl_series) >= 2:
+            # PnL correlation requires SimResult to expose an hourly series.
+            # Currently SimResult only has total_pnl; correlation is deferred
+            # until hourly PnL breakdown is added to SimResult.
+            logger.debug("PnL correlation requested but SimResult has no hourly series; returning None")
+            pnl_correlation = None
 
         notes: List[str] = []
         if not fill_rate_ok:
