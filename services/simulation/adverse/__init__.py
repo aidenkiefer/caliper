@@ -1,3 +1,5 @@
 """Simulation adverse selection model"""
 
-__all__: list = []
+from services.simulation.adverse.selection import AdverseSelectionModel
+
+__all__ = ["AdverseSelectionModel"]
