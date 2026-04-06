@@ -18,6 +18,7 @@ from sklearn.metrics import brier_score_loss, roc_auc_score
 from sklearn.model_selection import cross_val_score
 
 from services.ml.probability_model.schemas import (
+    BrierDecomposition,
     CalibrationBin,
     CalibrationReport,
     ModelType,
@@ -72,6 +73,32 @@ _INTERACTION_NAMES = [
 
 # Default C grid searched during cross-validation.
 _C_GRID = [0.001, 0.01, 0.1, 1.0, 10.0]
+
+
+def _compute_brier_decomposition(
+    y_true: np.ndarray, y_prob: np.ndarray, n_bins: int = 10
+) -> dict[str, float]:
+    """Murphy (1973) Brier score decomposition: Reliability - Resolution + Uncertainty."""
+    y_bar = float(y_true.mean())
+    bin_edges = np.linspace(0, 1, n_bins + 1)
+    n = len(y_true)
+    reliability = 0.0
+    resolution = 0.0
+    for i in range(n_bins):
+        mask = (y_prob >= bin_edges[i]) & (y_prob < bin_edges[i+1])
+        if mask.sum() == 0:
+            continue
+        n_k = mask.sum()
+        obs_k = float(y_true[mask].mean())
+        pred_k = float(y_prob[mask].mean())
+        reliability += (n_k / n) * (pred_k - obs_k) ** 2
+        resolution += (n_k / n) * (obs_k - y_bar) ** 2
+    uncertainty = y_bar * (1.0 - y_bar)
+    return {
+        "reliability": round(reliability, 8),
+        "resolution": round(resolution, 8),
+        "uncertainty": round(uncertainty, 8),
+    }
 
 
 def _compute_ece(
@@ -388,6 +415,13 @@ class ModelTrainer:
 
         ece_val, bin_dicts = _compute_ece(y, y_prob)
 
+        decomp_dict = _compute_brier_decomposition(y, y_prob)
+        decomp_instance = BrierDecomposition(
+            reliability=decomp_dict["reliability"],
+            resolution=decomp_dict["resolution"],
+            uncertainty=decomp_dict["uncertainty"],
+        )
+
         # AUC is undefined if only one class is present.
         try:
             auc = float(roc_auc_score(y, y_prob))
@@ -411,6 +445,7 @@ class ModelTrainer:
             auc=round(auc, 8) if auc is not None else None,
             reliability=reliability,
             needs_recal=False,
+            brier_decomposition=decomp_instance,
         )
 
     # ------------------------------------------------------------------

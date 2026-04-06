@@ -41,6 +41,14 @@ class CalibrationBin(BaseModel):
     predicted_freq: Decimal
 
 
+# BrierDecomposition — Murphy (1973) Brier score decomposition
+class BrierDecomposition(BaseModel):
+    """Murphy (1973) decomposition: Brier = Reliability - Resolution + Uncertainty"""
+    reliability: Decimal    # weighted mean squared calibration error
+    resolution: Decimal     # weighted variance of bin means from base rate
+    uncertainty: Decimal    # y_bar * (1 - y_bar)
+
+
 # CalibrationReport — per-model calibration diagnostics
 class CalibrationReport(BaseModel):
     report_id: UUID = Field(default_factory=uuid4)
@@ -51,6 +59,7 @@ class CalibrationReport(BaseModel):
     auc: Optional[Decimal] = None
     reliability: List[CalibrationBin]
     needs_recal: bool  # True if ECE > 0.05 on rolling 7-day window
+    brier_decomposition: Optional[BrierDecomposition] = None
 
 
 # WalkForwardFold — describes one CV fold (used internally by trainer/dataset builder)
