@@ -156,7 +156,7 @@ class PanelBuilder:
             last_row = group.sort_values("t_minus_t0").iloc[-1]
             if hk == latest_hour:
                 # Only withhold the label if the hour may be incomplete
-                time_to_close = float(last_row.get("time_to_close_seconds", 999))
+                time_to_close = float(last_row.get("time_to_close", 999))
                 if time_to_close > 1:
                     # Hour still open — no lookahead, mark unknown
                     hour_labels[hk] = np.nan
