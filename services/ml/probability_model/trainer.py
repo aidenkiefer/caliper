@@ -286,7 +286,7 @@ class ModelTrainer:
         self,
         train_df: pd.DataFrame,
         val_df: pd.DataFrame,
-        tune_C: bool = True,
+        tune_hyperparams: bool = True,
     ) -> dict[str, Any]:
         """Train and calibrate the model on *train_df*, then evaluate on *val_df*.
 
@@ -296,10 +296,11 @@ class ModelTrainer:
             Panel DataFrame for the training fold (produced by :class:`PanelBuilder`).
         val_df:
             Panel DataFrame for the validation fold.
-        tune_C:
-            Whether to search over ``_C_GRID`` for the best regularisation
-            strength via 3-fold cross-validation on *train_df*.  Only relevant
-            for ``model_type="logistic"``.
+        tune_hyperparams:
+            Whether to search for the best hyperparameters via 3-fold
+            cross-validation on *train_df*.  For ``model_type="logistic"``,
+            tunes the regularisation strength ``C`` over ``_C_GRID``.  For
+            ``model_type="gbt"``, tunes ``n_estimators`` over [100, 200, 300].
 
         Returns
         -------
@@ -342,7 +343,6 @@ class ModelTrainer:
                     learning_rate=0.05,
                     subsample=0.8,
                     colsample_bytree=0.8,
-                    use_label_encoder=False,
                     eval_metric="logloss",
                     random_state=self.random_state,
                 )
@@ -357,9 +357,8 @@ class ModelTrainer:
                 )
 
             # --- Tune n_estimators via 3-fold CV if requested ---
-            # tune_C flag is reused as the general hyperparameter tuning flag.
             best_n_estimators = 200
-            if tune_C:
+            if tune_hyperparams:
                 best_score = -np.inf
                 for n_est in [100, 200, 300]:
                     base_model.set_params(n_estimators=n_est)
