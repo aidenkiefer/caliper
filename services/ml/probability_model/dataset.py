@@ -132,7 +132,7 @@ class PanelBuilder:
         # --- Y_h proxy labeling: use last snapshot's btc_distance_to_open per hour ---
         # Identify which hour is the most-recent (potentially still open)
         all_hour_keys = df["hour_key"].unique()
-        latest_hour = max(all_hour_keys)
+        latest_hour = max(all_hour_keys, key=lambda hk: pd.Timestamp(hk))
 
         # For each closed hour, get the last snapshot's btc_distance_to_open
         hour_labels: dict[str, float] = {}
@@ -248,10 +248,10 @@ class PanelBuilder:
             if train_df.empty or val_df.empty:
                 continue
 
-            train_start = train_df["captured_at"].min().to_pydatetime()
-            train_end = train_df["captured_at"].max().to_pydatetime()
-            val_start = val_df["captured_at"].min().to_pydatetime()
-            val_end = val_df["captured_at"].max().to_pydatetime()
+            train_start = pd.Timestamp(cv_weeks[0].start_time).tz_localize("UTC").to_pydatetime()
+            train_end = pd.Timestamp(cv_weeks[k].end_time).tz_localize("UTC").to_pydatetime()
+            val_start = pd.Timestamp(val_week.start_time).tz_localize("UTC").to_pydatetime()
+            val_end = pd.Timestamp(val_week.end_time).tz_localize("UTC").to_pydatetime()
 
             folds.append(
                 WalkForwardFold(
