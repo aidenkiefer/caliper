@@ -205,6 +205,7 @@ class ThresholdBacktester:
                 payload=payload,
             )
             events.append(event)
+        events.sort(key=lambda e: e.timestamp)
         return events
 
     def run_backtest(
@@ -320,6 +321,54 @@ class ThresholdBacktester:
             results.append(result)
 
         return results
+
+    async def persist_results(
+        self,
+        results: list,  # list of SimResult
+        db_url: str,
+    ) -> None:
+        """Persist SimResult objects to pm.simulation_runs via asyncpg.
+
+        Columns written:
+            run_id       — SimResult.run_id (UUID cast)
+            strategy_id  — SimResult.strategy_id
+            market_id    — SimResult.market_id
+            started_at   — SimResult.start_time
+            completed_at — SimResult.end_time
+            config       — SimResult.config  (segment metadata etc.)
+            result       — aggregated metrics JSON (pnl, fill_count, rates, pnl_components)
+        """
+        import asyncpg
+        import json
+
+        conn = await asyncpg.connect(db_url)
+        try:
+            for result in results:
+                result_payload = {
+                    "total_pnl": float(result.total_pnl),
+                    "fill_count": result.fill_count,
+                    "fill_rate": float(result.fill_rate),
+                    "maker_fill_rate": float(result.maker_fill_rate),
+                    "pnl_components": {k: float(v) for k, v in result.pnl_components.items()},
+                }
+                await conn.execute(
+                    """
+                    INSERT INTO pm.simulation_runs (
+                        run_id, strategy_id, market_id, started_at, completed_at,
+                        config, result
+                    ) VALUES ($1::uuid, $2, $3, $4, $5, $6::jsonb, $7::jsonb)
+                    ON CONFLICT (run_id) DO NOTHING
+                    """,
+                    result.run_id,
+                    result.strategy_id,
+                    result.market_id,
+                    result.start_time,
+                    result.end_time,
+                    json.dumps(result.config),
+                    json.dumps(result_payload),
+                )
+        finally:
+            await conn.close()
 
     def segment_results(
         self,
