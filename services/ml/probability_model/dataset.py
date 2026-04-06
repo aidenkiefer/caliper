@@ -19,6 +19,18 @@ from services.ml.probability_model.schemas import WalkForwardFold
 _TEST_WEEKS = 2
 
 
+def _to_utc(dt: datetime) -> pd.Timestamp:
+    """Convert *dt* to a UTC-aware :class:`pd.Timestamp`.
+
+    Handles both naive datetimes (localises to UTC) and already timezone-aware
+    datetimes (converts to UTC).  Compatible with pandas < 2.0 and >= 2.0,
+    which changed the behaviour of ``pd.Timestamp(dt, tz=...)`` when *dt* is
+    already timezone-aware (raising ``TypeError`` in pandas >= 2.0).
+    """
+    ts = pd.Timestamp(dt)
+    return ts.tz_convert("UTC") if ts.tzinfo is not None else ts.tz_localize("UTC")
+
+
 def _hour_key(captured_at: datetime) -> str:
     """Truncate a UTC datetime to the hour and return an ISO string."""
     ts = captured_at.replace(minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
@@ -134,14 +146,25 @@ class PanelBuilder:
         all_hour_keys = df["hour_key"].unique()
         latest_hour = max(all_hour_keys, key=lambda hk: pd.Timestamp(hk))
 
-        # For each closed hour, get the last snapshot's btc_distance_to_open
+        # For each closed hour, get the last snapshot's btc_distance_to_open.
+        # For the most-recent hour, only mark Y_h as NaN when the hour is still
+        # genuinely open (time_to_close_seconds > 1 on the last snapshot).
+        # If the final snapshot shows the hour is closed (time_to_close_seconds
+        # <= 1) we can safely derive the proxy label from that snapshot.
         hour_labels: dict[str, float] = {}
         for hk, group in df.groupby("hour_key"):
+            last_row = group.sort_values("t_minus_t0").iloc[-1]
             if hk == latest_hour:
-                # Cannot label the current/incomplete hour — no lookahead
-                hour_labels[hk] = np.nan
+                # Only withhold the label if the hour may be incomplete
+                time_to_close = float(last_row.get("time_to_close_seconds", 999))
+                if time_to_close > 1:
+                    # Hour still open — no lookahead, mark unknown
+                    hour_labels[hk] = np.nan
+                else:
+                    # Hour closed by the time of the last snapshot; use proxy label
+                    distance = float(last_row.get("btc_distance_to_open", 0))
+                    hour_labels[hk] = 1.0 if distance > 0.0 else 0.0
             else:
-                last_row = group.sort_values("t_minus_t0").iloc[-1]
                 distance = float(last_row["btc_distance_to_open"])
                 hour_labels[hk] = 1.0 if distance > 0.0 else 0.0
 
@@ -321,11 +344,13 @@ class PanelBuilder:
         elif df["captured_at"].dt.tz is None:
             df["captured_at"] = df["captured_at"].dt.tz_localize("UTC")
 
-        # Ensure fold bounds are timezone-aware for comparison
-        train_start = pd.Timestamp(fold.train_start, tz="UTC")
-        train_end = pd.Timestamp(fold.train_end, tz="UTC")
-        val_start = pd.Timestamp(fold.val_start, tz="UTC")
-        val_end = pd.Timestamp(fold.val_end, tz="UTC")
+        # Ensure fold bounds are timezone-aware for comparison.
+        # _to_utc handles both naive and already-tz-aware datetimes safely
+        # across pandas < 2.0 and >= 2.0.
+        train_start = _to_utc(fold.train_start)
+        train_end   = _to_utc(fold.train_end)
+        val_start   = _to_utc(fold.val_start)
+        val_end     = _to_utc(fold.val_end)
 
         train_mask = (df["captured_at"] >= train_start) & (df["captured_at"] <= train_end)
         val_mask = (df["captured_at"] >= val_start) & (df["captured_at"] <= val_end)
