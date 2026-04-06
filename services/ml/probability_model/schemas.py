@@ -44,9 +44,9 @@ class CalibrationBin(BaseModel):
 # BrierDecomposition — Murphy (1973) Brier score decomposition
 class BrierDecomposition(BaseModel):
     """Murphy (1973) decomposition: Brier = Reliability - Resolution + Uncertainty"""
-    reliability: Decimal    # weighted mean squared calibration error
-    resolution: Decimal     # weighted variance of bin means from base rate
-    uncertainty: Decimal    # y_bar * (1 - y_bar)
+    reliability: float    # weighted mean squared calibration error
+    resolution: float     # weighted variance of bin means from base rate
+    uncertainty: float    # y_bar * (1 - y_bar)
 
 
 # CalibrationReport — per-model calibration diagnostics

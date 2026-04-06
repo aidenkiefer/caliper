@@ -85,7 +85,10 @@ def _compute_brier_decomposition(
     reliability = 0.0
     resolution = 0.0
     for i in range(n_bins):
-        mask = (y_prob >= bin_edges[i]) & (y_prob < bin_edges[i+1])
+        if i == n_bins - 1:
+            mask = (y_prob >= bin_edges[i]) & (y_prob <= bin_edges[i + 1])
+        else:
+            mask = (y_prob >= bin_edges[i]) & (y_prob < bin_edges[i + 1])
         if mask.sum() == 0:
             continue
         n_k = mask.sum()
@@ -126,7 +129,10 @@ def _compute_ece(
     ece = 0.0
     bins: list[dict[str, float]] = []
     for i in range(n_bins):
-        mask = (y_prob >= bin_edges[i]) & (y_prob < bin_edges[i + 1])
+        if i == n_bins - 1:
+            mask = (y_prob >= bin_edges[i]) & (y_prob <= bin_edges[i + 1])
+        else:
+            mask = (y_prob >= bin_edges[i]) & (y_prob < bin_edges[i + 1])
         if mask.sum() == 0:
             bins.append(
                 {
