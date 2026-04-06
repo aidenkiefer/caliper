@@ -33,6 +33,7 @@ from .routers import (
     polymarket,
     features,
     simulation,
+    probability,
 )
 
 
@@ -220,6 +221,12 @@ app.include_router(
     simulation.router,
     prefix=API_V1_PREFIX,
     tags=["simulation"],
+)
+
+app.include_router(
+    probability.router,
+    prefix=API_V1_PREFIX,
+    tags=["probability"],
 )
 
 
