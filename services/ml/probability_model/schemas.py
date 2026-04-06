@@ -34,6 +34,13 @@ class LagTestResult(BaseModel):
     results: Dict[str, Any]  # JSONB-compatible; structure varies by test_type
 
 
+# CalibrationBin — one reliability-diagram bin
+class CalibrationBin(BaseModel):
+    bin_midpoint: Decimal
+    observed_freq: Decimal
+    predicted_freq: Decimal
+
+
 # CalibrationReport — per-model calibration diagnostics
 class CalibrationReport(BaseModel):
     report_id: UUID = Field(default_factory=uuid4)
@@ -42,7 +49,7 @@ class CalibrationReport(BaseModel):
     brier_score: Decimal
     ece: Decimal  # Expected Calibration Error
     auc: Optional[Decimal] = None
-    reliability: List[Dict[str, Any]]  # list of {bin_midpoint, observed_freq, predicted_freq}
+    reliability: List[CalibrationBin]
     needs_recal: bool  # True if ECE > 0.05 on rolling 7-day window
 
 
