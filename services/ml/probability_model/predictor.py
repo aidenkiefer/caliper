@@ -15,7 +15,7 @@ import asyncio
 import logging
 from datetime import datetime, timezone
 from decimal import Decimal
-from typing import Optional
+from typing import Any, Optional
 from uuid import uuid4
 
 import numpy as np
@@ -126,6 +126,7 @@ class ProbabilityPredictor:
         self._model_version = model_key.split("__")[0] + "_v1"
         self._backtester = ThresholdBacktester(epsilon_risk_buffer, slippage_estimate)
         self._db_url = db_url
+        self._pool: Optional[Any] = None
         self._running = False
 
         # Infer model_type from key prefix if not provided explicitly.
@@ -138,6 +139,23 @@ class ProbabilityPredictor:
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
+
+    async def connect_db(self) -> None:
+        """Initialize asyncpg connection pool for DB writes."""
+        if self._db_url is None:
+            return
+        try:
+            import asyncpg
+            self._pool = await asyncpg.create_pool(self._db_url, min_size=1, max_size=3)
+        except Exception as e:
+            logger.error("Failed to create DB pool: %s", e)
+            self._pool = None
+
+    async def close_db(self) -> None:
+        """Close the connection pool."""
+        if self._pool is not None:
+            await self._pool.close()
+            self._pool = None
 
     async def load_model(self) -> None:
         """Load the trained calibrated model from the registry (async-safe wrapper)."""
@@ -295,45 +313,50 @@ class ProbabilityPredictor:
     # Async DB write
     # ------------------------------------------------------------------
 
+    async def _execute_insert(self, conn: Any, record: PredictionRecord) -> None:
+        """Execute the INSERT statement for a prediction record on *conn*."""
+        await conn.execute(
+            """
+            INSERT INTO pm.probability_predictions
+            (record_id, market_id, token_id, predicted_at, p_hat, implied_prob,
+             mispricing, threshold_met, model_version)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            """,
+            str(record.record_id),
+            record.market_id,
+            record.token_id,
+            record.predicted_at,
+            float(record.p_hat),
+            float(record.implied_probability),
+            float(record.mispricing),
+            record.threshold_met,
+            record.model_version,
+        )
+
     async def _write_to_db(self, record: PredictionRecord) -> None:
         """Fire-and-forget async write to ``pm.probability_predictions``.
 
-        Failures are logged but do not propagate — the prediction loop must
-        not be blocked by DB latency or transient connectivity errors.
+        Uses the connection pool when available; falls back to a one-shot
+        connection otherwise.  Failures are logged but do not propagate —
+        the prediction loop must not be blocked by DB latency or transient
+        connectivity errors.
         """
         if self._db_url is None:
             return
         try:
             import asyncpg  # optional runtime dependency
 
-            conn = await asyncpg.connect(self._db_url)
-            try:
-                await conn.execute(
-                    """
-                    INSERT INTO pm.probability_predictions
-                    (record_id, market_id, token_id, predicted_at, p_hat, implied_prob,
-                     mispricing, threshold_met, model_version)
-                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                    """,
-                    str(record.record_id),
-                    record.market_id,
-                    record.token_id,
-                    record.predicted_at,
-                    float(record.p_hat),
-                    float(record.implied_probability),
-                    float(record.mispricing),
-                    record.threshold_met,
-                    record.model_version,
-                )
-            finally:
-                await conn.close()
-        except Exception as exc:
-            logger.error(
-                "DB write failed for record %s: %s",
-                record.record_id,
-                exc,
-                exc_info=True,
-            )
+            if self._pool is not None:
+                async with self._pool.acquire() as conn:
+                    await self._execute_insert(conn, record)
+            else:
+                conn = await asyncpg.connect(self._db_url)
+                try:
+                    await self._execute_insert(conn, record)
+                finally:
+                    await conn.close()
+        except Exception as e:
+            logger.error("DB write failed for record %s: %s", record.record_id, e)
 
     # ------------------------------------------------------------------
     # Async run loop
@@ -398,6 +421,23 @@ class ProbabilityPredictor:
                 )
                 input_queue.task_done()
                 continue
+
+            # AC-6 latency measurement: predicted_at − captured_at must be < 200 ms.
+            captured_at = snapshot.captured_at
+            if captured_at.tzinfo is None:
+                captured_at = captured_at.replace(tzinfo=timezone.utc)
+            latency_ms = (record.predicted_at - captured_at).total_seconds() * 1000
+            logger.debug(
+                "AC-6 latency market_id=%s latency_ms=%.1f",
+                snapshot.market_id,
+                latency_ms,
+            )
+            if latency_ms > 200.0:
+                logger.warning(
+                    "AC-6 latency budget exceeded: %.1f ms > 200 ms (market_id=%s)",
+                    latency_ms,
+                    snapshot.market_id,
+                )
 
             # Async DB write — fire and forget; must not block the prediction loop.
             asyncio.create_task(self._write_to_db(record))
