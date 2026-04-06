@@ -68,10 +68,12 @@ class LagTestRunner:
         """
         try:
             work = df.copy()
-            work = work.sort_values("predicted_at").reset_index(drop=True)
             work["predicted_at"] = pd.to_datetime(work["predicted_at"])
+            if work["predicted_at"].dt.tz is not None:
+                work = work.copy()
+                work["predicted_at"] = work["predicted_at"].dt.tz_localize(None)
+            work = work.sort_values("predicted_at").reset_index(drop=True)
             work = work.set_index("predicted_at")
-            work.index = work.index.tz_localize(None) if work.index.tzinfo is not None else work.index
 
             mispricing = work["mispricing"].astype(float)
             implied = work["implied_probability"].astype(float)
@@ -93,8 +95,8 @@ class LagTestRunner:
                     correlations.append(corr)
 
             n_obs = len(mispricing.dropna())
-            valid_corrs = [(h, c) for h, c in zip(self.HORIZONS_SECONDS, correlations) if not np.isnan(c) and c > 0]
-            peak_horizon = max(valid_corrs, key=lambda x: x[1])[0] if valid_corrs else self.HORIZONS_SECONDS[0]
+            non_nan = [(h, c) for h, c in zip(self.HORIZONS_SECONDS, correlations) if not np.isnan(c)]
+            peak_horizon = max(non_nan, key=lambda x: x[1])[0] if non_nan else None
 
             return LagTestResult(
                 run_at=datetime.now(tz=timezone.utc),
@@ -211,13 +213,12 @@ class LagTestRunner:
         try:
             work = df.copy()
             work["predicted_at"] = pd.to_datetime(work["predicted_at"])
+            if work["predicted_at"].dt.tz is not None:
+                work = work.copy()
+                work["predicted_at"] = work["predicted_at"].dt.tz_localize(None)
             work = work.sort_values("predicted_at").reset_index(drop=True)
             work["implied_probability"] = work["implied_probability"].astype(float)
             work["mispricing"] = work["mispricing"].astype(float)
-
-            # Normalize timestamps to naive for arithmetic
-            if work["predicted_at"].dt.tz is not None:
-                work["predicted_at"] = work["predicted_at"].dt.tz_localize(None)
 
             windows_labels = ["T-10m", "T-5m", "T-2m", "T-1m"]
             windows_seconds = [600, 300, 120, 60]
@@ -227,6 +228,7 @@ class LagTestRunner:
             groups = work.groupby("hour")
 
             event_deltas: list[list[float]] = [[] for _ in windows_labels]
+            n_qualifying_hours = 0
 
             for hour_ts, grp in groups:
                 grp = grp.sort_values("predicted_at").reset_index(drop=True)
@@ -242,6 +244,8 @@ class LagTestRunner:
                 if abs(t0_m) <= theta:
                     continue
 
+                n_qualifying_hours += 1
+
                 # For each window, find the closest snapshot to t_0 + offset
                 for i, offset_s in enumerate(windows_seconds):
                     target_ts = t0_ts + pd.Timedelta(seconds=offset_s)
@@ -251,7 +255,7 @@ class LagTestRunner:
                     delta = float(nearest_row["implied_probability"]) - float(t0_ppm)
                     event_deltas[i].append(delta)
 
-            n_hours = len(event_deltas[0]) if event_deltas else 0
+            n_hours = n_qualifying_hours
 
             avg_delta_ppm: list[Optional[float]] = []
             ci_lower: list[Optional[float]] = []
@@ -321,11 +325,11 @@ class LagTestRunner:
         try:
             work = df.copy()
             work["predicted_at"] = pd.to_datetime(work["predicted_at"])
+            if work["predicted_at"].dt.tz is not None:
+                work = work.copy()
+                work["predicted_at"] = work["predicted_at"].dt.tz_localize(None)
             work = work.sort_values("predicted_at").reset_index(drop=True)
             work["mispricing"] = work["mispricing"].astype(float)
-
-            if work["predicted_at"].dt.tz is not None:
-                work["predicted_at"] = work["predicted_at"].dt.tz_localize(None)
 
             work = work.set_index("predicted_at")
             m_series = work["mispricing"]
