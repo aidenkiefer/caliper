@@ -181,6 +181,7 @@ class ModelTrainer:
         self.model_type: ModelType = model_type
         self.random_state = random_state
         self._model_version = f"{model_type}_v1"
+        self._feature_names_: list[str] = []
 
     # ------------------------------------------------------------------
     # Feature matrix construction
@@ -258,14 +259,22 @@ class ModelTrainer:
         # Fill any remaining NaNs with 0 (simple imputation for missing optionals).
         working = working.fillna(0.0)
 
+        # Store feature names for importance reporting (base features before interactions).
+        feature_names: list[str] = list(working.columns)
+
         X = working.values  # shape (n_samples, n_base_features)
 
-        # Append interaction terms for the logistic model.
+        # Append interaction terms for the logistic model only.
+        # GBT discovers non-linear relationships itself.
         if self.model_type == "logistic":
             int1 = (btc_dist_raw * time_to_close_raw).reshape(-1, 1)
             int2 = (order_imb_raw * time_to_close_raw).reshape(-1, 1)
             int3 = (btc_rv5m_raw * time_to_close_raw).reshape(-1, 1)
             X = np.hstack([X, int1, int2, int3])
+            feature_names = feature_names + _INTERACTION_NAMES
+
+        # Cache feature names for later use (e.g. feature importances).
+        self._feature_names_ = feature_names
 
         return X.astype(np.float64), y
 
@@ -309,15 +318,11 @@ class ModelTrainer:
         ------
         ValueError
             If *train_df* contains fewer than ``_MIN_TRAIN_ROWS`` labeled rows.
-        NotImplementedError
-            If ``model_type="gbt"`` (implemented in Task 14-04).
         """
-        if self.model_type == "gbt":
-            raise NotImplementedError("GBT model implemented in Task 14-04")
-
         # --- Build feature matrices ---
         X_train, y_train = self.build_feature_matrix(train_df)
         X_val, y_val = self.build_feature_matrix(val_df)
+        feature_names = list(self._feature_names_)
 
         # --- Minimum sample guard ---
         if len(X_train) < _MIN_TRAIN_ROWS:
@@ -326,6 +331,96 @@ class ModelTrainer:
                 f"but at least {_MIN_TRAIN_ROWS} are required "
                 f"(24 h/day × 4 weeks = {_MIN_TRAIN_ROWS} hours)."
             )
+
+        if self.model_type == "gbt":
+            # --- Build base GBT estimator (XGBoost with sklearn fallback) ---
+            try:
+                from xgboost import XGBClassifier
+                base_model = XGBClassifier(
+                    max_depth=4,
+                    n_estimators=200,
+                    learning_rate=0.05,
+                    subsample=0.8,
+                    colsample_bytree=0.8,
+                    use_label_encoder=False,
+                    eval_metric="logloss",
+                    random_state=self.random_state,
+                )
+            except ImportError:
+                from sklearn.ensemble import GradientBoostingClassifier
+                base_model = GradientBoostingClassifier(
+                    max_depth=4,
+                    n_estimators=200,
+                    learning_rate=0.05,
+                    subsample=0.8,
+                    random_state=self.random_state,
+                )
+
+            # --- Tune n_estimators via 3-fold CV if requested ---
+            # tune_C flag is reused as the general hyperparameter tuning flag.
+            best_n_estimators = 200
+            if tune_C:
+                best_score = -np.inf
+                for n_est in [100, 200, 300]:
+                    base_model.set_params(n_estimators=n_est)
+                    scores = cross_val_score(
+                        base_model,
+                        X_train,
+                        y_train,
+                        cv=3,
+                        scoring="neg_brier_score",
+                    )
+                    mean_score = float(scores.mean())
+                    if mean_score > best_score:
+                        best_score = mean_score
+                        best_n_estimators = n_est
+                base_model.set_params(n_estimators=best_n_estimators)
+
+            # --- Fit base GBT on training set ---
+            base_model.fit(X_train, y_train)
+
+            # --- Isotonic calibration on validation fold ---
+            calibrated = CalibratedClassifierCV(
+                estimator=base_model,
+                method="isotonic",
+                cv="prefit",
+            )
+            calibrated.fit(X_val, y_val)
+
+            # --- Evaluate calibrated model on validation fold ---
+            cal_report = self.evaluate(calibrated, X_val, y_val)
+
+            # --- Feature importances from the fitted base model ---
+            feature_importances: dict[str, float] = {}
+            if hasattr(base_model, "feature_importances_"):
+                feature_importances = dict(
+                    zip(feature_names, base_model.feature_importances_.tolist())
+                )
+
+            fold_metrics = {
+                "brier_score": float(cal_report.brier_score),
+                "ece": float(cal_report.ece),
+                "auc": float(cal_report.auc) if cal_report.auc is not None else None,
+                "best_n_estimators": best_n_estimators,
+                "n_train": len(X_train),
+                "n_val": len(X_val),
+            }
+
+            result: dict[str, Any] = {
+                "model": base_model,
+                "calibrated_model": calibrated,
+                "brier_score": float(cal_report.brier_score),
+                "ece": float(cal_report.ece),
+                "auc": float(cal_report.auc) if cal_report.auc is not None else None,
+                "reliability": [b.model_dump() for b in cal_report.reliability],
+                "fold_metrics": fold_metrics,
+                "model_version": self._model_version,
+            }
+            if feature_importances:
+                result["feature_importances"] = feature_importances
+            return result
+
+        # --- Logistic regression path ---
 
         # --- Hyperparameter tuning ---
         best_C = 1.0
