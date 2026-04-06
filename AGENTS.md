@@ -19,6 +19,7 @@ Quantitative ML trading platform with backtesting, risk management, and a Next.j
 ## Where to look
 
 - **Docs index:** `docs/INDEX.md`
+- **User guide (humans):** `docs/user-guide.md`
 - **Workflow:** `docs/workflow/workflow.md`
 - **Specs:** `docs/plans/specs/`
 - **Tickets:** `docs/plans/tickets/`

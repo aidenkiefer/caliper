@@ -1,25 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useMetrics, useAlerts } from "@/lib/hooks";
-import { StatsCard } from "@/components/stats-card";
-import { EquityChart } from "@/components/equity-chart";
+import { ArrowRight, Activity, Brain, DollarSign, TrendingUp, Wallet } from "lucide-react";
+
 import { AlertsWidget } from "@/components/alerts-widget";
 import { BaselineComparison } from "@/components/baseline-comparison";
-import { DollarSign, TrendingUp, Activity, Wallet, Brain, ArrowRight } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { HelpHint } from "@/components/help-hint";
+import { ComparisonTable, FleetOverview, RankerTable, RegimeTimeline, SignalLog } from "@/components/sprint-16";
+import { EquityChart } from "@/components/equity-chart";
+import { StatsCard } from "@/components/stats-card";
+import { StatusBadge } from "@/components/status-badge";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAlerts, useFleetSignals, useFleetStatus, useMetrics, useRankingUniverse } from "@/lib/hooks";
 
 export default function OverviewPage() {
   const { metrics } = useMetrics();
   const { alerts } = useAlerts();
+  const { rankedUniverse } = useRankingUniverse();
+  const { fleetStatus } = useFleetStatus();
+  const { signals } = useFleetSignals(50);
 
-  const formatCurrency = (value: string) => {
-    return new Intl.NumberFormat("en-US", {
+  const formatCurrency = (value: string) =>
+    new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: "USD",
     }).format(parseFloat(value));
-  };
 
   const formatPercent = (value: string) => {
     const num = parseFloat(value);
@@ -32,7 +39,10 @@ export default function OverviewPage() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Cards */}
+      <div className="flex flex-wrap items-center gap-2">
+        <h2 className="text-lg font-semibold tracking-tight">Portfolio summary</h2>
+        <HelpHint helpId="overview-kpis" label="Portfolio KPIs" />
+      </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total P&L"
@@ -64,44 +74,59 @@ export default function OverviewPage() {
         />
       </div>
 
-      {/* Main Content */}
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Equity curve</h3>
+            <HelpHint helpId="overview-equity-chart" label="Equity curve" />
+          </div>
           <EquityChart data={metrics.equity_curve} />
         </div>
-        <div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Alerts</h3>
+            <HelpHint helpId="overview-alerts" label="Alerts" />
+          </div>
           <AlertsWidget alerts={alerts} />
         </div>
       </div>
 
-      {/* Additional Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatsCard
-          title="Win Rate"
-          value={`${(parseFloat(metrics.win_rate) * 100).toFixed(0)}%`}
-          change={`${metrics.total_trades} total trades`}
-          changeType="neutral"
-        />
-        <StatsCard
-          title="Active Positions"
-          value={metrics.active_positions.toString()}
-          change="Across all strategies"
-          changeType="neutral"
-        />
-        <StatsCard
-          title="Available Capital"
-          value={formatCurrency(metrics.available_capital)}
-          change="Ready to deploy"
-          changeType="neutral"
-        />
-      </div>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-4">
+          <div className="space-y-2">
+            <CardTitle className="flex flex-wrap items-center gap-2">
+              <Brain className="h-5 w-5" />
+              Sprint 16 Fleet Control
+              <HelpHint helpId="sprint16-fleet" label="Sprint 16 fleet" />
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Cross-sectional ranking, paper-trading fleet status, signal logs, and regime overlays.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center">
+            <StatusBadge status="mock" />
+            <Badge variant="outline">Paper mode</Badge>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-6 xl:grid-cols-2">
+            <RankerTable universe={rankedUniverse} />
+            <FleetOverview fleetStatus={fleetStatus} />
+          </div>
+          <div className="grid gap-6 xl:grid-cols-2">
+            <SignalLog signals={signals} />
+            <RegimeTimeline points={fleetStatus.regime_timeline} />
+          </div>
+          <ComparisonTable rows={fleetStatus.comparison} />
+        </CardContent>
+      </Card>
 
-      {/* Model Observatory (Sprint 9) */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5" />
             Model Observatory
+            <HelpHint helpId="model-observatory" label="Model Observatory" />
           </CardTitle>
           <Button variant="outline" size="sm" asChild>
             <Link href="/models" className="flex items-center gap-1">
@@ -117,18 +142,17 @@ export default function OverviewPage() {
         </CardContent>
       </Card>
 
-      {/* Baseline Comparison */}
       <BaselineComparison
         strategyReturn={parseFloat(metrics.total_pnl_percent) / 100}
         baselineReturns={{
           hold_cash: 0.0,
-          buy_and_hold: 0.12, // Mock 12% annual return
+          buy_and_hold: 0.12,
           random: 0.05,
         }}
         regretMetrics={{
           regret_vs_cash: parseFloat(metrics.total_pnl_percent) / 100,
-          regret_vs_buy_hold: (parseFloat(metrics.total_pnl_percent) / 100) - 0.12,
-          regret_vs_random: (parseFloat(metrics.total_pnl_percent) / 100) - 0.05,
+          regret_vs_buy_hold: parseFloat(metrics.total_pnl_percent) / 100 - 0.12,
+          regret_vs_random: parseFloat(metrics.total_pnl_percent) / 100 - 0.05,
         }}
         outperforms={{
           cash: parseFloat(metrics.total_pnl_percent) > 0,

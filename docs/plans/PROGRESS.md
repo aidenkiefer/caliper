@@ -52,8 +52,8 @@ Track major work blocks, features, and versions in this table.
 | **v2.2.0** | **Sprint 12: Feature layer unification**               | Done   | 2026-04-04 | 0         | `docs/plans/specs/sprint-12-feature-layer-spec.md`              | Unified feature pipeline: 4 families (market state, microstructure, probabilistic, regime); `FeatureSnapshot`; `CLOBSource`/`BinanceSource`; `FeatureBuilder`; `pm.features`; `FeatureStore`; session + API; tests. Tickets: `docs/plans/tickets/12-00-INDEX.md`. |
 | **v2.3.0** | **Sprint 13: Simulation + evaluation engine**          | Done   | 2026-04-05 | 0         | `docs/plans/specs/sprint-13-simulation-evaluation-spec.md`      | `services/simulation/` (replay, order book, fees, execution sim, adverse selection, validation, runner); `services/evaluation/` (metrics, regime matrix, baselines, reports); `pm.simulation_runs` / `pm.evaluation_reports` / `pm.simulation_validation`; `/v1/simulation/*` + `/v1/evaluation/*` (stub responses until wired to DB). Tickets: `docs/plans/tickets/13-00-INDEX.md`. Summary: `docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md`. |
 | **v2.4.0** | **Sprint 14: BTC probability model**                   | Done   | 2026-04-08 | 1         | `docs/plans/specs/sprint-14-probability-model-spec.md`          | `services/ml/probability_model/` (dataset, trainer, registry/GBT, lag tests, fee-aware backtest, predictor, drift); Alembic `005_*`; `/v1/probability/*` (stub/mock responses until wired to live DB reads). **Deferred:** spec **AC-9** unit + integration tests — see backlog + `docs/plans/tickets/14-00-INDEX.md` task **14-11**. Summary: `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md`. |
-| **v2.5.0** | **Sprint 15: Regime detection + dynamic allocation**   | Spec   | —          | —         | `docs/plans/specs/sprint-15-regime-allocation-spec.md`        | Global + local regime detection (HMM + threshold); 5 regimes; strategy→regime performance matrix; HRP + risk parity + Kelly allocator; online adaptation. |
-| **v2.6.0** | **Sprint 16: Cross-sectional ranking + model fleet**   | Spec   | —          | —         | `docs/plans/specs/sprint-16-cross-sectional-fleet-spec.md`      | Multi-market edge ranking; 4 fleet strategies (MM v2, Directional, Hybrid, Regime-Aware); paper trading orchestrator; per-model dashboards. |
+| **v2.5.0** | **Sprint 15: Regime detection + dynamic allocation**   | Done   | 2026-04-06 | 0         | `docs/plans/specs/sprint-15-regime-allocation-spec.md`        | Implemented `services/regime/` + `services/allocation/` + Alembic `006_create_regime_allocation_tables.py`; API router `services/api/routers/regime.py`; tickets `docs/plans/tickets/15-*`; added unit/integration tests under `tests/unit/` (not executed in this workflow). Summary: `docs/plans/summaries/SPRINT-15-REGIME-ALLOCATION.md`. |
+| **v2.6.0** | **Sprint 16: Cross-sectional ranking + model fleet**   | Done   | 2026-04-06 | 0         | `docs/plans/specs/sprint-16-cross-sectional-fleet-spec.md`      | Implemented `services/ranking/` (universe + edge + feasibility + scoring + cooldown selection), `services/fleet/` (paper-mode orchestrator + paper-trade store), strategies `packages/strategies/poly_*_v1.py` + `poly_mm_v2.py`, Alembic `007_create_pm_paper_trades_table.py`, API routers (`services/api/routers/ranking.py`, `services/api/routers/fleet.py`), and dashboard panels under `apps/dashboard/src/components/sprint-16/`. Tickets: `docs/plans/tickets/16-*`. Summary: `docs/plans/summaries/SPRINT-16-CROSS-SECTIONAL-FLEET.md`. |
 | **v2.7.0** | **Sprint 17: Reward density + wallet intelligence + signal aggregation** | Spec | — | —    | `docs/plans/specs/sprint-17-reward-density-wallet-spec.md`    | On-chain maker HHI; wallet profiling + clustering; composite signal aggregation; model lifecycle (promote/pause/retire). |
 
 
@@ -68,6 +68,9 @@ Log smaller fixes, UI tweaks, docs updates, or tooling improvements here—work 
 
 | Version       | Patch work item                                                                               | Completed  | Area               | Notes / reference                                                                |
 | ------------- | --------------------------------------------------------------------------------------------- | ---------- | ------------------ | -------------------------------------------------------------------------------- |
+| **v2.6.0-p1** | Sprint 16 tickets 16-01..16-13: cross-sectional ranking + model fleet (paper)                 | 2026-04-06 | Ranking / fleet    | `services/ranking/` ranker + selection + cooldown; 4 fleet strategies in `packages/strategies/`; `services/fleet/` orchestrator + `pm.paper_trades` store + migration `007_*`; API endpoints `/v1/ranking/*` and `/v1/fleet/*`; dashboard panels under `apps/dashboard/src/components/sprint-16/`; unit/integration tests added (not executed in this workflow). |
+| **v2.6.0-p2** | Dashboard UI phase 1: getting started, platform map, HelpHint tooltips + mobile sheet, FeatureSnapshot explorer | 2026-04-06 | Dashboard | Routes `/start`, `/platform`, `/platform/features`; `HelpHint`, `StatusBadge`, `DashboardFrame` dynamic titles; sidebar links; Overview mock badge + hints; `fetchFeatureLatest` / `fetchFeatureHistory` + `ApiHttpError` in `apps/dashboard/src/lib/api.ts`. Design spec `docs/superpowers/specs/2026-04-06-dashboard-ui-overhaul-design.md`. Summary: `docs/plans/summaries/DASHBOARD-UI-OVERHAUL-2026-04.md`. |
+| **v2.6.0-p3** | Dashboard UI phase 2: thin explorers for Polymarket sessions, regime/allocation, probability, simulation/evaluation, ranking/fleet, equities hub | 2026-04-04 | Dashboard | Routes `/platform/polymarket`, `/platform/polymarket/[sessionId]`, `/platform/regime-allocation`, `/platform/probability`, `/platform/simulation`, `/platform/ranking-fleet`, `/platform/equities`; shared `ExplorerPageHeader`, `JsonBlock`; `lib/types/explorers.ts`; extended `api.ts` (`fetchJson`, Polymarket/regime/probability/simulation helpers; ranking/fleet/paper-trades use `fetchJson` for `ApiHttpError`); `platform-capabilities.ts` hub hrefs; `DashboardFrame` titles; `components/ui/textarea.tsx` for simulation config JSON. Design spec §8 P2–P7. Summary: `docs/plans/summaries/DASHBOARD-UI-OVERHAUL-2026-04.md`. |
 | **v1.8.1**    | Install workflow-core suite (docs/workflow + PROGRESS)                                        | 2026-03-25 | Docs / workflow    | Adds bounded ticket workflow, execution rules, and progress log                  |
 | **v1.8.2**    | Tighten workflow routing to match real repo paths and skills                                  | 2026-03-25 | Docs / workflow    | Adds `docs/INDEX.md`, repo-accurate task routing, and stronger skill mapping     |
 | **v2.0.0-p1** | Polymarket tickets 1-5: scaffolding, Gamma/CLOB/Binance clients, wallet management            | 2026-03-25 | Polymarket service | `docs/plans/tickets/10-01` through `10-05`; 15 new files, 55+ unit tests         |
@@ -128,6 +131,7 @@ Items discussed or spec'd but not yet fully implemented. Track deferred features
 | **Future phase** | Polymarket Phase 2+ (inventory skew, dynamic spread, hybrid model) | `docs/plans/specs/polymarket-btc-trading-spec.md` §10 | V1 complete; tune from `pm.*` data before funded scale-up; folded into v2.2.0+ sprint plan |
 | **Fix / patch**  | Render API server issue                              | `docs/render-api-server-issue.md` | Existing issue doc suggests deployment/runtime follow-up work        |
 | **Deferred**     | Sprint 14 spec **AC-9** — unit + integration tests for probability model | `docs/plans/specs/sprint-14-probability-model-spec.md` § AC-9; `docs/plans/tickets/14-00-INDEX.md` (14-11) | Library + API + migration merged; dedicated pytest suite not yet added |
+| **Follow-up**    | Sprint 16 — wire `/v1/ranking/*` and `/v1/fleet/*` to `MarketRanker`, `PaperTradeStore`, orchestrator | `docs/api-contracts.md` (Sprint 15 vs 16 note); `services/api/routers/ranking.py`, `fleet.py` | Libraries + `pm.paper_trades` writes exist; HTTP handlers still return mock payloads |
 
 
 ---
@@ -160,8 +164,8 @@ If your project maintains linked specs, summaries, or concept docs, index them h
 | [Sprint 12: Feature layer unification](docs/plans/specs/sprint-12-feature-layer-spec.md) | Unified feature pipeline: market state, microstructure, probabilistic, regime — tickets at `docs/plans/tickets/12-*` |
 | [Sprint 13: Simulation + evaluation engine](docs/plans/specs/sprint-13-simulation-evaluation-spec.md) | Polymarket CLOB replay + evaluation metrics; tickets `13-*`; summary [SPRINT-13-SIMULATION-EVALUATION.md](docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md) |
 | [Sprint 14: BTC probability model](docs/plans/specs/sprint-14-probability-model-spec.md) | `services/ml/probability_model/`; migration `005`; `/v1/probability/*`; **AC-9 tests open** — [14-00-INDEX.md](docs/plans/tickets/14-00-INDEX.md); summary [SPRINT-14-PROBABILITY-MODEL.md](docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md) |
-| [Sprint 15: Regime detection + dynamic allocation](docs/plans/specs/sprint-15-regime-allocation-spec.md) *(planned)* | HMM/threshold regimes, strategy performance matrix, HRP allocator |
-| [Sprint 16: Cross-sectional ranking + model fleet](docs/plans/specs/sprint-16-cross-sectional-fleet-spec.md) *(planned)* | Multi-market edge ranking, 3–5 competing model fleet |
+| [Sprint 15: Regime detection + dynamic allocation](docs/plans/specs/sprint-15-regime-allocation-spec.md) *(done)* | HMM/threshold regimes, strategy performance matrix, HRP allocator — summary [SPRINT-15-REGIME-ALLOCATION.md](docs/plans/summaries/SPRINT-15-REGIME-ALLOCATION.md) |
+| [Sprint 16: Cross-sectional ranking + model fleet](docs/plans/specs/sprint-16-cross-sectional-fleet-spec.md) *(done)* | Cross-sectional ranker, 4-strategy fleet + paper-mode orchestrator, dashboard panels — summary [SPRINT-16-CROSS-SECTIONAL-FLEET.md](docs/plans/summaries/SPRINT-16-CROSS-SECTIONAL-FLEET.md) |
 | [Sprint 17: Reward density + wallet intelligence](docs/plans/specs/sprint-17-reward-density-wallet-spec.md) *(planned)* | On-chain HHI, wallet intelligence, composite signal aggregation |
 
 
@@ -177,6 +181,8 @@ If your project maintains linked specs, summaries, or concept docs, index them h
 | `docs/plans/tickets/12-*` | Sprint 12 feature layer unification tickets |
 | `docs/plans/tickets/13-*` | Sprint 13 simulation + evaluation engine tickets |
 | `docs/plans/tickets/14-00-INDEX.md` | Sprint 14 probability model task index (14-11 tests deferred) |
+| `docs/plans/tickets/15-*` | Sprint 15 regime detection + dynamic allocation tickets |
+| `docs/plans/tickets/16-*` | Sprint 16 cross-sectional ranking + model fleet tickets |
 
 
 ### Summaries (`docs/plans/` and `docs/`)
@@ -197,11 +203,12 @@ If your project maintains linked specs, summaries, or concept docs, index them h
 | `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md` | Sprint 10 complete (all 20 tickets, runbook) |
 | `docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md` | Sprint 13: simulation + evaluation engine (scope, modules, API, next steps) |
 | `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md` | Sprint 14: BTC probability model (modules, migration, API, AC-9 gap) |
+| `docs/plans/summaries/SPRINT-15-REGIME-ALLOCATION.md` | Sprint 15: regime + allocation (`006`, live regime/allocation API reads) |
+| `docs/plans/summaries/SPRINT-16-CROSS-SECTIONAL-FLEET.md` | Sprint 16: ranking + fleet (`007`, mock ranking/fleet HTTP until wired) |
+| `docs/plans/summaries/DASHBOARD-UI-OVERHAUL-2026-04.md` | Dashboard UI overhaul: phase 1 (`v2.6.0-p2`) + phase 2 platform explorers (`v2.6.0-p3`) |
 
 ### Runbooks (`docs/runbooks/`)
 
 | Runbook                                   | Purpose                                        |
 | ----------------------------------------- | ---------------------------------------------- |
 | `docs/runbooks/polymarket-operations.md` | Complete operations guide for Polymarket bot |
-
-

@@ -2,6 +2,8 @@
 
 import { SWRConfig } from "swr";
 
+import { TooltipProvider } from "@/components/ui/tooltip";
+
 interface ProvidersProps {
   children: React.ReactNode;
 }
@@ -15,7 +17,9 @@ export function Providers({ children }: ProvidersProps) {
         dedupingInterval: 2000,
       }}
     >
-      {children}
+      <TooltipProvider delayDuration={200} skipDelayDuration={0}>
+        {children}
+      </TooltipProvider>
     </SWRConfig>
   );
 }

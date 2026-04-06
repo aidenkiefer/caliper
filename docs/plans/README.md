@@ -39,8 +39,10 @@ This folder is the **single home** for planning docs (the old repository root `p
 | [specs/sprint-12-feature-layer-spec.md](specs/sprint-12-feature-layer-spec.md) | **Sprint 12:** Polymarket feature layer — `FeatureSnapshot`, sources, builder, `pm.features`, store, API (v2.2.0). |
 | [specs/sprint-13-simulation-evaluation-spec.md](specs/sprint-13-simulation-evaluation-spec.md) | **Sprint 13:** CLOB simulation + evaluation — `services/simulation/`, `services/evaluation/`, `pm.*` tables, API (v2.3.0). |
 | [specs/sprint-14-probability-model-spec.md](specs/sprint-14-probability-model-spec.md) | **Sprint 14:** BTC probability model — `services/ml/probability_model/`, migration `005`, `/v1/probability/*` (v2.4.0; **AC-9 tests deferred**). |
+| [specs/sprint-15-regime-allocation-spec.md](specs/sprint-15-regime-allocation-spec.md) | **Sprint 15:** Regime detection + dynamic allocation — `services/regime/`, `services/allocation/`, migration `006`, `/v1/regime/*`, `/v1/allocation/*` (v2.5.0; **live DB reads** when `DB_URL` set). |
+| [specs/sprint-16-cross-sectional-fleet-spec.md](specs/sprint-16-cross-sectional-fleet-spec.md) | **Sprint 16:** Cross-sectional ranking + paper fleet — `services/ranking/`, `services/fleet/`, migration `007`, `/v1/ranking/*`, `/v1/fleet/*` (v2.6.0; **HTTP mock** until wired — see [../api-contracts.md](../api-contracts.md)). |
 
-Sprints 7–9 specs reference skills from [task_plan.md](task_plan.md) where applicable. Sprint 10 was executed as 20 tickets (`10-01`–`10-20`); see [summaries/SPRINT-10-POLYMARKET-COMPLETE.md](summaries/SPRINT-10-POLYMARKET-COMPLETE.md). Sprints 12–13 use ticket indices [tickets/12-00-INDEX.md](tickets/12-00-INDEX.md) and [tickets/13-00-INDEX.md](tickets/13-00-INDEX.md); Sprint 13 narrative: [summaries/SPRINT-13-SIMULATION-EVALUATION.md](summaries/SPRINT-13-SIMULATION-EVALUATION.md). Sprint 14 task index: [tickets/14-00-INDEX.md](tickets/14-00-INDEX.md); summary: [summaries/SPRINT-14-PROBABILITY-MODEL.md](summaries/SPRINT-14-PROBABILITY-MODEL.md).
+Sprints 7–9 specs reference skills from [task_plan.md](task_plan.md) where applicable. Sprint 10 was executed as 20 tickets (`10-01`–`10-20`); see [summaries/SPRINT-10-POLYMARKET-COMPLETE.md](summaries/SPRINT-10-POLYMARKET-COMPLETE.md). Sprints 12–13 use ticket indices [tickets/12-00-INDEX.md](tickets/12-00-INDEX.md) and [tickets/13-00-INDEX.md](tickets/13-00-INDEX.md); Sprint 13 narrative: [summaries/SPRINT-13-SIMULATION-EVALUATION.md](summaries/SPRINT-13-SIMULATION-EVALUATION.md). Sprint 14 task index: [tickets/14-00-INDEX.md](tickets/14-00-INDEX.md); summary: [summaries/SPRINT-14-PROBABILITY-MODEL.md](summaries/SPRINT-14-PROBABILITY-MODEL.md). Sprint 15–16: [tickets/15-00-INDEX.md](tickets/15-00-INDEX.md), [tickets/16-00-INDEX.md](tickets/16-00-INDEX.md); summaries: [summaries/SPRINT-15-REGIME-ALLOCATION.md](summaries/SPRINT-15-REGIME-ALLOCATION.md), [summaries/SPRINT-16-CROSS-SECTIONAL-FLEET.md](summaries/SPRINT-16-CROSS-SECTIONAL-FLEET.md); milestone notes: [PROGRESS.md](PROGRESS.md).
 
 ## Tickets
 
@@ -104,6 +106,18 @@ Sprints 7–9 specs reference skills from [task_plan.md](task_plan.md) where app
 | Index | Description |
 |-------|-------------|
 | [tickets/14-00-INDEX.md](tickets/14-00-INDEX.md) | Task list `14-01`–`14-11` (schemas → API; **AC-9** open) |
+
+**Sprint 15 (Regime + allocation)** — ✅ complete (2026-04-06)
+
+| Index | Description |
+|-------|-------------|
+| [tickets/15-00-INDEX.md](tickets/15-00-INDEX.md) | Task list `15-01`–`15-10` |
+
+**Sprint 16 (Ranking + fleet)** — ✅ complete (2026-04-06)
+
+| Index | Description |
+|-------|-------------|
+| [tickets/16-00-INDEX.md](tickets/16-00-INDEX.md) | Task list `16-01`–`16-13` |
 
 ## How to run
 

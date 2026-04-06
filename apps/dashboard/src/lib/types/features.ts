@@ -1,0 +1,43 @@
+/** Mirrors packages/common FeatureSnapshot JSON from FastAPI (decimals as strings). */
+export interface FeatureSnapshot {
+  market_id: string;
+  token_id: string;
+  captured_at: string;
+  time_to_close_seconds: number;
+  time_since_open_seconds?: number;
+  mid_price: string;
+  implied_probability: string;
+  spread: string;
+  spread_bps: string;
+  book_depth_bid_5tick: string;
+  book_depth_ask_5tick: string;
+  time_since_last_trade: number;
+  time_since_last_price_change: number;
+  order_book_imbalance: string;
+  trade_flow_imbalance_1m: string;
+  trade_flow_imbalance_5m: string;
+  last_5min_volume_share: string;
+  aggressor_buy_fraction_1m: string;
+  vpin_proxy: string;
+  fee_rate_current: string;
+  reward_eligible: boolean;
+  reward_max_spread?: string | null;
+  reward_min_size?: string | null;
+  btc_distance_to_open: string;
+  btc_rv_1m: string;
+  btc_rv_5m: string;
+  btc_rv_15m: string;
+  btc_momentum_5m: string;
+  btc_sign_persistence_5m: string;
+  btc_funding_rate: string;
+  btc_basis_proxy: string;
+  vol_regime: string;
+  trend_regime: string;
+  time_bucket: string;
+  near_close_flag: boolean;
+  toxicity_regime: string;
+  spread_regime: string;
+  liquidity_score: string;
+  competitive_pressure: string;
+  data_staleness_flag?: boolean;
+}

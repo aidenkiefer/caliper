@@ -1,7 +1,7 @@
 # Platform Features Overview
 
-**Last Updated:** 2026-04-08  
-**Status:** Sprints 1–14 shipped — through **v2.4.0** (BTC probability model); Sprint 14 spec **AC-9** tests **not yet added**; see **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**
+**Last Updated:** 2026-04-06  
+**Status:** Sprints 1–16 shipped — through **v2.6.0** (ranking + paper fleet); Sprint 14 spec **AC-9** tests **not yet added**; **`/v1/ranking/*`** and **`/v1/fleet/*`** remain **mock-backed** at the HTTP layer — see **[docs/api-contracts.md](api-contracts.md)** and **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**
 
 This document provides a comprehensive overview of all implemented features, capabilities, and components in Caliper.
 
@@ -11,7 +11,7 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 
 ## 🎯 Current Implementation Status
 
-### ✅ Completed (Sprints 1–14; Sprint 14 tests incomplete)
+### ✅ Completed (Sprints 1–16; Sprint 14 tests incomplete; Sprint 16 ranking/fleet API mock)
 
 #### Sprint 1: Infrastructure & Data ✅
 - **Monorepo Structure**: Complete Python/Node.js monorepo with Poetry and npm
@@ -106,6 +106,8 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
   - SWR hooks for data fetching with polling
   - Dark mode and responsive design
   - Interactive equity curve charts
+  - **UI phase 1 (v2.6.0-p2):** **`/start`** linear checklist (localStorage), **`/platform`** capability hub with search + status badges, **`/platform/features`** read-only `FeatureSnapshot` explorer; shared **`HelpHint`** (`?` → tooltip on desktop, bottom sheet on narrow screens); dynamic page titles via **`DashboardFrame`**; Overview **Mock** badge on Sprint 16 fleet card.
+  - **UI phase 2 (v2.6.0-p3):** Thin explorers under **`/platform/polymarket`** (list + session detail/orders/fills), **`/platform/regime-allocation`**, **`/platform/probability`**, **`/platform/simulation`**, **`/platform/ranking-fleet`**, **`/platform/equities`**; shared **`ExplorerPageHeader`** + **`JsonBlock`**; hub rows link to these routes via **`platform-capabilities.ts`**. Summary: [DASHBOARD-UI-OVERHAUL-2026-04.md](plans/summaries/DASHBOARD-UI-OVERHAUL-2026-04.md).
 - **Testing & Verification**
   - 160 tests (135 unit + 25 integration)
   - API endpoint validation
@@ -236,6 +238,17 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 - **Deferred:** Spec **AC-9** — no dedicated pytest suite yet (**14-11** in [14-00-INDEX.md](plans/tickets/14-00-INDEX.md)).
 - **Spec / summary:** [sprint-14-probability-model-spec.md](plans/specs/sprint-14-probability-model-spec.md) · [SPRINT-14-PROBABILITY-MODEL.md](plans/summaries/SPRINT-14-PROBABILITY-MODEL.md).
 
+#### Sprint 15: Regime detection + dynamic allocation ✅
+- **Purpose:** Global and per-market regime labels, rolling performance matrix, HRP-style capital allocation for the Polymarket research stack.
+- **Artifacts:** **`services/regime/`**, **`services/allocation/`**, Alembic **`006_create_regime_allocation_tables.py`** (`pm.regime_states`, `pm.allocation_decisions`, `pm.performance_matrices`), **`/v1/regime/*`**, **`/v1/allocation/*`** — **live DB reads** when **`DB_URL`** is set.
+- **Spec / tickets:** [sprint-15-regime-allocation-spec.md](plans/specs/sprint-15-regime-allocation-spec.md) · [15-00-INDEX.md](plans/tickets/15-00-INDEX.md).
+
+#### Sprint 16: Cross-sectional ranking + model fleet ✅
+- **Purpose:** Rank hourly BTC (and related) markets cross-sectionally; run a **paper-mode** multi-strategy fleet with persisted paper fills.
+- **Artifacts:** **`services/ranking/`** (universe, edge, feasibility, scoring, selection + cooldown), **`services/fleet/`** (orchestrator, **`PaperTradeStore`**, **`pm.paper_trades`**), Alembic **`007_create_pm_paper_trades_table.py`**, fleet strategies in **`packages/strategies/`** (`poly_*_v1`, `poly_mm_v2`), dashboard **`apps/dashboard/src/components/sprint-16/`**.
+- **API caveat:** **`GET /v1/ranking/current`**, **`/v1/fleet/*`** require **`DB_URL`** but return **fixed mock JSON** until handlers call **`MarketRanker`**, **`PaperTradeStore`**, and orchestrator state — see [api-contracts.md](api-contracts.md).
+- **Spec / tickets:** [sprint-16-cross-sectional-fleet-spec.md](plans/specs/sprint-16-cross-sectional-fleet-spec.md) · [16-00-INDEX.md](plans/tickets/16-00-INDEX.md).
+
 ---
 
 ## 📊 Feature Details
@@ -298,6 +311,7 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
    - Death cross (sell signal)
    - Configurable periods (default: 20/50)
    - Position sizing (default: 10% equity)
+2. **Polymarket / unified pipeline** — Sprint 11+ plugins (e.g. market-making extraction) and **Sprint 16 fleet** strategies (`poly_mm_v2`, `poly_regime_v1`, directional and microstructure variants) for paper-mode orchestration under **`services/fleet/`**.
 
 **Strategy Configuration:**
 - YAML-based configuration files
@@ -495,6 +509,14 @@ Gamma/CLOB/Binance → services/polymarket (discovery, feed, quoting, safety)
 - ✅ `005_create_probability_model_tables.py`; `/v1/probability/*` router
 - ⏳ Spec **AC-9** unit + integration tests — **not implemented** (see [14-00-INDEX.md](plans/tickets/14-00-INDEX.md))
 
+### Sprint 15: Regime + allocation ✅ COMPLETE
+- ✅ `services/regime/`, `services/allocation/`; `006_create_regime_allocation_tables.py`
+- ✅ `/v1/regime/*`, `/v1/allocation/*` — live reads from `pm.*` when `DB_URL` set
+
+### Sprint 16: Ranking + fleet ✅ COMPLETE (HTTP mock for ranker/fleet reads)
+- ✅ `services/ranking/`, `services/fleet/`; `007_create_pm_paper_trades_table.py`; fleet strategies; dashboard `sprint-16` components
+- ⏳ Wire `/v1/ranking/*` and `/v1/fleet/*` to ranker, `PaperTradeStore`, orchestrator — see [api-contracts.md](api-contracts.md)
+
 ### Future Enhancements
 - Polymarket Phase 2+ per [polymarket-btc-trading-spec.md](plans/specs/polymarket-btc-trading-spec.md) (inventory skew, dynamic spread, hybrid directional model, deeper dashboard integration)
 - Multi-asset portfolio backtesting
@@ -512,7 +534,7 @@ Gamma/CLOB/Binance → services/polymarket (discovery, feed, quoting, safety)
 
 ### Codebase Statistics
 - **Total Lines of Code:** ~10,000+ lines (excluding later service additions)
-- **Services:** Core: data, features, backtest, api, execution, risk, ml; **Polymarket / research:** `polymarket`, `simulation`, `evaluation`, `portfolio` (see [PROGRESS.md](plans/PROGRESS.md))
+- **Services:** Core: data, features, backtest, api, execution, risk, ml; **Polymarket / research:** `polymarket`, `simulation`, `evaluation`, `portfolio`, `regime`, `allocation`, `ranking`, `fleet` (see [PROGRESS.md](plans/PROGRESS.md))
 - **Packages:** `common`, `strategies` (active); `models` (stub)
 - **Test Coverage:** 370+ core tests; additional tests under `tests/unit/polymarket/`, `tests/integration/polymarket/`, `tests/unit/simulation/`, `tests/unit/evaluation/`, `tests/integration/simulation/`
 - **Documentation:** 20+ major documents plus Polymarket spec, summary, quickstart, and operations runbook
@@ -533,6 +555,8 @@ Gamma/CLOB/Binance → services/polymarket (discovery, feed, quoting, safety)
 - **Sprint 12:** ✅ Complete (feature layer — `FeatureSnapshot`, `pm.features`, sources, store)
 - **Sprint 13:** ✅ Complete (simulation + evaluation — `services/simulation/`, `services/evaluation/`)
 - **Sprint 14:** ✅ Complete (probability model — `services/ml/probability_model/`); **AC-9 tests pending**
+- **Sprint 15:** ✅ Complete (regime + allocation — `services/regime/`, `services/allocation/`)
+- **Sprint 16:** ✅ Complete (ranking + fleet — `services/ranking/`, `services/fleet/`); **ranking/fleet REST still mock**
 
 ---
 
@@ -540,7 +564,9 @@ Gamma/CLOB/Binance → services/polymarket (discovery, feed, quoting, safety)
 
 1. **Sprint 14 — AC-9 test suite not landed** — Library, migration, and `/v1/probability/*` router are merged; dedicated unit + integration tests per spec remain to be added ([14-00-INDEX.md](plans/tickets/14-00-INDEX.md) task **14-11**).
 
-2. **SMA Crossover Strategy Type Mismatch** (Non-blocking)
+2. **Sprint 16 — ranking/fleet API not wired to live services** — `GET /v1/ranking/current` and `/v1/fleet/*` return static mock payloads for contract/dashboard coverage; libraries and `pm.paper_trades` writes exist — see [api-contracts.md](api-contracts.md) and [PROGRESS.md](plans/PROGRESS.md) backlog.
+
+3. **SMA Crossover Strategy Type Mismatch** (Non-blocking)
    - Location: `packages/strategies/sma_crossover.py:168`
    - Issue: Decimal / float operation causing type mismatch
    - Impact: One integration test marked `xfail`
@@ -550,6 +576,7 @@ Gamma/CLOB/Binance → services/polymarket (discovery, feed, quoting, safety)
 
 ## 🔗 Related Documentation
 
+- [User guide](user-guide.md) — install, `DB_URL`, run API and dashboard, equities vs Polymarket
 - [Architecture Overview](architecture.md)
 - [Sprint 3 Summary](plans/summaries/SPRINT3_SUMMARY.md)
 - [Sprint 4 Summary](plans/summaries/SPRINT4_SUMMARY.md)
@@ -566,5 +593,5 @@ Gamma/CLOB/Binance → services/polymarket (discovery, feed, quoting, safety)
 
 ---
 
-**Last Updated:** 2026-04-08  
+**Last Updated:** 2026-04-06  
 **Maintained By:** Development Team

@@ -2,7 +2,7 @@
 
 ## Summary
 
-This document specifies the User Interface and Experience (UI/UX) for the Caliper dashboard. The dashboard is the command center for the **equities** stack: observability into strategies, runs, risk-related controls, system health, and (Sprints 7–9) the **Model Observatory** for ML lifecycle and evaluation. **Polymarket** session analytics are primarily API/SQL today (`/v1/polymarket/*`, `pm.*`); deep live Polymarket UI is a future enhancement (see Polymarket spec §Phase 2+).
+This document specifies the User Interface and Experience (UI/UX) for the Caliper dashboard. The dashboard is the command center for the **equities** stack: observability into strategies, runs, risk-related controls, system health, and (Sprints 7–9) the **Model Observatory** for ML lifecycle and evaluation. **Polymarket** session analytics are primarily API/SQL today (`/v1/polymarket/*`, `pm.*`); **Sprint 16** adds read-only **ranking + fleet + regime timeline** panels (`apps/dashboard/src/components/sprint-16/`) that call **`/v1/ranking/*`**, **`/v1/fleet/*`**, and regime/allocation routes — note **`/v1/ranking/*` and `/v1/fleet/*` are still mock-backed** at the API until wired (see **[docs/api-contracts.md](api-contracts.md)**). Deeper live Polymarket trading UI remains a future enhancement (see Polymarket spec §Phase 2+).
 
 **Tech Stack:**
 - **Framework:** Next.js 14 (App Router)
@@ -220,7 +220,7 @@ This document specifies the User Interface and Experience (UI/UX) for the Calipe
 
 ## Implementation status
 
-Sprints **4**, **6**, and **9** delivered the core dashboard described in this spec (layout, overview, strategies/runs/health/settings, Help/tooltips/Vercel from Sprint 6, Model Observatory from Sprint 9). For a feature-level list, see **[docs/FEATURES.md](FEATURES.md)**.
+Sprints **4**, **6**, and **9** delivered the core dashboard described in this spec (layout, overview, strategies/runs/health/settings, Help/tooltips/Vercel from Sprint 6, Model Observatory from Sprint 9). **Sprint 16** added Polymarket research panels (market ranker, fleet status, regime timeline) under **`apps/dashboard/src/components/sprint-16/`**. **v2.6.0-p2** added **`/start`** (getting-started checklist), **`/platform`** (capability map + honest Live/Mock/Stub/CLI/Docs badges), **`/platform/features`** (Sprint 12 snapshot explorer), and shared **`HelpHint`** contextual help. **v2.6.0-p3** added thin read-only **platform explorers**: Polymarket sessions (list + detail), regime/allocation, probability, simulation/evaluation, ranking/fleet, and an **equities hub** — each with **`HelpHint`**, status badges where appropriate, and **`JsonBlock`** / tables for API responses (see design spec §8). Design: **[docs/superpowers/specs/2026-04-06-dashboard-ui-overhaul-design.md](superpowers/specs/2026-04-06-dashboard-ui-overhaul-design.md)**; summary: **[docs/plans/summaries/DASHBOARD-UI-OVERHAUL-2026-04.md](plans/summaries/DASHBOARD-UI-OVERHAUL-2026-04.md)**. For a feature-level list, see **[docs/FEATURES.md](FEATURES.md)**.
 
 **May still be partial vs this checklist:** NextAuth wired end-to-end to FastAPI (verify in `apps/dashboard/`). Treat remaining items below as verify-in-code, not as open sprint backlog.
 
@@ -230,4 +230,7 @@ Sprints **4**, **6**, and **9** delivered the core dashboard described in this s
 | Help page, glossary, tooltips | Delivered (Sprint 6) |
 | `vercel.json`, API URL env | Delivered (Sprint 6) |
 | Model Registry / detail / ML viz / lifecycle (Observatory) | Delivered (Sprint 9) |
+| Polymarket ranker / fleet / regime panels | Delivered (Sprint 16); API data for ranking/fleet may be mock until backend wiring |
+| Getting started, platform map, features explorer, HelpHint | Delivered (v2.6.0-p2) |
+| Platform explorers (Polymarket, regime/allocation, probability, simulation, ranking/fleet, equities hub) | Delivered (v2.6.0-p3) |
 | NextAuth ↔ FastAPI JWT | Planned / partial — confirm against implementation |

@@ -4,6 +4,44 @@ API routers package.
 Each router handles a specific resource/domain.
 """
 
-from . import health, metrics, strategies, runs, positions, orders, controls, polymarket
+from . import (
+    health,
+    metrics,
+    strategies,
+    runs,
+    positions,
+    orders,
+    controls,
+    drift,
+    explanations,
+    baselines,
+    recommendations,
+    polymarket,
+    features,
+    simulation,
+    probability,
+    regime,
+    ranking,
+    fleet,
+)
 
-__all__ = ["health", "metrics", "strategies", "runs", "positions", "orders", "controls", "polymarket"]
+__all__ = [
+    "health",
+    "metrics",
+    "strategies",
+    "runs",
+    "positions",
+    "orders",
+    "controls",
+    "drift",
+    "explanations",
+    "baselines",
+    "recommendations",
+    "polymarket",
+    "features",
+    "simulation",
+    "probability",
+    "regime",
+    "ranking",
+    "fleet",
+]

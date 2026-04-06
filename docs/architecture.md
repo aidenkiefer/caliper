@@ -36,7 +36,7 @@ The platform supports multiple equity strategies (stocks; options-ready schemas)
 - Technology flexibility (could use different languages/frameworks per service if needed)
 
 **Implemented Python services / packages (by folder):**
-1. **data** — Market data ingestion, Alembic migrations (equity + **`pm.*`** Polymarket schema, incl. simulation/evaluation tables from Sprint 13)
+1. **data** — Market data ingestion, Alembic migrations (equity + **`pm.*`**: Polymarket core, simulation/evaluation **004**, probability **005**, regime/allocation **006**, paper trades **007**)
 2. **features** — Feature engineering pipeline (equity indicators + Polymarket **`FeatureSnapshot`** / feature store)
 3. **ml** — Training, inference adapters, drift, confidence gating, explainability, baselines, HITL, performance tracking; **`probability_model/`** (Sprint 14 — BTC hourly forecaster, calibration, lead-lag analysis; see `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md`)
 4. **backtest** — **Equity** backtesting engine and walk-forward optimization
@@ -45,8 +45,12 @@ The platform supports multiple equity strategies (stocks; options-ready schemas)
 7. **portfolio** — Allocator utilities for the unified signal path (Sprint 11)
 8. **execution** — OMS and broker adapters (Alpaca); **equity path only**
 9. **risk** — RiskManager, kill switch, circuit breaker; **equity path only** (Polymarket bot uses its own safety layer)
-10. **api** — FastAPI backend (dashboard, controls, ML, **`/v1/polymarket/*`**, **`/v1/simulation/*`**, **`/v1/evaluation/*`**, features)
+10. **api** — FastAPI backend (dashboard, controls, ML, **`/v1/polymarket/*`**, **`/v1/simulation/*`**, **`/v1/evaluation/*`**, **`/v1/probability/*`**, **`/v1/regime/*`**, **`/v1/allocation/*`**, **`/v1/ranking/*`**, **`/v1/fleet/*`**, features)
 11. **polymarket** *(optional)* — CLOB market-making bot, CLI, session orchestration; **not** a substitute for `execution`/`risk`
+12. **regime** *(Sprint 15)* — Regime state models and detection; persists to **`pm.regime_states`**; API reads live rows when **`DB_URL`** is set
+13. **allocation** *(Sprint 15)* — Performance matrix + allocation decisions; **`pm.allocation_decisions`**, **`pm.performance_matrices`**
+14. **ranking** *(Sprint 16)* — Cross-sectional market ranker (universe → edge → feasibility → score → selection); **`/v1/ranking/*`** still returns mock payloads until wired
+15. **fleet** *(Sprint 16)* — Paper-mode orchestrator, strategies registry, **`pm.paper_trades`** via **`paper_store`**; **`/v1/fleet/*`** still mock-backed until wired
 
 **Not implemented as a standalone repo service:** there is **no** `services/monitoring/` today. Metrics and health are exposed via **`services/api`** (and ML observability via **`services/ml`** + dashboard). A dedicated monitoring/alerting service remains a possible future slice.
 

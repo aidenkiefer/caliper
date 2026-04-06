@@ -2,7 +2,7 @@
 
 This is the primary doc map for agent and human navigation in the `quant/` repo.
 
-**Platform overview & onboarding:** root **[README.md](../README.md)** (equities + optional Polymarket, sprint status). **Milestone log:** **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**.
+**Platform overview & onboarding:** root **[README.md](../README.md)** (equities + optional Polymarket, sprint status). **Human setup & daily use:** **[docs/user-guide.md](user-guide.md)**. **Milestone log:** **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**.
 
 ## Core system docs
 
@@ -16,6 +16,7 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 | Dashboard spec | `docs/dashboard-spec.md` | Adding or changing dashboard pages, charts, controls, UX flows |
 | Design guidelines | `docs/design-guidelines.md` | Dashboard visual system, density, color, layout, contrast |
 | Features overview | `docs/FEATURES.md` | Checking what is implemented vs planned across sprints |
+| User guide | `docs/user-guide.md` | Install, env (incl. `DB_URL`), run API + dashboard, equities vs Polymarket, troubleshooting |
 | Polymarket quick start | `docs/POLYMARKET-QUICKSTART.md` | Running the Polymarket bot (env, migration, dry-run) |
 
 ## Workflow docs
@@ -49,7 +50,9 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 | Sprint 12 spec | `docs/plans/specs/sprint-12-feature-layer-spec.md` | Unified Polymarket feature layer (`FeatureSnapshot`, sources, store, API) |
 | Sprint 13 spec | `docs/plans/specs/sprint-13-simulation-evaluation-spec.md` | CLOB simulation + evaluation engine (replay, metrics, baselines) |
 | Sprint 14 spec | `docs/plans/specs/sprint-14-probability-model-spec.md` | BTC hourly probability model, calibration, lead-lag tests, fee-aware backtest |
-| Sprint tickets | `docs/plans/tickets/` | Bounded tasks (`10-*`, `12-*`, `13-*`, `14-00-INDEX`, …) |
+| Sprint 15 spec | `docs/plans/specs/sprint-15-regime-allocation-spec.md` | Regime detection, performance matrix, dynamic allocation (HRP); **`/v1/regime/*`**, **`/v1/allocation/*`** |
+| Sprint 16 spec | `docs/plans/specs/sprint-16-cross-sectional-fleet-spec.md` | Cross-sectional ranker, paper fleet, strategies, **`pm.paper_trades`**; **`/v1/ranking/*`**, **`/v1/fleet/*`** (mock HTTP until wired) |
+| Sprint tickets | `docs/plans/tickets/` | Bounded tasks (`10-*`, `12-*`, `13-*`, `14-00-INDEX`, `15-*`, `16-*`, …) |
 
 ## Summaries and milestone docs
 
@@ -62,6 +65,9 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 | Sprint 10 complete | `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md` | What was built for Polymarket, why, Phase 2/3 roadmap |
 | Sprint 13 complete | `docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md` | Simulation + evaluation modules, API stubs, DB migration, boundaries vs `backtest/` |
 | Sprint 14 complete | `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md` | Probability model package, migration `005`, `/v1/probability/*`, AC-9 tests deferred |
+| Sprint 15 complete | `docs/plans/summaries/SPRINT-15-REGIME-ALLOCATION.md` | Regime + allocation services, migration `006`, live `/v1/regime/*` + `/v1/allocation/*` when `DB_URL` set |
+| Sprint 16 complete | `docs/plans/summaries/SPRINT-16-CROSS-SECTIONAL-FLEET.md` | Ranking + fleet, migration `007`, mock `/v1/ranking/*` + `/v1/fleet/*` until wired; dashboard `sprint-16` |
+| Dashboard UI overhaul | `docs/plans/summaries/DASHBOARD-UI-OVERHAUL-2026-04.md` | Phase 1 (`v2.6.0-p2`): `/start`, `/platform`, `/platform/features`, HelpHint, badges. Phase 2 (`v2.6.0-p3`): `/platform/polymarket`, regime-allocation, probability, simulation, ranking-fleet, equities hub. Design: `docs/superpowers/specs/2026-04-06-dashboard-ui-overhaul-design.md` |
 | Polymarket tickets 1–5 notes | `docs/plans/POLYMARKET-TICKETS-1-5-SUMMARY.md` | Early Sprint 10 implementation notes (superseded by full summary for overview) |
 
 ## Runbooks
@@ -88,12 +94,16 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 | Data service | `services/data/` | Market data ingestion, storage, migrations |
 | Execution service | `services/execution/` | OMS, broker adapters, reconciliation |
 | Portfolio service | `services/portfolio/` | Allocator utilities (unified pipeline; Sprint 11) |
+| Regime service | `services/regime/` | Regime state models and detection helpers (Sprint 15); API reads `pm.regime_states` |
+| Allocation service | `services/allocation/` | Performance matrix + HRP-style allocation (Sprint 15); API reads `pm.allocation_decisions` |
+| Ranking service | `services/ranking/` | Cross-sectional universe, edge, feasibility, scoring, selection (Sprint 16); HTTP layer still mock |
+| Fleet service | `services/fleet/` | Paper-mode orchestrator, paper-trade store, `pm.paper_trades` (Sprint 16); HTTP layer still mock |
 | Features service | `services/features/` | Indicators, equity + Polymarket feature pipeline (`FeatureSnapshot`, store) |
 | ML service | `services/ml/` | Training, inference, confidence, drift, explainability, HITL, baselines; **`probability_model/`** (Sprint 14 BTC forecaster) |
 | Risk service | `services/risk/` | Risk manager, kill switch, circuit breaker |
 | Polymarket service | `services/polymarket/` | Optional CLOB market-making bot; CLI + `pm.*` DB schema; parallel to equity stack |
 | Shared schemas | `packages/common/` | Pydantic schemas and shared contracts (includes `polymarket_schemas.py`, `ml_schemas.py`) |
-| Strategies | `packages/strategies/` | Strategy ABC and implementations (rule-based + ML direction strategy) |
+| Strategies | `packages/strategies/` | Strategy ABC, equity + Polymarket plugins (incl. Sprint 16 `poly_*_v1`, `poly_mm_v2`) |
 | Models package | `packages/models/` | Reserved stub for shared model utilities (minimal today) |
 
 ## Navigation rule

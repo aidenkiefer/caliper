@@ -10,6 +10,10 @@ This document defines the **single source of truth** for canonical data schemas 
 
 **Probability model (`pm.*`, Sprint 14):** **`pm.probability_predictions`** (hypertable), **`pm.lag_test_results`**, **`pm.calibration_reports`** — migration **`services/data/alembic/versions/005_create_probability_model_tables.py`**. Application schemas: **`services/ml/probability_model/schemas.py`**; see **[docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md](plans/summaries/SPRINT-14-PROBABILITY-MODEL.md)**.
 
+**Regime + allocation (`pm.*`, Sprint 15):** **`pm.regime_states`**, **`pm.allocation_decisions`**, **`pm.performance_matrices`** — migration **`services/data/alembic/versions/006_create_regime_allocation_tables.py`**. Application shapes: **`services/regime/schemas.py`**, **`services/allocation/schemas.py`**; **`/v1/regime/*`** and **`/v1/allocation/*`** perform **live** reads when **`DB_URL`** is configured (see **[docs/api-contracts.md](api-contracts.md)**).
+
+**Paper trades (`pm.*`, Sprint 16):** **`pm.paper_trades`** — migration **`services/data/alembic/versions/007_create_pm_paper_trades_table.py`**. Written by the fleet orchestrator via **`services/fleet/paper_store.py`**; **`GET /v1/fleet/paper-trades`** is still **mock-backed** until the API is wired to the store (see **[docs/api-contracts.md](api-contracts.md)**).
+
 **Design Principles:**
 - **Explicit over Implicit:** Every field has a defined type, format, and validation rule
 - **Versioned:** Schemas include version numbers for backwards compatibility

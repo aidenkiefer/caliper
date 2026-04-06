@@ -1,5 +1,6 @@
 "use client";
 
+import { HelpHint } from '@/components/help-hint';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -63,7 +64,10 @@ export function BaselineComparison({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Baseline Comparison</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          Baseline Comparison
+          <HelpHint helpId="baseline-comparison" label="Baseline comparison" />
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">

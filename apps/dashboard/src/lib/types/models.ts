@@ -90,3 +90,101 @@ export interface ModelConfig {
   high_confidence_threshold: number;
   position_size_pct: number;
 }
+
+export type RankedMarketSide = "YES" | "NO";
+export type FleetRegime = "R1" | "R2" | "R3" | "R4" | "R5";
+export type FleetMode = "paper" | "live";
+export type FleetSignalDirection = "long" | "short" | "none" | "abstain";
+export type FleetSignalAction = "executed" | "rejected" | "abstained" | "cancelled";
+export type FleetStrategyStatus = "active" | "paused" | "cooldown" | "abstain";
+export type PaperTradeStatus = "filled" | "simulated" | "cancelled";
+
+export interface RankedMarket {
+  market_id: string;
+  market_name: string;
+  condition_id: string;
+  side: RankedMarketSide;
+  score: number;
+  ev_adj: number;
+  feasibility: number;
+  confidence: number;
+  spread_pct: number;
+  volume_24h_usd: number;
+  time_to_close_seconds: number;
+  selected: boolean;
+  cooldown_protected: boolean;
+}
+
+export interface RankedUniverse {
+  ranked_at: string;
+  total_candidates: number;
+  selected_markets: RankedMarket[];
+  excluded_markets: string[];
+  ranking_method: string;
+  cooldown_protected: string[];
+  candidate_markets: RankedMarket[];
+}
+
+export interface FleetStrategyCard {
+  strategy_id: string;
+  name: string;
+  status: FleetStrategyStatus;
+  mode: FleetMode;
+  current_regime: FleetRegime;
+  pnl_24h_usd: number;
+  sharpe_7d: number;
+  fill_rate: number;
+  allocation_weight: number;
+  regime_alignment: number;
+  signal_count_24h: number;
+}
+
+export interface RegimeTimelinePoint {
+  timestamp: string;
+  regime: FleetRegime;
+  allocation_weights: Record<string, number>;
+}
+
+export interface StrategyComparisonRow {
+  strategy_id: string;
+  baseline: string;
+  sharpe_7d: number;
+  sortino_7d: number;
+  win_rate: number;
+  max_drawdown: number;
+  profit_factor: number;
+}
+
+export interface FleetStatus {
+  generated_at: string;
+  current_regime: FleetRegime;
+  current_mode: FleetMode;
+  strategies: FleetStrategyCard[];
+  regime_timeline: RegimeTimelinePoint[];
+  comparison: StrategyComparisonRow[];
+}
+
+export interface FleetSignal {
+  signal_id: string;
+  timestamp: string;
+  strategy_id: string;
+  market_id: string;
+  signal_type: string;
+  direction: FleetSignalDirection;
+  confidence: number;
+  action_taken: FleetSignalAction;
+  fill_price?: number | null;
+  regime: FleetRegime;
+}
+
+export interface PaperTrade {
+  trade_id: string;
+  timestamp: string;
+  strategy_id: string;
+  market_id: string;
+  side: "BUY" | "SELL";
+  price: number;
+  size: number;
+  pnl_usd: number;
+  status: PaperTradeStatus;
+}

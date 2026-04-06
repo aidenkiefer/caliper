@@ -38,6 +38,8 @@ structlog = "^24.1.0"
 # ML, drift, backtest report (needed when running tests from root)
 scipy = "^1.12.0"
 scikit-learn = "^1.4.0"
+statsmodels = "^0.14.2"
+hmmlearn = "^0.3.2"
 plotly = "^5.18.0"
 shap = "^0.44.0"
 sortedcontainers = "^2.4.0"

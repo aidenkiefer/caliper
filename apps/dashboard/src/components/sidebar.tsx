@@ -13,6 +13,8 @@ import {
   HelpCircle,
   Clock,
   Brain,
+  BookOpen,
+  LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,6 +22,8 @@ import { useState } from "react";
 
 const navigation = [
   { name: "Overview", href: "/", icon: LayoutDashboard },
+  { name: "Getting started", href: "/start", icon: BookOpen },
+  { name: "Platform", href: "/platform", icon: LayoutGrid },
   { name: "Strategies", href: "/strategies", icon: LineChart },
   { name: "Models", href: "/models", icon: Brain },
   { name: "Runs", href: "/runs", icon: FlaskConical },

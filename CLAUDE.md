@@ -12,7 +12,7 @@ This file provides guidance to Claude when working with the **Caliper (quant)** 
 - **Learning and correctness** over profit maximization: interpretability, baselines, human-in-the-loop
 - **Paper trading first**, then live with strict safeguards
 
-**Current state:** Core platform **Sprints 1–9** are complete (including first ML model loop, observability, and model observatory dashboard). **Sprint 10** adds an optional **Polymarket** hourly BTC market-making service (`services/polymarket/`). **Sprints 11–14** add a **unified pipeline** (`services/portfolio/`, execution adapters), a **Polymarket feature layer** (`FeatureSnapshot`, `pm.features`), **offline CLOB simulation + evaluation** (`services/simulation/`, `services/evaluation/`, `/v1/simulation/*`, `/v1/evaluation/*`), and the **BTC probability model** (`services/ml/probability_model/`, `/v1/probability/*` — several handlers stub/mock until wired to DB). Shared TimescaleDB **`pm.*`** schema covers sessions, features, simulation/evaluation, and probability tables (`005` migration). Sprint 14 spec **AC-9** tests are **deferred** (`docs/plans/tickets/14-00-INDEX.md`). See `docs/plans/PROGRESS.md`, `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md`, `docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md`, `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md`, and `docs/runbooks/polymarket-operations.md`. Doc map: **`docs/INDEX.md`**.
+**Current state:** Core platform **Sprints 1–9** are complete (including first ML model loop, observability, and model observatory dashboard). **Sprint 10** adds an optional **Polymarket** hourly BTC market-making service (`services/polymarket/`). **Sprints 11–14** add a **unified pipeline** (`services/portfolio/`, execution adapters), a **Polymarket feature layer** (`FeatureSnapshot`, `pm.features`), **offline CLOB simulation + evaluation** (`services/simulation/`, `services/evaluation/`, `/v1/simulation/*`, `/v1/evaluation/*`), and the **BTC probability model** (`services/ml/probability_model/`, `/v1/probability/*` — several handlers stub/mock until wired to DB). **Sprint 15** adds **regime detection + dynamic allocation** (`services/regime/`, `services/allocation/`, migration `006`, `/v1/regime/*`, `/v1/allocation/*` — **live `pm.*` reads** when `DB_URL` is set). **Sprint 16** adds **cross-sectional ranking + paper fleet** (`services/ranking/`, `services/fleet/`, migration `007`, fleet strategies under `packages/strategies/`, dashboard `sprint-16` panels); **`/v1/ranking/*`** and **`/v1/fleet/*`** return **mock** HTTP payloads until wired to ranker/orchestrator/DB reads — see **`docs/api-contracts.md`** (Sprint 15 vs 16 note). Shared TimescaleDB **`pm.*`** schema covers sessions, features, simulation/evaluation, probability (`005`), regime/allocation (`006`), and paper trades (`007`). Sprint 14 spec **AC-9** tests are **deferred** (`docs/plans/tickets/14-00-INDEX.md`). See `docs/plans/PROGRESS.md`, `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md`, `docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md`, `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md`, and `docs/runbooks/polymarket-operations.md`. Doc map: **`docs/INDEX.md`**.
 
 **Codebase:** Monorepo with Python services (Poetry), shared packages (common schemas, strategies), and a Next.js dashboard (npm). Trading services run separately from the dashboard; the dashboard talks to the FastAPI backend via REST.
 
@@ -25,20 +25,24 @@ quant/
 ├── apps/
 │   └── dashboard/           # Next.js 14 (App Router), TypeScript, Shadcn/UI
 ├── services/                # Python microservices
-│   ├── api/                 # FastAPI backend (REST for dashboard; polymarket, features, simulation, probability routers)
+│   ├── api/                 # FastAPI backend (REST; polymarket, features, simulation, probability, regime, ranking, fleet routers)
+│   ├── allocation/          # Sprint 15: performance matrix + allocation (pm.allocation_decisions, pm.performance_matrices)
 │   ├── backtest/            # Equity backtesting engine, report generator, walk-forward
-│   ├── data/                # Data layer, Alembic migrations (incl. pm.*, simulation/evaluation tables)
+│   ├── data/                # Data layer, Alembic migrations (incl. pm.* through 007)
 │   ├── evaluation/          # Sprint 13: metrics, baselines, regime matrix, evaluation reports
 │   ├── execution/           # OMS, broker adapter (Alpaca), position reconciliation
 │   ├── features/            # Feature pipeline (equity + Polymarket FeatureSnapshot / store)
+│   ├── fleet/               # Sprint 16: paper orchestrator, paper_trade store (pm.paper_trades)
 │   ├── ml/                  # Drift, confidence gating, explainability, baselines, HITL; probability_model/ (Sprint 14)
 │   ├── polymarket/          # Optional Polymarket CLOB bot (Sprint 10); not equity OMS
 │   ├── portfolio/           # Sprint 11: allocator utilities for unified pipeline
+│   ├── ranking/             # Sprint 16: cross-sectional ranker (universe, edge, feasibility, selection)
+│   ├── regime/              # Sprint 15: regime state (pm.regime_states)
 │   ├── risk/                # RiskManager, kill switch, circuit breaker
 │   └── simulation/          # Sprint 13: CLOB replay, order book, fees, execution sim, runner
 ├── packages/
 │   ├── common/              # Pydantic schemas (PriceBar, Order, Signal, api_schemas, ml_schemas, execution_schemas, polymarket_schemas)
-│   └── strategies/          # Strategy base class, SMA Crossover strategy
+│   └── strategies/          # Strategy base, SMA Crossover, Polymarket plugins (incl. Sprint 16 fleet strategies)
 ├── configs/
 │   ├── environments/        # .env.example, environment config
 │   └── strategies/          # YAML strategy configs (e.g. sma_crossover_v1.yaml)
@@ -127,7 +131,7 @@ cd services/data && poetry run alembic upgrade head   # Migrations
 - **`services/execution`** — OMS, `BrokerClient` (Alpaca implementation), order state machine, position reconciliation.
 - **`services/risk`** — `RiskManager` (order/strategy/portfolio limits), `KillSwitch`, `CircuitBreaker`. See `docs/risk-policy.md`.
 - **`services/ml`** — Drift (PSI, KL, health score), confidence gating (BUY/SELL/ABSTAIN), explainability (SHAP, permutation), baselines (hold cash, buy & hold, random), regret calculator, HITL approval queue. Ready for use once a model is integrated.
-- **`packages/strategies`** — `Strategy` ABC: `initialize`, `on_market_data`, `generate_signals`, `risk_check`, `on_fill`, `daily_close`. Only implementation: SMA Crossover (rule-based).
+- **`packages/strategies`** — `Strategy` ABC: `initialize`, `on_market_data`, `generate_signals`, `risk_check`, `on_fill`, `daily_close`. Implementations include SMA Crossover (equity), Polymarket MM / unified plugins (Sprint 11+), and Sprint 16 fleet strategies (`poly_*_v1`, `poly_mm_v2`).
 - **`packages/common`** — Shared Pydantic schemas: `schemas.py` (PriceBar, Order, Position, Signal, etc.), `api_schemas.py`, `ml_schemas.py`, `execution_schemas.py`.
 
 **Important:** The backtest engine does **not** call the feature pipeline; SMA Crossover uses raw bars and its own SMA math. When adding an ML strategy, you would feed features into a model and optionally use the feature pipeline inside the backtest loop.
@@ -171,6 +175,7 @@ Detailed tasks and verification criteria: `docs/plans/task_plan.md` and `docs/pl
 | Document | Use when |
 |----------|----------|
 | **README.md** | Onboarding, quick start, project status, high-level structure. |
+| **docs/user-guide.md** | Human-focused install, env (`DB_URL`), running API/dashboard, equities vs Polymarket, troubleshooting. |
 | **docs/architecture.md** | System design, services, data flow, backtest/execution/risk flows, API structure. |
 | **docs/api-contracts.md** | REST endpoints, request/response shapes, versioning, auth. |
 | **docs/data-contracts.md** | Canonical schemas (price bars, orders, positions, etc.). |
@@ -196,7 +201,7 @@ Detailed tasks and verification criteria: `docs/plans/task_plan.md` and `docs/pl
 - **Schemas:** Prefer Pydantic models from `packages/common` for all API and cross-service data. Do not invent ad-hoc dicts for contracts that are already defined.
 - **Strategies:** New strategies go in `packages/strategies`, implement the `Strategy` ABC, and can be configured via YAML in `configs/strategies/`. Backtest and execution both use the same interface.
 - **Risk:** Any path that creates orders must go through `RiskManager.check_order`. Respect kill switch and circuit breaker; do not bypass for “testing” in production code.
-- **API:** Routers live under `services/api/routers/`. Response models in `packages/common/api_schemas.py` and `ml_schemas.py`. Currently the API serves mock data; replacing with real DB is a planned step.
+- **API:** Routers live under `services/api/routers/`. Response models in `packages/common/api_schemas.py` and `ml_schemas.py`. Several domains still return **stub/mock** JSON (e.g. parts of simulation/evaluation/probability, **`/v1/ranking/*`**, **`/v1/fleet/*`**); **`/v1/regime/*`** and **`/v1/allocation/*`** read **live `pm.*`** when **`DB_URL`** is set — see **`docs/api-contracts.md`**.
 - **Testing:** Unit tests in `tests/unit/`, integration in `tests/integration/`. Fixtures in `tests/fixtures/`. Run with `poetry run pytest tests/ -v`.
 - **Dashboard:** Next.js app in `apps/dashboard`; use existing Shadcn/UI and SWR hooks where possible. API base URL via `NEXT_PUBLIC_API_URL` or equivalent.
 

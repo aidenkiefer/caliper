@@ -4,6 +4,8 @@
 
 This document defines all REST API endpoints for the quantitative ML trading platform backend. The FastAPI service sits between the Python trading services and the Next.js dashboard, aggregating data and providing a clean HTTP interface.
 
+**Dashboard:** Thin read-only **platform explorers** (e.g. **`/platform/features`**, **`/platform/polymarket`**, regime/allocation, probability, simulation, ranking/fleet) call these routes; overview in **`docs/plans/summaries/DASHBOARD-UI-OVERHAUL-2026-04.md`** (**v2.6.0-p3**).
+
 **Base URL:** `https://api.quant-platform.com/v1` (production)  
 **Local Dev:** `http://localhost:8000/v1`
 
@@ -58,6 +60,32 @@ BTC hourly **Up** probability (`p_hat`), calibration, and lead-lag artifacts. Py
 | `POST` | `/v1/probability/train` | Queue training run (`202` + `run_id`). |
 
 **Implementation note:** Several handlers return **stub/mock** data for OpenAPI contract coverage; wiring to **`pm.probability_predictions`** / trainer outputs and completing spec **AC-9** tests is tracked in **[docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md](plans/summaries/SPRINT-14-PROBABILITY-MODEL.md)** and **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**.
+
+### Regime + allocation (Sprint 15)
+
+Read-only endpoints for Sprint 15 regime detection + dynamic allocation. Data is sourced from `pm.regime_states`, `pm.allocation_decisions`, and `pm.performance_matrices`; router: `services/api/routers/regime.py`.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/v1/regime/current` | Current global `RegimeState` |
+| `GET` | `/v1/regime/{market_id}/current` | Current per-market `RegimeState` |
+| `GET` | `/v1/regime/history` | Regime history window (`start`, `end`, optional `market_id`) |
+| `GET` | `/v1/allocation/current` | Current `AllocationDecision` |
+| `GET` | `/v1/allocation/history` | Allocation decision history window (`start`, `end`) |
+| `GET` | `/v1/allocation/performance-matrix` | Latest `PerformanceMatrix` |
+
+**Implementation note (Sprint 15 vs Sprint 16):** When **`DB_URL`** is set, **`/v1/regime/*`** and **`/v1/allocation/*`** read **real** rows from **`pm.regime_states`**, **`pm.allocation_decisions`**, and **`pm.performance_matrices`** via **`RegimeStore`**, **`AllocationDecisionStore`**, and **`PerformanceMatrixStore`** in **`services/api/routers/regime.py`**. Empty windows may yield **404** where the handler expects a current row. By contrast, **`/v1/ranking/*`** and **`/v1/fleet/*`** (Sprint 16) also **require** **`DB_URL`** (otherwise **503**), but handlers currently return **fixed mock payloads** for OpenAPI/dashboard contract coverage—they do **not** call **`MarketRanker`**, **`PaperTradeStore`**, or live orchestrator state yet.
+
+### Cross-sectional ranking + model fleet (Sprint 16)
+
+Read-only endpoints for the cross-sectional market ranker and the paper-trading model fleet. **Contract shapes** match **`services/ranking/schemas.py`** and **`services/fleet/schemas.py`**; routers: **`services/api/routers/ranking.py`**, **`services/api/routers/fleet.py`**. Runtime logic and persistence exist under **`services/ranking/`** and **`services/fleet/`** (including **`pm.paper_trades`** writes from the orchestrator); wiring those into the HTTP handlers is **not** done yet—see the Sprint 15 vs 16 note above.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/v1/ranking/current` | Current `RankedUniverse` with candidate markets, selections, and cooldown flags |
+| `GET` | `/v1/fleet/status` | Fleet overview with strategy cards, regime timeline, and comparison rows |
+| `GET` | `/v1/fleet/signals` | Recent per-strategy signal log (`limit` query, default 50) |
+| `GET` | `/v1/fleet/paper-trades` | Paper-trade history with optional `start`, `end`, `strategy_id`, `market_id` filters |
 
 ---
 

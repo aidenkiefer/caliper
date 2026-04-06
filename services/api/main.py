@@ -34,6 +34,9 @@ from .routers import (
     features,
     simulation,
     probability,
+    regime,
+    ranking,
+    fleet,
 )
 
 
@@ -218,6 +221,12 @@ app.include_router(
 )
 
 app.include_router(
+    ranking.router,
+    prefix=API_V1_PREFIX,
+    tags=["ranking"],
+)
+
+app.include_router(
     simulation.router,
     prefix=API_V1_PREFIX,
     tags=["simulation"],
@@ -227,6 +236,18 @@ app.include_router(
     probability.router,
     prefix=API_V1_PREFIX,
     tags=["probability"],
+)
+
+app.include_router(
+    regime.router,
+    prefix=API_V1_PREFIX,
+    tags=["regime"],
+)
+
+app.include_router(
+    fleet.router,
+    prefix=API_V1_PREFIX,
+    tags=["fleet"],
 )
 
 

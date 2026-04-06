@@ -4,7 +4,7 @@
 
 This runbook provides procedures for verifying the FastAPI backend is functioning correctly. Use this for deployment verification, troubleshooting, and routine health checks.
 
-**Additional `/v1` routers** (beyond the core dashboard endpoints exercised below) are documented in **[docs/api-contracts.md](../api-contracts.md)** — e.g. **`/v1/polymarket/*`**, **`/v1/simulation/*`**, **`/v1/evaluation/*`**, **`/v1/probability/*`**, features.
+**Additional `/v1` routers** (beyond the core dashboard endpoints exercised below) are documented in **[docs/api-contracts.md](../api-contracts.md)** — e.g. **`/v1/polymarket/*`**, **`/v1/simulation/*`**, **`/v1/evaluation/*`**, **`/v1/probability/*`**, **`/v1/regime/*`**, **`/v1/allocation/*`**, **`/v1/ranking/*`**, **`/v1/fleet/*`**, features. **Sprint 15 vs 16:** regime/allocation routes read **live `pm.*` rows** when **`DB_URL`** is set; ranking/fleet routes are **`DB_URL`-gated** but still return **mock JSON** until wired — see the implementation note in api-contracts.
 
 ## Prerequisites
 
