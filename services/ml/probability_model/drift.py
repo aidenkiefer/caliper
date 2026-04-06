@@ -1,9 +1,10 @@
+import json
 import logging
 from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from typing import Optional
 import asyncpg
-from services.ml.probability_model.schemas import CalibrationReport
+from services.ml.probability_model.schemas import CalibrationBin, CalibrationReport
 
 logger = logging.getLogger(__name__)
 
@@ -26,17 +27,12 @@ class DriftMonitor:
     ) -> bool:
         """Check whether ECE on the provided reports exceeds the threshold.
 
-        If any report in the rolling window has ECE > 0.05, return True (needs recalibration).
-        This is a simple rule: flag if the LATEST report has ECE > threshold,
-        or if the AVERAGE ECE over all provided reports exceeds the threshold.
-
-        Returns True if recalibration is needed.
+        Returns True if average ECE across all provided reports exceeds 0.05.
         """
         if not reports:
             return False
-        latest_ece = max(r.ece for r in reports)
         avg_ece = sum(r.ece for r in reports) / len(reports)
-        return latest_ece > _ECE_RECAL_THRESHOLD or avg_ece > _ECE_RECAL_THRESHOLD
+        return avg_ece > _ECE_RECAL_THRESHOLD
 
     def update_report(
         self,
@@ -81,7 +77,7 @@ class DriftMonitor:
                 await conn.close()
         except Exception as e:
             logger.error("Failed to load recent reports: %s", e)
-            return []
+            raise
 
     async def persist_report(
         self,
@@ -92,7 +88,6 @@ class DriftMonitor:
         url = db_url or self._db_url
         if url is None:
             return
-        import json
         try:
             conn = await asyncpg.connect(url)
             try:
@@ -130,16 +125,19 @@ class DriftMonitor:
         report: CalibrationReport,
         db_url: Optional[str] = None,
     ) -> CalibrationReport:
-        """Full workflow: load recent reports, check ECE, update report, persist.
-
-        Returns the updated CalibrationReport (with needs_recal set correctly).
-        """
-        recent = await self.load_recent_reports(report.model_version, db_url)
+        """Full workflow: load recent reports, check ECE, update report, persist."""
+        try:
+            recent = await self.load_recent_reports(report.model_version, db_url)
+        except Exception as e:
+            logger.error("Rolling window check skipped due to DB error: %s", e)
+            # Return report with needs_recal based only on the current report's ECE
+            needs_recal = report.ece > _ECE_RECAL_THRESHOLD
+            return report.model_copy(update={"needs_recal": needs_recal})
         updated = self.update_report(report, recent)
         await self.persist_report(updated, db_url)
         if updated.needs_recal:
             logger.warning(
-                "Recalibration needed for model %s (ECE threshold exceeded)",
+                "Recalibration needed for model %s (rolling avg ECE exceeded threshold)",
                 report.model_version,
             )
         return updated
@@ -147,8 +145,6 @@ class DriftMonitor:
 
 def _row_to_report(row: dict) -> CalibrationReport:
     """Convert a DB row to a CalibrationReport. Handles JSON reliability field."""
-    import json
-    from services.ml.probability_model.schemas import CalibrationBin
     reliability_data = (
         json.loads(row["reliability"])
         if isinstance(row["reliability"], str)
