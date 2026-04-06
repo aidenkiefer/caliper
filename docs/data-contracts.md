@@ -6,6 +6,10 @@ This document defines the **single source of truth** for canonical data schemas 
 
 **Polymarket (`pm.*`):** Prediction-market session, order, fill, and telemetry tables live in the **`pm`** Postgres schema (TimescaleDB hypertables for time-series). They are **not** part of the equity order/position model. See migration **`services/data/alembic/versions/002_create_polymarket_schema.py`**, API **`/v1/polymarket/*`**, and **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)** for the full table list and field semantics.
 
+**Simulation + evaluation (`pm.*`, Sprint 13):** Tables for replay run metadata, evaluation reports, and simulation validation (e.g. **`pm.simulation_runs`**, **`pm.evaluation_reports`**, **`pm.simulation_validation`**) are created by **`services/data/alembic/versions/004_create_simulation_evaluation_tables.py`**. Canonical runtime shapes are Pydantic models in **`services/simulation/schemas.py`** and **`services/evaluation/schemas.py`**; see **[docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md](plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md)**.
+
+**Probability model (`pm.*`, Sprint 14):** **`pm.probability_predictions`** (hypertable), **`pm.lag_test_results`**, **`pm.calibration_reports`** — migration **`services/data/alembic/versions/005_create_probability_model_tables.py`**. Application schemas: **`services/ml/probability_model/schemas.py`**; see **[docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md](plans/summaries/SPRINT-14-PROBABILITY-MODEL.md)**.
+
 **Design Principles:**
 - **Explicit over Implicit:** Every field has a defined type, format, and validation rule
 - **Versioned:** Schemas include version numbers for backwards compatibility

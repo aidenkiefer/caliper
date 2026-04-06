@@ -31,6 +31,34 @@ Read-only endpoints for **`pm.*`** data produced by **`services/polymarket/`** (
 
 **Operations:** **[docs/POLYMARKET-QUICKSTART.md](POLYMARKET-QUICKSTART.md)** · **[docs/runbooks/polymarket-operations.md](runbooks/polymarket-operations.md)** · **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)**
 
+### Simulation + evaluation (Sprint 13)
+
+Endpoints for **offline** Polymarket CLOB replay and strategy evaluation. Shapes align with **`services/simulation/schemas.py`** and **`services/evaluation/schemas.py`**; router: **`services/api/routers/simulation.py`**.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/v1/simulation/run` | Queue a simulation run (`202` + `run_id`). |
+| `GET` | `/v1/simulation/{run_id}/result` | Poll status or completed **`SimResult`**. |
+| `GET` | `/v1/evaluation/compare` | Compare strategies; query `strategy_ids` = comma-separated list. |
+| `GET` | `/v1/evaluation/{strategy_id}/latest` | Latest **`EvaluationReport`** for one strategy. |
+| `GET` | `/v1/evaluation/{strategy_id}/regimes` | Regime breakdown (`RegimeMetrics` list). |
+
+**Implementation note:** Responses are **stub-backed** (in-memory run state + static metric zeros) until the API is wired to **`SimulationRunner`** and **`pm.simulation_runs`** / **`pm.evaluation_reports`**. See **[docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md](plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md)**.
+
+### Probability model (Sprint 14)
+
+BTC hourly **Up** probability (`p_hat`), calibration, and lead-lag artifacts. Pydantic shapes live in **`services/ml/probability_model/schemas.py`**; router: **`services/api/routers/probability.py`**.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| `GET` | `/v1/probability/calibration` | Latest **`CalibrationReport`** (optional `model_version` query). |
+| `GET` | `/v1/probability/lag-tests` | Latest **`LagTestResult`** (query `type`, default `cross_correlation`). |
+| `GET` | `/v1/probability/{market_id}/latest` | Latest **`PredictionRecord`** for a market. |
+| `GET` | `/v1/probability/{market_id}/history` | Historical predictions (`start` / `end` optional). |
+| `POST` | `/v1/probability/train` | Queue training run (`202` + `run_id`). |
+
+**Implementation note:** Several handlers return **stub/mock** data for OpenAPI contract coverage; wiring to **`pm.probability_predictions`** / trainer outputs and completing spec **AC-9** tests is tracked in **[docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md](plans/summaries/SPRINT-14-PROBABILITY-MODEL.md)** and **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**.
+
 ---
 
 ## Key Decisions

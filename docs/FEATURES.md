@@ -1,7 +1,7 @@
 # Platform Features Overview
 
-**Last Updated:** 2026-04-03  
-**Status:** Sprints 1–10 complete — core equities + ML observatory (**v1.6–v1.8**) and Polymarket V1 (**v2.0.0**); see **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**
+**Last Updated:** 2026-04-08  
+**Status:** Sprints 1–14 shipped — through **v2.4.0** (BTC probability model); Sprint 14 spec **AC-9** tests **not yet added**; see **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**
 
 This document provides a comprehensive overview of all implemented features, capabilities, and components in Caliper.
 
@@ -11,7 +11,7 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 
 ## 🎯 Current Implementation Status
 
-### ✅ Completed (Sprints 1–10)
+### ✅ Completed (Sprints 1–14; Sprint 14 tests incomplete)
 
 #### Sprint 1: Infrastructure & Data ✅
 - **Monorepo Structure**: Complete Python/Node.js monorepo with Poetry and npm
@@ -214,6 +214,27 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
 - **API:** `services/api/routers/polymarket.py` + `packages/common/polymarket_schemas.py` (read-oriented session analytics; wiring to live DB per deployment).
 - **Docs:** [polymarket-btc-trading-spec.md](plans/specs/polymarket-btc-trading-spec.md) · [SPRINT-10-POLYMARKET-COMPLETE.md](plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md) · [POLYMARKET-QUICKSTART.md](POLYMARKET-QUICKSTART.md) · [runbooks/polymarket-operations.md](runbooks/polymarket-operations.md) · `services/polymarket/docs/`.
 - **Roadmap:** Phase 2 (inventory skew, dynamic spread, rewards) and Phase 3 (hybrid directional model) in spec §10 — V1 is data-collection first with dust capital.
+
+#### Sprint 11: Unified architecture (unified pipeline) ✅
+- **Purpose:** Single path from signals through allocation, global risk, and market-specific execution adapters (equities vs Polymarket CLOB).
+- **Artifacts:** `UnifiedSignal`, `ExecutionAdapter` implementations, `GlobalRiskManager`, `PolymarketMMStrategy` extraction, **`services/portfolio/`** (allocator utilities).
+- **Plan:** [2026-04-04-unified-architecture-refactor.md](plans/2026-04-04-unified-architecture-refactor.md) · **Progress:** [PROGRESS.md](plans/PROGRESS.md) (v2.1.0).
+
+#### Sprint 12: Feature layer unification ✅
+- **Purpose:** One **feature contract** for Polymarket research and runtime: four families (market state, microstructure, probabilistic, regime), persisted snapshots, API exposure.
+- **Artifacts:** **`FeatureSnapshot`** / **`FeatureRecord`**, **`CLOBSource`** / **`BinanceSource`**, **`FeatureBuilder`**, **`pm.features`**, feature store + session/API integration.
+- **Spec / tickets:** [sprint-12-feature-layer-spec.md](plans/specs/sprint-12-feature-layer-spec.md) · [12-00-INDEX.md](plans/tickets/12-00-INDEX.md).
+
+#### Sprint 13: Simulation + evaluation engine ✅
+- **Purpose:** **Offline** CLOB replay and post-run evaluation (does **not** replace **`services/backtest/`** for equity).
+- **Artifacts:** **`services/simulation/`** (schemas, order book, fees, execution simulator, adverse selection, loader, replay engine, runner, validation), **`services/evaluation/`** (metrics, baselines, regime matrix, reports), Alembic **`004_*`**, **`/v1/simulation/*`** and **`/v1/evaluation/*`** (stub-backed until DB + runner wiring).
+- **Spec / tickets / summary:** [sprint-13-simulation-evaluation-spec.md](plans/specs/sprint-13-simulation-evaluation-spec.md) · [13-00-INDEX.md](plans/tickets/13-00-INDEX.md) · [SPRINT-13-SIMULATION-EVALUATION.md](plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md).
+
+#### Sprint 14: BTC probability model ✅ (library + API + migration; **tests incomplete**)
+- **Purpose:** Calibrated **`p_hat(t)`** for hourly BTC Up/Down, lead-lag vs Polymarket implied prob, fee-aware backtest, drift on calibration.
+- **Artifacts:** **`services/ml/probability_model/`** (dataset, trainer, GBT/registry, lag tests, backtest, predictor, drift), Alembic **`005_*`**, **`/v1/probability/*`** (contract stubs/mocks on several routes until wired to DB).
+- **Deferred:** Spec **AC-9** — no dedicated pytest suite yet (**14-11** in [14-00-INDEX.md](plans/tickets/14-00-INDEX.md)).
+- **Spec / summary:** [sprint-14-probability-model-spec.md](plans/specs/sprint-14-probability-model-spec.md) · [SPRINT-14-PROBABILITY-MODEL.md](plans/summaries/SPRINT-14-PROBABILITY-MODEL.md).
 
 ---
 
@@ -456,6 +477,24 @@ Gamma/CLOB/Binance → services/polymarket (discovery, feed, quoting, safety)
 - ✅ FastAPI Polymarket router + shared Pydantic schemas (`packages/common/polymarket_schemas.py`)
 - ✅ Operations docs: [POLYMARKET-QUICKSTART.md](POLYMARKET-QUICKSTART.md), [runbooks/polymarket-operations.md](runbooks/polymarket-operations.md)
 
+### Sprint 11: Unified pipeline ✅ COMPLETE
+- ✅ `UnifiedSignal` → portfolio allocator → `GlobalRiskManager` → `ExecutionAdapter` (equity vs Polymarket)
+- ✅ `services/portfolio/` and Polymarket MM logic as a strategy plugin where applicable
+
+### Sprint 12: Feature layer ✅ COMPLETE
+- ✅ `FeatureSnapshot` contract and `pm.features` persistence
+- ✅ CLOB + Binance sources, feature builder, feature store, session/API hooks per [12-00-INDEX.md](plans/tickets/12-00-INDEX.md)
+
+### Sprint 13: Simulation + evaluation ✅ COMPLETE
+- ✅ `services/simulation/` replay stack + unit tests; `services/evaluation/` metrics/baselines + tests
+- ✅ `004_create_simulation_evaluation_tables.py`; integration tests under `tests/integration/simulation/`
+- ✅ FastAPI routes under `/v1/simulation/*` and `/v1/evaluation/*` (contract-complete stubs)
+
+### Sprint 14: BTC probability model ✅ COMPLETE (tests **open**)
+- ✅ `services/ml/probability_model/` — panel builder, trainers, lag tests, fee-aware backtest, predictor, drift monitor
+- ✅ `005_create_probability_model_tables.py`; `/v1/probability/*` router
+- ⏳ Spec **AC-9** unit + integration tests — **not implemented** (see [14-00-INDEX.md](plans/tickets/14-00-INDEX.md))
+
 ### Future Enhancements
 - Polymarket Phase 2+ per [polymarket-btc-trading-spec.md](plans/specs/polymarket-btc-trading-spec.md) (inventory skew, dynamic spread, hybrid directional model, deeper dashboard integration)
 - Multi-asset portfolio backtesting
@@ -472,10 +511,10 @@ Gamma/CLOB/Binance → services/polymarket (discovery, feed, quoting, safety)
 ## 📈 Metrics & Statistics
 
 ### Codebase Statistics
-- **Total Lines of Code:** ~10,000+ lines (excluding Sprint 10 service additions)
-- **Services:** Core: data, features, backtest, api, execution, risk, ml; **optional:** `polymarket` (Sprint 10)
+- **Total Lines of Code:** ~10,000+ lines (excluding later service additions)
+- **Services:** Core: data, features, backtest, api, execution, risk, ml; **Polymarket / research:** `polymarket`, `simulation`, `evaluation`, `portfolio` (see [PROGRESS.md](plans/PROGRESS.md))
 - **Packages:** `common`, `strategies` (active); `models` (stub)
-- **Test Coverage:** 370+ core tests; additional unit/integration tests under `tests/unit/polymarket/` and `tests/integration/polymarket/`
+- **Test Coverage:** 370+ core tests; additional tests under `tests/unit/polymarket/`, `tests/integration/polymarket/`, `tests/unit/simulation/`, `tests/unit/evaluation/`, `tests/integration/simulation/`
 - **Documentation:** 20+ major documents plus Polymarket spec, summary, quickstart, and operations runbook
 - **ADRs:** 7 architecture decision records
 
@@ -490,12 +529,18 @@ Gamma/CLOB/Binance → services/polymarket (discovery, feed, quoting, safety)
 - **Sprint 8:** ✅ Complete (ML Observability, Safety & Evaluation)
 - **Sprint 9:** ✅ Complete (Model Observatory Dashboard)
 - **Sprint 10:** ✅ Complete (Polymarket BTC hourly market-making — `services/polymarket/`)
+- **Sprint 11:** ✅ Complete (unified pipeline — `services/portfolio/`, adapters, global risk)
+- **Sprint 12:** ✅ Complete (feature layer — `FeatureSnapshot`, `pm.features`, sources, store)
+- **Sprint 13:** ✅ Complete (simulation + evaluation — `services/simulation/`, `services/evaluation/`)
+- **Sprint 14:** ✅ Complete (probability model — `services/ml/probability_model/`); **AC-9 tests pending**
 
 ---
 
 ## 🐛 Known Issues
 
-1. **SMA Crossover Strategy Type Mismatch** (Non-blocking)
+1. **Sprint 14 — AC-9 test suite not landed** — Library, migration, and `/v1/probability/*` router are merged; dedicated unit + integration tests per spec remain to be added ([14-00-INDEX.md](plans/tickets/14-00-INDEX.md) task **14-11**).
+
+2. **SMA Crossover Strategy Type Mismatch** (Non-blocking)
    - Location: `packages/strategies/sma_crossover.py:168`
    - Issue: Decimal / float operation causing type mismatch
    - Impact: One integration test marked `xfail`
@@ -515,9 +560,11 @@ Gamma/CLOB/Binance → services/polymarket (discovery, feed, quoting, safety)
 - [Execution Verification Runbook](runbooks/execution-verification.md)
 - [Polymarket Operations Runbook](runbooks/polymarket-operations.md)
 - [Sprint 10 summary](plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)
+- [Sprint 13 summary](plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md)
+- [Sprint 14 summary](plans/summaries/SPRINT-14-PROBABILITY-MODEL.md)
 - [Multi-Agent Workflow](workflow/WORKFLOW.md)
 
 ---
 
-**Last Updated:** 2026-04-03  
+**Last Updated:** 2026-04-08  
 **Maintained By:** Development Team

@@ -4,13 +4,13 @@
 
 1. **Equities (Sprints 1–9)** — Alpaca-oriented workflow: market data and features, `Strategy` plugins and backtests, ML training and inference with safety tooling (drift, confidence gating, explainability, HITL), execution through **RiskManager → OMS → Alpaca**, and a **Model Observatory** dashboard for lifecycle and evaluation.
 
-2. **Prediction markets (Sprint 10, optional)** — A standalone **Polymarket** service for hourly BTC **Up/Down** binary markets: market discovery, WebSocket order book + Binance reference prices, **post-only** market making with its own safety layer, rich telemetry (queue position, adverse selection, toxic flow, regime tags), and **`pm.*`** TimescaleDB schema plus REST endpoints on the main API for session analytics. It does **not** route through the equity `Strategy` / Alpaca stack; capital and controls are separate.
+2. **Prediction markets (Sprint 10+, optional)** — A standalone **Polymarket** service for hourly BTC **Up/Down** binary markets: market discovery, WebSocket order book + Binance reference prices, **post-only** market making with its own safety layer, rich telemetry (queue position, adverse selection, toxic flow, regime tags), and **`pm.*`** TimescaleDB schema plus REST endpoints on the main API for session analytics. It does **not** route through the equity `Strategy` / Alpaca stack; capital and controls are separate. **Sprints 11–14** add a **unified signal → allocator → execution adapter** path (incl. `services/portfolio/`), a **unified Polymarket feature layer** (`FeatureSnapshot`, `pm.features`), an **offline CLOB simulation + evaluation** stack (`services/simulation/`, `services/evaluation/`, `/v1/simulation/*`, `/v1/evaluation/*`), and a **BTC probability model** (`services/ml/probability_model/`, `/v1/probability/*`)—see **[docs/plans/PROGRESS.md](docs/plans/PROGRESS.md)**, **[docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md](docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md)**, and **[docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md](docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md)** (Sprint 14 **AC-9** tests still open).
 
 Sprint 10 is **Phase 1** of a three-phase Polymarket roadmap: collect empirical data with small size, then iterate on inventory skew, dynamic spread, and (later) directional models—see **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)**.
 
 ## Project Status
 
-**Current phase:** Core platform **Sprints 1–9** ✅ and **Sprint 10 (Polymarket V1)** ✅ complete (**v2.0.0** milestone). Before funded Polymarket sessions, complete operational setup (wallet, env, migration, dry-run)—see **[docs/POLYMARKET-QUICKSTART.md](docs/POLYMARKET-QUICKSTART.md)**.
+**Current phase:** Core **Sprints 1–9** ✅, **Sprint 10 (Polymarket V1)** ✅ (**v2.0.0**), **Sprint 11 (unified pipeline)** ✅ (**v2.1.0**), **Sprint 12 (feature layer)** ✅ (**v2.2.0**), **Sprint 13 (simulation + evaluation)** ✅ (**v2.3.0**), **Sprint 14 (BTC probability model)** ✅ (**v2.4.0**; spec **AC-9** tests deferred). Before funded Polymarket sessions, complete operational setup (wallet, env, migration, dry-run)—see **[docs/POLYMARKET-QUICKSTART.md](docs/POLYMARKET-QUICKSTART.md)**. Milestone table: **[docs/plans/PROGRESS.md](docs/plans/PROGRESS.md)**.
 
 **Milestone log:** **[docs/plans/PROGRESS.md](docs/plans/PROGRESS.md)** (versions, patch notes, backlog). **Doc map:** **[docs/INDEX.md](docs/INDEX.md)**.
 
@@ -23,16 +23,20 @@ Sprint 10 is **Phase 1** of a three-phase Polymarket roadmap: collect empirical 
 **Sprint 7:** ✅ Complete (First ML Model – End-to-End Loop)  
 **Sprint 8:** ✅ Complete (ML Observability, Safety & Evaluation)  
 **Sprint 9:** ✅ Complete (Model Observatory Dashboard)  
-**Sprint 10:** ✅ Complete (Polymarket BTC hourly market-making — `services/polymarket/`)
+**Sprint 10:** ✅ Complete (Polymarket BTC hourly market-making — `services/polymarket/`)  
+**Sprint 11:** ✅ Complete (unified architecture — `UnifiedSignal`, `ExecutionAdapter`, `GlobalRiskManager`, `services/portfolio/`)  
+**Sprint 12:** ✅ Complete (feature layer — `FeatureSnapshot`, `pm.features`, CLOB/Binance sources, feature store; tickets `12-*`)  
+**Sprint 13:** ✅ Complete (CLOB simulation + evaluation — `services/simulation/`, `services/evaluation/`; tickets `13-*`)  
+**Sprint 14:** ✅ Complete (BTC probability model — `services/ml/probability_model/`; **`14-11` tests not done** — see **[docs/plans/tickets/14-00-INDEX.md](docs/plans/tickets/14-00-INDEX.md)**)
 
-See **[docs/SPRINTS-7-8-9-SUMMARY.md](docs/SPRINTS-7-8-9-SUMMARY.md)** for Sprints 7–9. For Polymarket: **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)** (architecture, `pm.*` tables, safety, Phase 2/3 roadmap), **[docs/POLYMARKET-QUICKSTART.md](docs/POLYMARKET-QUICKSTART.md)**, **[docs/runbooks/polymarket-operations.md](docs/runbooks/polymarket-operations.md)**.
+See **[docs/SPRINTS-7-8-9-SUMMARY.md](docs/SPRINTS-7-8-9-SUMMARY.md)** for Sprints 7–9. For Polymarket: **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)** (architecture, `pm.*` tables, safety, Phase 2/3 roadmap), **[docs/POLYMARKET-QUICKSTART.md](docs/POLYMARKET-QUICKSTART.md)**, **[docs/runbooks/polymarket-operations.md](docs/runbooks/polymarket-operations.md)**. For simulation/evaluation: **[docs/plans/specs/sprint-13-simulation-evaluation-spec.md](docs/plans/specs/sprint-13-simulation-evaluation-spec.md)**, **[docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md](docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md)**. For probability model: **[docs/plans/specs/sprint-14-probability-model-spec.md](docs/plans/specs/sprint-14-probability-model-spec.md)**, **[docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md](docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md)**.
 
 ## Architecture
 
 This is a monorepo containing:
 
 - **`apps/dashboard`** — Next.js app: platform overview, strategies, runs, health, settings, and **Model Observatory** (Sprints 4, 9).
-- **`services/`** — Python services: **data** (migrations, including `pm.*`), **features**, **backtest**, **execution**, **risk**, **ml**, **api** (FastAPI, including `/v1/polymarket/*`), and **`polymarket`** (Sprint 10 — optional Typer CLI `polymarket-session`, CLOB/Gamma/Binance adapters, session orchestration).
+- **`services/`** — Python services: **data** (migrations, including `pm.*`, simulation/evaluation, probability tables), **features** (incl. Polymarket sources / feature store), **backtest** (equity), **simulation** (CLOB replay / offline evaluation path), **evaluation** (metrics, baselines, reports), **portfolio** (allocator), **execution**, **risk**, **ml** (incl. **`ml/probability_model/`** for Sprint 14), **api** (FastAPI: `/v1/polymarket/*`, `/v1/simulation/*`, `/v1/evaluation/*`, `/v1/probability/*`, features router), and **`polymarket`** (Sprint 10 — optional Typer CLI `polymarket-session`, CLOB/Gamma/Binance adapters, session orchestration).
 - **`packages/`** — **`common`** (shared Pydantic schemas, including `polymarket_schemas`), **`strategies`** (rule and ML strategy plugins), **`models`** (stub package reserved for shared model utilities).
 - **`docs/`** — Architecture, contracts, runbooks, specs, and workflow guides.
 - **`configs/`** — Strategy YAML, environment templates.
@@ -184,7 +188,9 @@ quant/
 - **Sprint 6:** [`docs/plans/summaries/SPRINT6_SUMMARY.md`](docs/plans/summaries/SPRINT6_SUMMARY.md) - ML Safety & Interpretability
 - **Sprints 7–9:** [`docs/SPRINTS-7-8-9-SUMMARY.md`](docs/SPRINTS-7-8-9-SUMMARY.md) - First ML Model, Observability & Safety, Model Observatory Dashboard
 - **Sprint 10:** [`docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md`](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md) - Polymarket BTC market-making (full summary)
-- **Specs & tickets hub (Sprints 7–10):** [`docs/plans/README.md`](docs/plans/README.md)
+- **Sprint 13:** [`docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md`](docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md) - CLOB simulation + evaluation engine
+- **Sprint 14:** [`docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md`](docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md) - BTC probability model (AC-9 tests open)
+- **Specs & tickets hub (Sprints 7–14):** [`docs/plans/README.md`](docs/plans/README.md)
 
 ### Polymarket (Sprint 10)
 - **Quick start:** [`docs/POLYMARKET-QUICKSTART.md`](docs/POLYMARKET-QUICKSTART.md)
@@ -309,6 +315,22 @@ See [`docs/plans/task_plan.md`](docs/plans/task_plan.md) for the original sprint
 - [x] Gap-filling analytics fields: queue-ahead estimates, adverse selection (5s/10s midpoint), toxic flow per minute, reward-eligibility proxies, quote-version attribution
 - [x] FastAPI **`GET /v1/polymarket/sessions`** (+ detail, orders, fills, snapshots, PnL, toxic-flow); shared **`packages/common/polymarket_schemas.py`**
 - [x] **130+** unit and **5** integration tests (mocked APIs); service docs (**SETUP**, **CONFIG**, **RUNBOOK**); run via **[docs/POLYMARKET-QUICKSTART.md](docs/POLYMARKET-QUICKSTART.md)**
+
+**Sprint 11:** ✅ Unified architecture (Complete) — [`docs/plans/2026-04-04-unified-architecture-refactor.md`](docs/plans/2026-04-04-unified-architecture-refactor.md)
+- [x] `UnifiedSignal` → `services/portfolio/` → `GlobalRiskManager` → `ExecutionAdapter` (equity vs Polymarket)
+
+**Sprint 12:** ✅ Feature layer (Complete) — [`docs/plans/specs/sprint-12-feature-layer-spec.md`](docs/plans/specs/sprint-12-feature-layer-spec.md), tickets [`12-00-INDEX.md`](docs/plans/tickets/12-00-INDEX.md)
+- [x] `FeatureSnapshot`, CLOB/Binance sources, feature builder, `pm.features`, feature store, session + API hooks
+
+**Sprint 13:** ✅ Simulation + evaluation (Complete) — [`docs/plans/specs/sprint-13-simulation-evaluation-spec.md`](docs/plans/specs/sprint-13-simulation-evaluation-spec.md), tickets [`13-00-INDEX.md`](docs/plans/tickets/13-00-INDEX.md)
+- [x] `services/simulation/` (replay, order book, fees, execution sim, adverse selection, validation, runner)
+- [x] `services/evaluation/` (metrics, baselines, regime matrix, reports); Alembic `004_create_simulation_evaluation_tables.py`
+- [x] `/v1/simulation/*`, `/v1/evaluation/*` (contract stubs; wire to DB + `SimulationRunner` as follow-up)
+
+**Sprint 14:** ✅ BTC probability model (Complete; **tests incomplete**) — [`docs/plans/specs/sprint-14-probability-model-spec.md`](docs/plans/specs/sprint-14-probability-model-spec.md), task index [`14-00-INDEX.md`](docs/plans/tickets/14-00-INDEX.md)
+- [x] `services/ml/probability_model/` (dataset, trainer, GBT/registry, lag tests, fee backtest, predictor, drift)
+- [x] Alembic `005_create_probability_model_tables.py`; `/v1/probability/*` router (stub/mock handlers where noted)
+- [ ] Spec **AC-9** — dedicated unit + integration tests (**14-11** not started)
 
 ## Security Notice
 

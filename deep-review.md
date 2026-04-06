@@ -2,7 +2,7 @@
 
 This document is a design review and feature-planning artifact for the Caliper (quant) codebase. It explains how the system works today, what is implemented versus planned, and how the project should evolve next. The audience is a developer with strong software and moderate ML background but minimal trading experience.
 
-> **Status (2026-04):** Sprints **7–10** shipped after much of this narrative was written. For **current** ML and dashboard state, see **[docs/SPRINTS-7-8-9-SUMMARY.md](docs/SPRINTS-7-8-9-SUMMARY.md)** and **[docs/plans/PROGRESS.md](docs/plans/PROGRESS.md)**. For **Polymarket**, see **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)**. Sections below mix **updated** snapshots with **older** paragraphs—use the linked docs as source of truth where they conflict.
+> **Status (2026-04):** Sprints **7–13** shipped after much of this narrative was written. For **current** ML and dashboard state, see **[docs/SPRINTS-7-8-9-SUMMARY.md](docs/SPRINTS-7-8-9-SUMMARY.md)** and **[docs/plans/PROGRESS.md](docs/plans/PROGRESS.md)**. For **Polymarket**, see **[docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md](docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md)**. For **simulation + evaluation** (Sprint 13), see **[docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md](docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md)**. Sections below mix **updated** snapshots with **older** paragraphs—use the linked docs as source of truth where they conflict.
 
 ---
 

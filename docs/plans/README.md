@@ -2,7 +2,7 @@
 
 This folder is the **single home** for planning docs (the old repository root `plans/` directory was removed; everything lives here now).
 
-- **Sprints 7–10:** `specs/` and `tickets/` — bounded agent workflow per `docs/workflow/workflow.md`.
+- **Sprints 7–14:** `specs/` and `tickets/` — bounded agent workflow per `docs/workflow/workflow.md`.
 - **Sprints 1–6 and planning-phase artifacts:** see **Legacy planning** below.
 
 **Milestone versions, patch notes, and backlog:** **[PROGRESS.md](PROGRESS.md)**. **Repo root overview:** [README.md](../../README.md).
@@ -20,7 +20,7 @@ This folder is the **single home** for planning docs (the old repository root `p
 | [SPRINT_SKILL_OPTIMIZATIONS.md](SPRINT_SKILL_OPTIMIZATIONS.md) | Sprint 1–2 DB/code optimizations from skills review. |
 | [summaries/SPRINT1_SUMMARY.md](summaries/SPRINT1_SUMMARY.md) … [summaries/SPRINT6_SUMMARY.md](summaries/SPRINT6_SUMMARY.md) | Per-sprint completion summaries. |
 
-## Workflow (Sprints 7–10)
+## Workflow (Sprints 7–14)
 
 - **Specs** (`specs/`) = rules, constraints, design intent. Agents read them as context but **do not execute** from the spec alone.
 - **Tickets** (`tickets/`) = small, bounded tasks. Agents **act only on the ticket** they are given. Each ticket references one or more specs and lists Allowed Files and tool budgets.
@@ -35,8 +35,12 @@ This folder is the **single home** for planning docs (the old repository root `p
 | [specs/sprint-8-observability-safety-spec.md](specs/sprint-8-observability-safety-spec.md) | ML observability & safety: performance tracking, baselines/regret, drift, SHAP, stress simulation. |
 | [specs/sprint-9-model-observatory-dashboard-spec.md](specs/sprint-9-model-observatory-dashboard-spec.md) | Model Observatory Dashboard: registry, detail, ML viz, comparison, tuning, lifecycle, drift UI, HITL review, sandbox. |
 | [specs/polymarket-btc-trading-spec.md](specs/polymarket-btc-trading-spec.md) | **Sprint 10:** Polymarket hourly BTC market-making — parallel `services/polymarket/`, `pm.*` schema, V1 MM + Phase 2/3 roadmap. |
+| [2026-04-04-unified-architecture-refactor.md](2026-04-04-unified-architecture-refactor.md) | **Sprint 11:** Unified signal → allocator → risk → execution adapter (v2.1.0). |
+| [specs/sprint-12-feature-layer-spec.md](specs/sprint-12-feature-layer-spec.md) | **Sprint 12:** Polymarket feature layer — `FeatureSnapshot`, sources, builder, `pm.features`, store, API (v2.2.0). |
+| [specs/sprint-13-simulation-evaluation-spec.md](specs/sprint-13-simulation-evaluation-spec.md) | **Sprint 13:** CLOB simulation + evaluation — `services/simulation/`, `services/evaluation/`, `pm.*` tables, API (v2.3.0). |
+| [specs/sprint-14-probability-model-spec.md](specs/sprint-14-probability-model-spec.md) | **Sprint 14:** BTC probability model — `services/ml/probability_model/`, migration `005`, `/v1/probability/*` (v2.4.0; **AC-9 tests deferred**). |
 
-Sprints 7–9 specs reference skills from [task_plan.md](task_plan.md) where applicable. Sprint 10 was executed as 20 tickets (`10-01`–`10-20`); see [summaries/SPRINT-10-POLYMARKET-COMPLETE.md](summaries/SPRINT-10-POLYMARKET-COMPLETE.md) for the completion narrative.
+Sprints 7–9 specs reference skills from [task_plan.md](task_plan.md) where applicable. Sprint 10 was executed as 20 tickets (`10-01`–`10-20`); see [summaries/SPRINT-10-POLYMARKET-COMPLETE.md](summaries/SPRINT-10-POLYMARKET-COMPLETE.md). Sprints 12–13 use ticket indices [tickets/12-00-INDEX.md](tickets/12-00-INDEX.md) and [tickets/13-00-INDEX.md](tickets/13-00-INDEX.md); Sprint 13 narrative: [summaries/SPRINT-13-SIMULATION-EVALUATION.md](summaries/SPRINT-13-SIMULATION-EVALUATION.md). Sprint 14 task index: [tickets/14-00-INDEX.md](tickets/14-00-INDEX.md); summary: [summaries/SPRINT-14-PROBABILITY-MODEL.md](summaries/SPRINT-14-PROBABILITY-MODEL.md).
 
 ## Tickets
 
@@ -82,6 +86,24 @@ Sprints 7–9 specs reference skills from [task_plan.md](task_plan.md) where app
 | [tickets/10-01-polymarket-scaffolding.md](tickets/10-01-polymarket-scaffolding.md) … `10-20-documentation.md` | Twenty bounded tickets (scaffolding → adapters → core → API → tests → docs) |
 
 **Operations (human):** [docs/POLYMARKET-QUICKSTART.md](../POLYMARKET-QUICKSTART.md) · [docs/runbooks/polymarket-operations.md](../runbooks/polymarket-operations.md)
+
+**Sprint 12 (Feature layer)** — ✅ complete (2026-04-04)
+
+| Index | Description |
+|-------|-------------|
+| [tickets/12-00-INDEX.md](tickets/12-00-INDEX.md) | Dependency graph, ticket list (`12-01`–`12-10`) |
+
+**Sprint 13 (Simulation + evaluation)** — ✅ complete (2026-04-05)
+
+| Index | Description |
+|-------|-------------|
+| [tickets/13-00-INDEX.md](tickets/13-00-INDEX.md) | Dependency graph, ticket list (`13-01`–`13-13`) |
+
+**Sprint 14 (BTC probability model)** — ✅ code complete (2026-04-08); **14-11 tests not started**
+
+| Index | Description |
+|-------|-------------|
+| [tickets/14-00-INDEX.md](tickets/14-00-INDEX.md) | Task list `14-01`–`14-11` (schemas → API; **AC-9** open) |
 
 ## How to run
 

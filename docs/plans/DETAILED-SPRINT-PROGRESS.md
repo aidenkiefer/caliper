@@ -275,7 +275,7 @@ Formerly repository root `plans/progress.md`. **Canonical milestone log** (versi
 ## Completed Artifacts
 
 ### Planning documentation (this folder)
-- ✅ [task_plan.md](task_plan.md) — Original sprint plan (Sprints 1–6 + handoff); specs/tickets for 7–10 live under `specs/` and `tickets/`
+- ✅ [task_plan.md](task_plan.md) — Original sprint plan (Sprints 1–6 + handoff); specs/tickets for Sprint 7+ live under `specs/` and `tickets/` (e.g. `12-*`, `13-*`)
 - ✅ [findings.md](findings.md) — Research insights and decisions
 - ✅ [DETAILED-SPRINT-PROGRESS.md](DETAILED-SPRINT-PROGRESS.md) — This checklist file
 - ✅ [milestones.md](milestones.md) — Project milestones

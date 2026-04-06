@@ -50,8 +50,8 @@ Track major work blocks, features, and versions in this table.
 | **v2.0.0** | **Sprint 10: Polymarket BTC market-making**            | Done   | 2026-03-25 | 0         | `docs/plans/specs/polymarket-btc-trading-spec.md`               | `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md` (see also `docs/plans/POLYMARKET-TICKETS-1-5-SUMMARY.md`) |
 | **v2.1.0** | **Sprint 11: Architecture refactor — unified pipeline** | Done   | 2026-04-04 | 0         | `docs/plans/2026-04-04-unified-architecture-refactor.md`        | Unified signal→allocator→risk→adapter; `UnifiedSignal`, `ExecutionAdapter`, `GlobalRiskManager`, `PolymarketMMStrategy`, `services/portfolio/` |
 | **v2.2.0** | **Sprint 12: Feature layer unification**               | Done   | 2026-04-04 | 0         | `docs/plans/specs/sprint-12-feature-layer-spec.md`              | Unified feature pipeline: 4 families (market state, microstructure, probabilistic, regime); `FeatureSnapshot`; `CLOBSource`/`BinanceSource`; `FeatureBuilder`; `pm.features`; `FeatureStore`; session + API; tests. Tickets: `docs/plans/tickets/12-00-INDEX.md`. |
-| **v2.3.0** | **Sprint 13: Simulation + evaluation engine**          | Done | 2026-04-05     | 0         | `docs/plans/specs/sprint-13-simulation-evaluation-spec.md`      | CLOB replay engine, execution/fee/latency modeling, adverse selection model, per-model evaluation metrics, walk-forward validation. All 13 tickets complete. Integration test: 4 tests covering fills, AC-1 determinism, PnL component consistency, AC-7 Sharpe confidence. |
-| **v2.4.0** | **Sprint 14: BTC probability model**                   | Spec   | —          | —         | `docs/plans/specs/sprint-14-probability-model-spec.md`          | Real-time P(BTC up) estimator; GLM + GBT; calibration; lead-lag tests (Granger, cross-correlation, event study, persistence curve); fee-aware backtest. |
+| **v2.3.0** | **Sprint 13: Simulation + evaluation engine**          | Done   | 2026-04-05 | 0         | `docs/plans/specs/sprint-13-simulation-evaluation-spec.md`      | `services/simulation/` (replay, order book, fees, execution sim, adverse selection, validation, runner); `services/evaluation/` (metrics, regime matrix, baselines, reports); `pm.simulation_runs` / `pm.evaluation_reports` / `pm.simulation_validation`; `/v1/simulation/*` + `/v1/evaluation/*` (stub responses until wired to DB). Tickets: `docs/plans/tickets/13-00-INDEX.md`. Summary: `docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md`. |
+| **v2.4.0** | **Sprint 14: BTC probability model**                   | Done   | 2026-04-08 | 1         | `docs/plans/specs/sprint-14-probability-model-spec.md`          | `services/ml/probability_model/` (dataset, trainer, registry/GBT, lag tests, fee-aware backtest, predictor, drift); Alembic `005_*`; `/v1/probability/*` (stub/mock responses until wired to live DB reads). **Deferred:** spec **AC-9** unit + integration tests — see backlog + `docs/plans/tickets/14-00-INDEX.md` task **14-11**. Summary: `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md`. |
 | **v2.5.0** | **Sprint 15: Regime detection + dynamic allocation**   | Spec   | —          | —         | `docs/plans/specs/sprint-15-regime-allocation-spec.md`        | Global + local regime detection (HMM + threshold); 5 regimes; strategy→regime performance matrix; HRP + risk parity + Kelly allocator; online adaptation. |
 | **v2.6.0** | **Sprint 16: Cross-sectional ranking + model fleet**   | Spec   | —          | —         | `docs/plans/specs/sprint-16-cross-sectional-fleet-spec.md`      | Multi-market edge ranking; 4 fleet strategies (MM v2, Directional, Hybrid, Regime-Aware); paper trading orchestrator; per-model dashboards. |
 | **v2.7.0** | **Sprint 17: Reward density + wallet intelligence + signal aggregation** | Spec | — | —    | `docs/plans/specs/sprint-17-reward-density-wallet-spec.md`    | On-chain maker HHI; wallet profiling + clustering; composite signal aggregation; model lifecycle (promote/pause/retire). |
@@ -100,6 +100,16 @@ Log smaller fixes, UI tweaks, docs updates, or tooling improvements here—work 
 | **v2.3.0-p11** | Sprint 13 ticket 13-11: DB migration 004 — pm.simulation_runs, pm.evaluation_reports, pm.simulation_validation | 2026-04-05 | Database / migrations | `services/data/alembic/versions/004_create_simulation_evaluation_tables.py`; revision 004 revises 003; 3 tables with JSONB config/result/report columns, FK from simulation_validation to simulation_runs, 5 indexes |
 | **v2.3.0-p12** | Sprint 13 ticket 13-12: simulation + evaluation API router | 2026-04-05 | API | `services/api/routers/simulation.py`; 5 endpoints: POST /v1/simulation/run, GET /v1/simulation/{run_id}/result, GET /v1/evaluation/{strategy_id}/latest, GET /v1/evaluation/compare, GET /v1/evaluation/{strategy_id}/regimes; registered in `services/api/main.py` |
 | **v2.3.0-p13** | Sprint 13 ticket 13-13: integration test — full simulation pipeline, determinism, evaluation | 2026-04-05 | Tests | `tests/integration/simulation/test_simulation_pipeline.py`; 4 tests: fills produced (AC-9), determinism on identical inputs (AC-1), PnL components sum to total, sharpe_confidence='low' with 1 data point (AC-7) |
+| **v2.4.0-p1** | Sprint 14 task 14-01: probability model Pydantic schemas | 2026-04-08 | ML / schemas | `services/ml/probability_model/schemas.py` |
+| **v2.4.0-p2** | Sprint 14 task 14-02: panel dataset builder, walk-forward splits | 2026-04-08 | ML / data | `services/ml/probability_model/dataset.py` |
+| **v2.4.0-p3** | Sprint 14 task 14-03: logistic trainer, Platt, ECE/Brier + Brier decomposition | 2026-04-08 | ML / training | `services/ml/probability_model/trainer.py` |
+| **v2.4.0-p4** | Sprint 14 task 14-04: GBT + `ModelRegistry` | 2026-04-08 | ML / training | `services/ml/probability_model/registry.py` (+ XGBoost path in trainer module as implemented) |
+| **v2.4.0-p5** | Sprint 14 task 14-05: lead-lag tests | 2026-04-08 | ML / research | `services/ml/probability_model/lag_tests.py` |
+| **v2.4.0-p6** | Sprint 14 task 14-06: fee-aware threshold backtest | 2026-04-08 | ML / backtest | `services/ml/probability_model/backtest.py` |
+| **v2.4.0-p7** | Sprint 14 task 14-07: `ProbabilityPredictor` async serving | 2026-04-08 | ML / inference | `services/ml/probability_model/predictor.py` |
+| **v2.4.0-p8** | Sprint 14 task 14-08: `DriftMonitor` | 2026-04-08 | ML / monitoring | `services/ml/probability_model/drift.py` |
+| **v2.4.0-p9** | Sprint 14 task 14-09: Alembic 005 — `pm.probability_predictions`, `pm.lag_test_results`, `pm.calibration_reports` | 2026-04-08 | Database | `services/data/alembic/versions/005_create_probability_model_tables.py` |
+| **v2.4.0-p10** | Sprint 14 task 14-10: probability API router | 2026-04-08 | API | `services/api/routers/probability.py`; registered in `services/api/main.py` |
 
 
 ---
@@ -117,6 +127,7 @@ Items discussed or spec'd but not yet fully implemented. Track deferred features
 | **Future phase** | Iterate on model-centric dashboard and ML evaluation | `docs/plans/DETAILED-SPRINT-PROGRESS.md` | Long-form sprint checklists; v2.2.0–v2.7.0 roadmap now tracks this |
 | **Future phase** | Polymarket Phase 2+ (inventory skew, dynamic spread, hybrid model) | `docs/plans/specs/polymarket-btc-trading-spec.md` §10 | V1 complete; tune from `pm.*` data before funded scale-up; folded into v2.2.0+ sprint plan |
 | **Fix / patch**  | Render API server issue                              | `docs/render-api-server-issue.md` | Existing issue doc suggests deployment/runtime follow-up work        |
+| **Deferred**     | Sprint 14 spec **AC-9** — unit + integration tests for probability model | `docs/plans/specs/sprint-14-probability-model-spec.md` § AC-9; `docs/plans/tickets/14-00-INDEX.md` (14-11) | Library + API + migration merged; dedicated pytest suite not yet added |
 
 
 ---
@@ -147,8 +158,8 @@ If your project maintains linked specs, summaries, or concept docs, index them h
 | [Sprint 10: Polymarket BTC market-making](docs/plans/specs/polymarket-btc-trading-spec.md) | Hourly BTC binary market-making on Polymarket  |
 | Sprint 11: Architecture refactor — unified pipeline | See `docs/plans/2026-04-04-unified-architecture-refactor.md` (impl plan; no separate spec) |
 | [Sprint 12: Feature layer unification](docs/plans/specs/sprint-12-feature-layer-spec.md) | Unified feature pipeline: market state, microstructure, probabilistic, regime — tickets at `docs/plans/tickets/12-*` |
-| [Sprint 13: Simulation + evaluation engine](docs/plans/specs/sprint-13-simulation-evaluation-spec.md) *(planned)* | CLOB replay engine, latency/fee modeling, per-model evaluation |
-| [Sprint 14: BTC probability model](docs/plans/specs/sprint-14-probability-model-spec.md) *(planned)* | Real-time P(BTC up) estimator, calibration, lead-lag tests |
+| [Sprint 13: Simulation + evaluation engine](docs/plans/specs/sprint-13-simulation-evaluation-spec.md) | Polymarket CLOB replay + evaluation metrics; tickets `13-*`; summary [SPRINT-13-SIMULATION-EVALUATION.md](docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md) |
+| [Sprint 14: BTC probability model](docs/plans/specs/sprint-14-probability-model-spec.md) | `services/ml/probability_model/`; migration `005`; `/v1/probability/*`; **AC-9 tests open** — [14-00-INDEX.md](docs/plans/tickets/14-00-INDEX.md); summary [SPRINT-14-PROBABILITY-MODEL.md](docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md) |
 | [Sprint 15: Regime detection + dynamic allocation](docs/plans/specs/sprint-15-regime-allocation-spec.md) *(planned)* | HMM/threshold regimes, strategy performance matrix, HRP allocator |
 | [Sprint 16: Cross-sectional ranking + model fleet](docs/plans/specs/sprint-16-cross-sectional-fleet-spec.md) *(planned)* | Multi-market edge ranking, 3–5 competing model fleet |
 | [Sprint 17: Reward density + wallet intelligence](docs/plans/specs/sprint-17-reward-density-wallet-spec.md) *(planned)* | On-chain HHI, wallet intelligence, composite signal aggregation |
@@ -164,6 +175,8 @@ If your project maintains linked specs, summaries, or concept docs, index them h
 | `docs/plans/tickets/09-*` | Sprint 9 model dashboard tickets           |
 | `docs/plans/tickets/10-*` | Sprint 10 Polymarket market-making tickets |
 | `docs/plans/tickets/12-*` | Sprint 12 feature layer unification tickets |
+| `docs/plans/tickets/13-*` | Sprint 13 simulation + evaluation engine tickets |
+| `docs/plans/tickets/14-00-INDEX.md` | Sprint 14 probability model task index (14-11 tests deferred) |
 
 
 ### Summaries (`docs/plans/` and `docs/`)
@@ -182,6 +195,8 @@ If your project maintains linked specs, summaries, or concept docs, index them h
 | `docs/SPRINT-9-COMPLETE.md`                             | Sprint 9 completion notes                     |
 | `docs/plans/POLYMARKET-TICKETS-1-5-SUMMARY.md`          | Sprint 10 tickets 1-5 completion notes        |
 | `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md` | Sprint 10 complete (all 20 tickets, runbook) |
+| `docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md` | Sprint 13: simulation + evaluation engine (scope, modules, API, next steps) |
+| `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md` | Sprint 14: BTC probability model (modules, migration, API, AC-9 gap) |
 
 ### Runbooks (`docs/runbooks/`)
 

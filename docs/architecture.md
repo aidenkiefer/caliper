@@ -2,7 +2,7 @@
 
 ## Summary
 
-This document defines the system architecture for **Caliper**: a modular quantitative platform spanning **equities** (Alpaca-oriented: strategies, backtest, ML loop, RiskManager → OMS) and an **optional** **Polymarket** prediction-market surface (hourly BTC binary market-making in `services/polymarket/`). Both tracks share **Postgres/TimescaleDB** for persistence and analytics; they **do not** share the same order path (Polymarket bypasses `packages/strategies` and `services/execution`).
+This document defines the system architecture for **Caliper**: a modular quantitative platform spanning **equities** (Alpaca-oriented: strategies, backtest, ML loop, RiskManager → OMS) and an **optional** **Polymarket** prediction-market surface (hourly BTC binary market-making in `services/polymarket/`). **Offline CLOB research** uses **`services/simulation/`** (replay against stored events) and **`services/evaluation/`** (metrics and reports); that path is separate from **`services/backtest/`** (equity bars). Both tracks share **Postgres/TimescaleDB** for persistence and analytics; Polymarket live trading **does not** use the Alpaca OMS (`services/execution`).
 
 The platform supports multiple equity strategies (stocks; options-ready schemas), emphasizes risk management (target level 6–7), and separates the Python trading stack from the **Next.js** dashboard (Vercel or local). For milestone versions and backlog, see **[docs/plans/PROGRESS.md](plans/PROGRESS.md)**.
 
@@ -26,7 +26,7 @@ The platform supports multiple equity strategies (stocks; options-ready schemas)
 - Simplified dependency management and versioning
 - Better suited for small team or solo developer
 
-**Trade-off:** Monorepo can become unwieldy at scale; for this codebase the Python surface area is **data, features, backtest, execution, risk, ml, api**, plus optional **`polymarket`**.
+**Trade-off:** Monorepo can become unwieldy at scale; for this codebase the Python surface area is **data, features, backtest, simulation, evaluation, portfolio, execution, risk, ml, api**, plus optional **`polymarket`**.
 
 ### ✅ Service-Oriented Architecture (SOA)
 **Decision:** Decompose system into independent services  
@@ -36,14 +36,17 @@ The platform supports multiple equity strategies (stocks; options-ready schemas)
 - Technology flexibility (could use different languages/frameworks per service if needed)
 
 **Implemented Python services / packages (by folder):**
-1. **data** — Market data ingestion, Alembic migrations (equity + **`pm.*`** Polymarket schema)
-2. **features** — Feature engineering pipeline
-3. **ml** — Training, inference adapters, drift, confidence gating, explainability, baselines, HITL, performance tracking
-4. **backtest** — Backtesting engine and walk-forward optimization
-5. **execution** — OMS and broker adapters (Alpaca); **equity path only**
-6. **risk** — RiskManager, kill switch, circuit breaker; **equity path only**
-7. **api** — FastAPI backend (dashboard, controls, ML, **`/v1/polymarket/*`** read APIs)
-8. **polymarket** *(optional)* — CLOB market-making bot, CLI, session orchestration; **not** a substitute for `execution`/`risk`
+1. **data** — Market data ingestion, Alembic migrations (equity + **`pm.*`** Polymarket schema, incl. simulation/evaluation tables from Sprint 13)
+2. **features** — Feature engineering pipeline (equity indicators + Polymarket **`FeatureSnapshot`** / feature store)
+3. **ml** — Training, inference adapters, drift, confidence gating, explainability, baselines, HITL, performance tracking; **`probability_model/`** (Sprint 14 — BTC hourly forecaster, calibration, lead-lag analysis; see `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md`)
+4. **backtest** — **Equity** backtesting engine and walk-forward optimization
+5. **simulation** — Polymarket CLOB **replay**: order book, fees, execution simulator, adverse selection, validation, runner (offline; not live OMS)
+6. **evaluation** — Post-run metrics, regime slices, baselines, **`EvaluationReport`** assembly (consumes simulation or live session outputs when wired)
+7. **portfolio** — Allocator utilities for the unified signal path (Sprint 11)
+8. **execution** — OMS and broker adapters (Alpaca); **equity path only**
+9. **risk** — RiskManager, kill switch, circuit breaker; **equity path only** (Polymarket bot uses its own safety layer)
+10. **api** — FastAPI backend (dashboard, controls, ML, **`/v1/polymarket/*`**, **`/v1/simulation/*`**, **`/v1/evaluation/*`**, features)
+11. **polymarket** *(optional)* — CLOB market-making bot, CLI, session orchestration; **not** a substitute for `execution`/`risk`
 
 **Not implemented as a standalone repo service:** there is **no** `services/monitoring/` today. Metrics and health are exposed via **`services/api`** (and ML observability via **`services/ml`** + dashboard). A dedicated monitoring/alerting service remains a possible future slice.
 

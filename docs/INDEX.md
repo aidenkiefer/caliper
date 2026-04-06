@@ -36,7 +36,7 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 |---|---|---|
 | Detailed sprint checklists | `docs/plans/DETAILED-SPRINT-PROGRESS.md` | Per-sprint checkbox history (legacy `plans/progress.md`) |
 | Original task plan (Sprints 1–6) | `docs/plans/task_plan.md` | Planning-phase decomposition and handoff |
-| Plans folder hub | `docs/plans/README.md` | Specs/tickets (7–10), legacy Sprints 1–6 artifacts, file index |
+| Plans folder hub | `docs/plans/README.md` | Specs/tickets (7–14), legacy Sprints 1–6 artifacts, file index |
 | Workflow progress log | `docs/plans/PROGRESS.md` | Versioned milestones, patches, backlog |
 | Planning findings | `docs/plans/findings.md` | Original research / design decisions |
 | Early milestones doc | `docs/plans/milestones.md` | Planning-phase milestone checklist |
@@ -46,7 +46,10 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 | Sprint 8 spec | `docs/plans/specs/sprint-8-observability-safety-spec.md` | Observability, drift, explainability, baselines |
 | Sprint 9 spec | `docs/plans/specs/sprint-9-model-observatory-dashboard-spec.md` | Model dashboard and model-centric UX |
 | Sprint 10 spec | `docs/plans/specs/polymarket-btc-trading-spec.md` | Polymarket hourly BTC market-making (architecture, data model, roadmap) |
-| Sprint tickets | `docs/plans/tickets/` | One-ticket-at-a-time bounded implementation work |
+| Sprint 12 spec | `docs/plans/specs/sprint-12-feature-layer-spec.md` | Unified Polymarket feature layer (`FeatureSnapshot`, sources, store, API) |
+| Sprint 13 spec | `docs/plans/specs/sprint-13-simulation-evaluation-spec.md` | CLOB simulation + evaluation engine (replay, metrics, baselines) |
+| Sprint 14 spec | `docs/plans/specs/sprint-14-probability-model-spec.md` | BTC hourly probability model, calibration, lead-lag tests, fee-aware backtest |
+| Sprint tickets | `docs/plans/tickets/` | Bounded tasks (`10-*`, `12-*`, `13-*`, `14-00-INDEX`, …) |
 
 ## Summaries and milestone docs
 
@@ -57,6 +60,8 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 | Sprint 9 complete | `docs/SPRINT-9-COMPLETE.md` | Reviewing Sprint 9 completion notes |
 | Sprint 9 implementation guide | `docs/SPRINT-9-IMPLEMENTATION-GUIDE.md` | Reviewing Sprint 9 implementation framing |
 | Sprint 10 complete | `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md` | What was built for Polymarket, why, Phase 2/3 roadmap |
+| Sprint 13 complete | `docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md` | Simulation + evaluation modules, API stubs, DB migration, boundaries vs `backtest/` |
+| Sprint 14 complete | `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md` | Probability model package, migration `005`, `/v1/probability/*`, AC-9 tests deferred |
 | Polymarket tickets 1–5 notes | `docs/plans/POLYMARKET-TICKETS-1-5-SUMMARY.md` | Early Sprint 10 implementation notes (superseded by full summary for overview) |
 
 ## Runbooks
@@ -77,11 +82,14 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 |---|---|---|
 | Dashboard app | `apps/dashboard/` | Next.js 14 App Router app |
 | API service | `services/api/` | FastAPI backend for dashboard and control endpoints |
-| Backtest service | `services/backtest/` | Engine, reporting, walk-forward |
+| Backtest service | `services/backtest/` | Equity backtest engine, reporting, walk-forward |
+| Simulation service | `services/simulation/` | Polymarket CLOB replay: order book, fees, execution sim, adverse selection, runner |
+| Evaluation service | `services/evaluation/` | Strategy metrics, regime matrix, baselines, evaluation reports |
 | Data service | `services/data/` | Market data ingestion, storage, migrations |
 | Execution service | `services/execution/` | OMS, broker adapters, reconciliation |
-| Features service | `services/features/` | Indicators and feature pipeline |
-| ML service | `services/ml/` | Training, inference, confidence, drift, explainability, HITL, baselines |
+| Portfolio service | `services/portfolio/` | Allocator utilities (unified pipeline; Sprint 11) |
+| Features service | `services/features/` | Indicators, equity + Polymarket feature pipeline (`FeatureSnapshot`, store) |
+| ML service | `services/ml/` | Training, inference, confidence, drift, explainability, HITL, baselines; **`probability_model/`** (Sprint 14 BTC forecaster) |
 | Risk service | `services/risk/` | Risk manager, kill switch, circuit breaker |
 | Polymarket service | `services/polymarket/` | Optional CLOB market-making bot; CLI + `pm.*` DB schema; parallel to equity stack |
 | Shared schemas | `packages/common/` | Pydantic schemas and shared contracts (includes `polymarket_schemas.py`, `ml_schemas.py`) |

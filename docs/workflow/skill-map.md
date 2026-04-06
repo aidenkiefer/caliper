@@ -61,7 +61,7 @@ Skills covering the core technical layers of the bot: probability modeling, back
 | Task area | Skill | When to load |
 |------|-------|------|
 | Financial model design, strategy analysis, portfolio optimization, PnL decomposition | `quant-analyst` | Any ticket involving microstructure models, fee curve analysis, maker-rebate incentive modeling, or Kelly sizing |
-| Trading strategy backtests, LOB simulation, walk-forward analysis, avoiding look-ahead bias | `backtesting-frameworks` | All backtest engine work, CLOB simulation design, validation against real fill data |
+| Trading strategy backtests, LOB simulation, walk-forward analysis, avoiding look-ahead bias | `backtesting-frameworks` | Equity: `services/backtest/`; Polymarket CLOB replay: `services/simulation/`; validation vs real fills: Sprint 13 validation layer |
 | Risk-adjusted metrics: VaR, CVaR, Sharpe, Sortino, drawdown; position sizing | `risk-metrics-calculation` | Risk manager implementation, strategy evaluation, regime-conditioned performance matrices |
 | Portfolio risk, inventory limits, kill-switch logic, stop-loss design | `risk-manager` | Inventory management in market-making, allocation caps, circuit breaker implementation |
 

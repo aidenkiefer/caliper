@@ -4,6 +4,8 @@
 
 This runbook provides procedures for verifying the FastAPI backend is functioning correctly. Use this for deployment verification, troubleshooting, and routine health checks.
 
+**Additional `/v1` routers** (beyond the core dashboard endpoints exercised below) are documented in **[docs/api-contracts.md](../api-contracts.md)** — e.g. **`/v1/polymarket/*`**, **`/v1/simulation/*`**, **`/v1/evaluation/*`**, **`/v1/probability/*`**, features.
+
 ## Prerequisites
 
 - Python 3.11+ installed

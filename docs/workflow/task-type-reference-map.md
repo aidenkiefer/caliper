@@ -90,4 +90,4 @@ When a ticket specifies `Agent type: <type>`, load this bundle first.
 - The primary frontend is the Next.js dashboard in `apps/dashboard/`.
 - Trading logic lives under `services/` and `packages/`, not under `apps/` except for the dashboard.
 - The most valuable domain docs for routine work are `docs/architecture.md`, `docs/data-contracts.md`, `docs/api-contracts.md`, `docs/risk-policy.md`, `docs/security.md`, `docs/dashboard-spec.md`, and `docs/design-guidelines.md`.
-- Sprint 7–10 work is organized under `docs/plans/specs/` and `docs/plans/tickets/`; Sprints 1–6 summaries and the original task plan live under `docs/plans/` (see [README.md](../plans/README.md)).
+- Sprint 7+ work is organized under `docs/plans/specs/` and `docs/plans/tickets/` (including `12-*`, `13-*`); Sprints 1–6 summaries and the original task plan live under `docs/plans/` (see [README.md](../plans/README.md)).

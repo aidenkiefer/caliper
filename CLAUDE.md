@@ -12,7 +12,7 @@ This file provides guidance to Claude when working with the **Caliper (quant)** 
 - **Learning and correctness** over profit maximization: interpretability, baselines, human-in-the-loop
 - **Paper trading first**, then live with strict safeguards
 
-**Current state:** Core platform **Sprints 1–9** are complete (including first ML model loop, observability, and model observatory dashboard). **Sprint 10** adds an optional **Polymarket** hourly BTC market-making service (`services/polymarket/`) — parallel to Alpaca/equity execution, shared TimescaleDB `pm.*` schema for analytics; see `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md` and `docs/runbooks/polymarket-operations.md`. Doc map: **`docs/INDEX.md`**.
+**Current state:** Core platform **Sprints 1–9** are complete (including first ML model loop, observability, and model observatory dashboard). **Sprint 10** adds an optional **Polymarket** hourly BTC market-making service (`services/polymarket/`). **Sprints 11–14** add a **unified pipeline** (`services/portfolio/`, execution adapters), a **Polymarket feature layer** (`FeatureSnapshot`, `pm.features`), **offline CLOB simulation + evaluation** (`services/simulation/`, `services/evaluation/`, `/v1/simulation/*`, `/v1/evaluation/*`), and the **BTC probability model** (`services/ml/probability_model/`, `/v1/probability/*` — several handlers stub/mock until wired to DB). Shared TimescaleDB **`pm.*`** schema covers sessions, features, simulation/evaluation, and probability tables (`005` migration). Sprint 14 spec **AC-9** tests are **deferred** (`docs/plans/tickets/14-00-INDEX.md`). See `docs/plans/PROGRESS.md`, `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md`, `docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md`, `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md`, and `docs/runbooks/polymarket-operations.md`. Doc map: **`docs/INDEX.md`**.
 
 **Codebase:** Monorepo with Python services (Poetry), shared packages (common schemas, strategies), and a Next.js dashboard (npm). Trading services run separately from the dashboard; the dashboard talks to the FastAPI backend via REST.
 
@@ -25,14 +25,17 @@ quant/
 ├── apps/
 │   └── dashboard/           # Next.js 14 (App Router), TypeScript, Shadcn/UI
 ├── services/                # Python microservices
-│   ├── api/                 # FastAPI backend (REST for dashboard)
-│   ├── backtest/            # Backtesting engine, report generator, walk-forward
-│   ├── data/                # Data layer, Alembic migrations (incl. pm.* for Polymarket)
+│   ├── api/                 # FastAPI backend (REST for dashboard; polymarket, features, simulation, probability routers)
+│   ├── backtest/            # Equity backtesting engine, report generator, walk-forward
+│   ├── data/                # Data layer, Alembic migrations (incl. pm.*, simulation/evaluation tables)
+│   ├── evaluation/          # Sprint 13: metrics, baselines, regime matrix, evaluation reports
 │   ├── execution/           # OMS, broker adapter (Alpaca), position reconciliation
-│   ├── features/           # Feature pipeline (indicators, 30+ features)
-│   ├── ml/                  # Drift, confidence gating, explainability, baselines, HITL
-│   ├── polymarket/          # Optional Polymarket CLOB bot (Sprint 10); not Strategy/OMS
-│   └── risk/                # RiskManager, kill switch, circuit breaker
+│   ├── features/            # Feature pipeline (equity + Polymarket FeatureSnapshot / store)
+│   ├── ml/                  # Drift, confidence gating, explainability, baselines, HITL; probability_model/ (Sprint 14)
+│   ├── polymarket/          # Optional Polymarket CLOB bot (Sprint 10); not equity OMS
+│   ├── portfolio/           # Sprint 11: allocator utilities for unified pipeline
+│   ├── risk/                # RiskManager, kill switch, circuit breaker
+│   └── simulation/          # Sprint 13: CLOB replay, order book, fees, execution sim, runner
 ├── packages/
 │   ├── common/              # Pydantic schemas (PriceBar, Order, Signal, api_schemas, ml_schemas, execution_schemas, polymarket_schemas)
 │   └── strategies/          # Strategy base class, SMA Crossover strategy
