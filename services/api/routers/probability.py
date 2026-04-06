@@ -16,7 +16,7 @@ from services.ml.probability_model.schemas import (
     BrierDecomposition,
 )
 
-router = APIRouter(tags=["probability"])
+router = APIRouter()
 
 # In-memory store for stub training runs (run_id → {"status": str})
 _train_runs: Dict[str, Dict[str, Any]] = {}
@@ -109,7 +109,6 @@ def _mock_lag_test(test_type: str = "cross_correlation") -> LagTestResult:
 
 def _run_training(run_id: str, request: TrainRequest) -> None:
     """Stub background task: marks the training run as completed immediately."""
-    _train_runs[run_id]["status"] = "running"
     _train_runs[run_id]["status"] = "completed"
 
 
