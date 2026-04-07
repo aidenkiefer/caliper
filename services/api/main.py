@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .routers import (
+    alerts,
     health,
     metrics,
     strategies,
@@ -30,6 +31,8 @@ from .routers import (
     explanations,
     baselines,
     recommendations,
+    models,
+    paper,
     polymarket,
     features,
     simulation,
@@ -143,6 +146,12 @@ app.add_middleware(
 API_V1_PREFIX = "/v1"
 
 app.include_router(
+    alerts.router,
+    prefix=API_V1_PREFIX,
+    tags=["alerts"],
+)
+
+app.include_router(
     health.router,
     prefix=API_V1_PREFIX,
     tags=["health"],
@@ -206,6 +215,18 @@ app.include_router(
     recommendations.router,
     prefix=API_V1_PREFIX,
     tags=["recommendations"],
+)
+
+app.include_router(
+    models.router,
+    prefix=API_V1_PREFIX,
+    tags=["models"],
+)
+
+app.include_router(
+    paper.router,
+    prefix=API_V1_PREFIX,
+    tags=["paper"],
 )
 
 app.include_router(

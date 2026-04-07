@@ -56,6 +56,14 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
     return `${sign}${num.toFixed(2)}%`;
   };
 
+  const formatPercentMaybe = (value: string | null | undefined) => {
+    if (value == null) return "—";
+    const num = Number.parseFloat(String(value));
+    if (!Number.isFinite(num)) return "—";
+    const sign = num >= 0 ? "+" : "";
+    return `${sign}${num.toFixed(2)}%`;
+  };
+
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString("en-US", {
       month: "short",
@@ -120,8 +128,8 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total Return"
-          value={formatPercent(run.metrics.total_return)}
-          change={`CAGR: ${formatPercent(run.metrics.cagr)}`}
+          value={formatPercentMaybe(run.metrics.total_return)}
+          change={`CAGR: ${formatPercentMaybe(run.metrics.cagr)}`}
           changeType={returnPositive ? "positive" : "negative"}
         />
         <StatsCard
@@ -132,7 +140,7 @@ export default function RunDetailPage({ params }: RunDetailPageProps) {
         />
         <StatsCard
           title="Max Drawdown"
-          value={formatPercent(run.metrics.max_drawdown)}
+          value={formatPercentMaybe(run.metrics.max_drawdown)}
           change="From peak"
           changeType="negative"
         />

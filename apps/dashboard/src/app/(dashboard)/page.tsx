@@ -14,10 +14,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAlerts, useFleetSignals, useFleetStatus, useMetrics, useRankingUniverse } from "@/lib/hooks";
+import { DEMO_MODE } from "@/lib/demo";
 
 export default function OverviewPage() {
-  const { metrics } = useMetrics();
-  const { alerts } = useAlerts();
+  const { metrics, isLoading: metricsLoading, isError: metricsError } = useMetrics();
+  const { alerts, isError: alertsError, acknowledge } = useAlerts();
   const { rankedUniverse } = useRankingUniverse();
   const { fleetStatus } = useFleetStatus();
   const { signals } = useFleetSignals(50);
@@ -34,41 +35,59 @@ export default function OverviewPage() {
     return `${sign}${num.toFixed(2)}%`;
   };
 
-  const pnlPositive = parseFloat(metrics.total_pnl_percent) >= 0;
-  const drawdownNegative = parseFloat(metrics.max_drawdown) < 0;
+  const pnlPositive = metrics ? parseFloat(metrics.total_pnl_percent) >= 0 : true;
+  const drawdownNegative = metrics ? parseFloat(metrics.max_drawdown) < 0 : true;
 
   return (
     <div className="space-y-6">
+      {(metricsError || alertsError) && !DEMO_MODE && (
+        <Card className="border-loss/50">
+          <CardHeader>
+            <CardTitle className="text-loss">Backend unavailable</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Connect the dashboard to `NEXT_PUBLIC_API_URL` to load real portfolio metrics and alerts.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="text-lg font-semibold tracking-tight">Portfolio summary</h2>
         <HelpHint helpId="overview-kpis" label="Portfolio KPIs" />
+        {DEMO_MODE && (
+          <Badge variant="secondary" className="ml-2">
+            Demo data
+          </Badge>
+        )}
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatsCard
           title="Total P&L"
-          value={formatCurrency(metrics.total_pnl)}
-          change={formatPercent(metrics.total_pnl_percent)}
+          value={metrics ? formatCurrency(metrics.total_pnl) : "—"}
+          change={metrics ? formatPercent(metrics.total_pnl_percent) : metricsLoading ? "Loading…" : undefined}
           changeType={pnlPositive ? "positive" : "negative"}
           icon={DollarSign}
         />
         <StatsCard
           title="Sharpe Ratio"
-          value={metrics.sharpe_ratio}
-          change="Annualized"
+          value={metrics ? metrics.sharpe_ratio : "—"}
+          change={metrics ? "Annualized" : undefined}
           changeType="neutral"
           icon={TrendingUp}
         />
         <StatsCard
           title="Max Drawdown"
-          value={formatPercent(metrics.max_drawdown)}
-          change={drawdownNegative ? "Within limits" : "At risk"}
+          value={metrics ? formatPercent(metrics.max_drawdown) : "—"}
+          change={metrics ? (drawdownNegative ? "Within limits" : "At risk") : undefined}
           changeType={drawdownNegative ? "positive" : "negative"}
           icon={Activity}
         />
         <StatsCard
           title="Capital Deployed"
-          value={formatCurrency(metrics.capital_deployed)}
-          change={`${metrics.active_positions} positions`}
+          value={metrics ? formatCurrency(metrics.capital_deployed) : "—"}
+          change={metrics ? `${metrics.active_positions} positions` : undefined}
           changeType="neutral"
           icon={Wallet}
         />
@@ -80,14 +99,14 @@ export default function OverviewPage() {
             <h3 className="text-sm font-medium text-muted-foreground">Equity curve</h3>
             <HelpHint helpId="overview-equity-chart" label="Equity curve" />
           </div>
-          <EquityChart data={metrics.equity_curve} />
+          <EquityChart data={metrics?.equity_curve ?? []} />
         </div>
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-medium text-muted-foreground">Alerts</h3>
             <HelpHint helpId="overview-alerts" label="Alerts" />
           </div>
-          <AlertsWidget alerts={alerts} />
+          <AlertsWidget alerts={alerts} onAcknowledge={acknowledge} />
         </div>
       </div>
 
@@ -104,20 +123,46 @@ export default function OverviewPage() {
             </p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row sm:items-center">
-            <StatusBadge status="mock" />
+            <StatusBadge status={DEMO_MODE ? "mock" : "live"} />
             <Badge variant="outline">Paper mode</Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="grid gap-6 xl:grid-cols-2">
-            <RankerTable universe={rankedUniverse} />
-            <FleetOverview fleetStatus={fleetStatus} />
+            {rankedUniverse ? (
+              <RankerTable universe={rankedUniverse} />
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Ranker</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    No ranking data yet.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+            {fleetStatus ? (
+              <FleetOverview fleetStatus={fleetStatus} />
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Fleet status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    No fleet status yet.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
           <div className="grid gap-6 xl:grid-cols-2">
             <SignalLog signals={signals} />
-            <RegimeTimeline points={fleetStatus.regime_timeline} />
+            <RegimeTimeline points={fleetStatus?.regime_timeline ?? []} />
           </div>
-          <ComparisonTable rows={fleetStatus.comparison} />
+          <ComparisonTable rows={fleetStatus?.comparison ?? []} />
         </CardContent>
       </Card>
 
@@ -142,24 +187,26 @@ export default function OverviewPage() {
         </CardContent>
       </Card>
 
-      <BaselineComparison
-        strategyReturn={parseFloat(metrics.total_pnl_percent) / 100}
-        baselineReturns={{
-          hold_cash: 0.0,
-          buy_and_hold: 0.12,
-          random: 0.05,
-        }}
-        regretMetrics={{
-          regret_vs_cash: parseFloat(metrics.total_pnl_percent) / 100,
-          regret_vs_buy_hold: parseFloat(metrics.total_pnl_percent) / 100 - 0.12,
-          regret_vs_random: parseFloat(metrics.total_pnl_percent) / 100 - 0.05,
-        }}
-        outperforms={{
-          cash: parseFloat(metrics.total_pnl_percent) > 0,
-          buy_and_hold: parseFloat(metrics.total_pnl_percent) > 12,
-          random: parseFloat(metrics.total_pnl_percent) > 5,
-        }}
-      />
+      {metrics && (
+        <BaselineComparison
+          strategyReturn={parseFloat(metrics.total_pnl_percent) / 100}
+          baselineReturns={{
+            hold_cash: 0.0,
+            buy_and_hold: 0.12,
+            random: 0.05,
+          }}
+          regretMetrics={{
+            regret_vs_cash: parseFloat(metrics.total_pnl_percent) / 100,
+            regret_vs_buy_hold: parseFloat(metrics.total_pnl_percent) / 100 - 0.12,
+            regret_vs_random: parseFloat(metrics.total_pnl_percent) / 100 - 0.05,
+          }}
+          outperforms={{
+            cash: parseFloat(metrics.total_pnl_percent) > 0,
+            buy_and_hold: parseFloat(metrics.total_pnl_percent) > 12,
+            random: parseFloat(metrics.total_pnl_percent) > 5,
+          }}
+        />
+      )}
     </div>
   );
 }

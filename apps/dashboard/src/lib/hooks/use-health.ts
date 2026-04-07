@@ -3,6 +3,7 @@
 import useSWR from "swr";
 import type { HealthStatus } from "../types";
 import { fetchHealth } from "../api";
+import { DEMO_MODE } from "../demo";
 
 // Mock data for development
 const mockHealth: HealthStatus = {
@@ -35,17 +36,15 @@ export function useHealth() {
     fetchHealth,
     {
       refreshInterval: 10000,
-      fallbackData: mockHealth,
-      onError: () => {
-        // Silently fail and use mock data
-      },
+      ...(DEMO_MODE ? { fallbackData: mockHealth } : {}),
     }
   );
 
   return {
-    health: data ?? mockHealth,
+    health: data ?? (DEMO_MODE ? mockHealth : null),
     isLoading,
     isError: error,
     mutate,
+    isDemo: DEMO_MODE,
   };
 }

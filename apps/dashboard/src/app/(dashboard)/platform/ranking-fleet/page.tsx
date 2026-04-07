@@ -50,7 +50,7 @@ export default function RankingFleetExplorerPage() {
   const parseError = useCallback((e: unknown): string => {
     if (e instanceof ApiHttpError) {
       if (e.status === 503) {
-        return "503 — ranking/fleet routes need DB_URL on the API (responses may still be mock JSON when wired).";
+        return "503 — ranking/fleet routes are not fully wired yet (ranking output + orchestrator status/signals need persistence; paper trades require DB + migrations).";
       }
       return `HTTP ${e.status}: ${e.message.slice(0, 240)}`;
     }
@@ -316,22 +316,26 @@ export default function RankingFleetExplorerPage() {
                   <TableRow>
                     <TableHead>Time</TableHead>
                     <TableHead>Strategy</TableHead>
+                    <TableHead>Market</TableHead>
                     <TableHead>Side</TableHead>
                     <TableHead className="text-right">Price</TableHead>
-                    <TableHead className="text-right">Size</TableHead>
-                    <TableHead className="text-right">PnL</TableHead>
+                    <TableHead className="text-right">Qty</TableHead>
+                    <TableHead className="text-right">Notional</TableHead>
+                    <TableHead className="text-right">Conf</TableHead>
                     <TableHead>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paper.map((t) => (
                     <TableRow key={t.trade_id}>
-                      <TableCell className="text-xs whitespace-nowrap">{t.timestamp}</TableCell>
+                      <TableCell className="text-xs whitespace-nowrap">{t.executed_at}</TableCell>
                       <TableCell className="font-mono text-xs">{t.strategy_id}</TableCell>
+                      <TableCell className="font-mono text-xs text-muted-foreground">{t.market_id}</TableCell>
                       <TableCell>{t.side}</TableCell>
                       <TableCell className="text-right font-tabular">{t.price}</TableCell>
-                      <TableCell className="text-right font-tabular">{t.size}</TableCell>
-                      <TableCell className="text-right font-tabular">{t.pnl_usd}</TableCell>
+                      <TableCell className="text-right font-tabular">{t.quantity}</TableCell>
+                      <TableCell className="text-right font-tabular">{t.notional}</TableCell>
+                      <TableCell className="text-right font-tabular">{t.confidence.toFixed(2)}</TableCell>
                       <TableCell>{t.status}</TableCell>
                     </TableRow>
                   ))}

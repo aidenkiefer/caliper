@@ -9,7 +9,6 @@ Routes:
     GET /v1/features/{market_id}/history  — Time-windowed FeatureSnapshot list
 """
 
-import os
 import logging
 from datetime import datetime
 from typing import List, Optional
@@ -17,6 +16,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from packages.common.polymarket_schemas import FeatureSnapshot
+from packages.common.db_url import DbUrlMismatchError, resolve_db_url
 from services.features.polymarket.store import FeatureStore, FeatureStoreError
 
 logger = logging.getLogger(__name__)
@@ -28,13 +28,13 @@ _MAX_LIMIT = 1000
 
 def _get_feature_store() -> FeatureStore:
     """Return a connected FeatureStore or raise 503 if DB_URL is not set."""
-    db_url = os.environ.get("DB_URL")
-    if not db_url:
-        raise HTTPException(
-            status_code=503,
-            detail="Feature store not available",
-        )
-    return FeatureStore(db_url)
+    try:
+        resolved = resolve_db_url()
+    except DbUrlMismatchError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception:
+        raise HTTPException(status_code=503, detail="Feature store not available")
+    return FeatureStore(resolved.url)
 
 
 # ---------------------------------------------------------------------------

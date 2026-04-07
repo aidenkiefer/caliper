@@ -767,6 +767,32 @@ Alternative docs at `/redoc`
 
 ---
 
+## Recommendations (HITL)
+
+Recommendations are a **human-in-the-loop (HITL)** queue of machine-generated suggestions that a user can approve/reject (with rationale) before they take effect.
+
+**Current implementation status:** endpoints exist but are backed by an **in-memory** queue (not persisted). See `docs/ui-data-audit.md` and `docs/system-design/recommendations.md`.
+
+### Endpoint: `GET /v1/recommendations`
+
+Returns the pending recommendation queue (optionally filtered by strategy/model, as implemented).
+
+**Direction (current):** support two `kind`s in the payload:
+- `action`: runtime trade/order intents (must still pass risk controls after approval)
+- `strategy_tuning`: optimization suggestions (param/config tuning or experiments to improve performance)
+
+### Endpoint: `POST /v1/recommendations/{id}/approve`
+
+Human approves the recommendation (with optional rationale metadata, as implemented).
+
+### Endpoint: `POST /v1/recommendations/{id}/reject`
+
+Human rejects the recommendation (with optional rationale metadata, as implemented).
+
+### Endpoint: `GET /v1/recommendations/stats`
+
+Agreement/throughput summary for the HITL flow (UI currently treats these as optional).
+
 ## Risks & Mitigations
 
 | Risk | Mitigation |

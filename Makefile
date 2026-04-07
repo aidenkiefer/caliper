@@ -1,4 +1,4 @@
-.PHONY: help api-dev dashboard-dev up down restart logs clean
+.PHONY: help api-dev dashboard-dev up down restart logs clean db-upgrade db-revision
 
 help: ## Show this help message
 	@echo 'Usage: make [target]'
@@ -36,6 +36,14 @@ logs-api: ## Show API service logs
 clean: ## Stop services and remove volumes (WARNING: deletes data)
 	docker-compose down -v
 	@echo "All services stopped and volumes removed"
+
+db-upgrade: ## Apply DB migrations (alembic head)
+	cd services/data && poetry install
+	cd services/data && poetry run alembic upgrade head
+
+db-revision: ## Show current DB migration revision
+	cd services/data && poetry install
+	cd services/data && poetry run alembic current
 
 # Execution & Risk Service Development Targets
 dev-execution: ## Run execution service in development mode

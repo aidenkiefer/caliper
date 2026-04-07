@@ -1,6 +1,6 @@
 "use client";
 
-import { useStrategy } from "@/lib/hooks";
+import { usePositions, useStrategy } from "@/lib/hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatsCard } from "@/components/stats-card";
 import { ExplanationCard } from "@/components/explanation-card";
 import { FeatureImportanceChart } from "@/components/feature-importance-chart";
-import { ArrowLeft, Play, Pause, Settings } from "lucide-react";
+import { PaperAllocationDialog } from "@/components/paper-allocation-dialog";
+import { EquityFillDialog } from "@/components/equity-fill-dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ArrowLeft, Play, Pause, Settings, DollarSign, Plus } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { use } from "react";
+import { use, useState } from "react";
 
 interface StrategyDetailPageProps {
   params: Promise<{ id: string }>;
@@ -19,7 +29,12 @@ interface StrategyDetailPageProps {
 
 export default function StrategyDetailPage({ params }: StrategyDetailPageProps) {
   const { id } = use(params);
-  const { strategy } = useStrategy(id);
+  const { strategy, mutate: mutateStrategy } = useStrategy(id);
+  const { positions, isError: positionsError, mutate: mutatePositions } = usePositions({
+    strategy_id: id,
+  });
+  const [allocationOpen, setAllocationOpen] = useState(false);
+  const [equityFillOpen, setEquityFillOpen] = useState(false);
 
   if (!strategy) {
     return (
@@ -43,8 +58,9 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
     return `${sign}${num.toFixed(2)}%`;
   };
 
-  const pnl = strategy.performance?.total_pnl ?? "0";
-  const pnlPositive = parseFloat(pnl) >= 0;
+  const pnl = strategy.performance?.total_pnl;
+  const pnlPositive = pnl != null ? parseFloat(pnl) >= 0 : true;
+  const pnlChangeType = pnl == null ? "neutral" : pnlPositive ? "positive" : "negative";
 
   return (
     <div className="space-y-6">
@@ -74,6 +90,25 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
           </div>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => setAllocationOpen(true)}
+          >
+            <DollarSign className="h-4 w-4" />
+            Allocate
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => setEquityFillOpen(true)}
+            title="Record an equities paper fill (Phase 1 wiring tool)"
+          >
+            <Plus className="h-4 w-4" />
+            Record fill
+          </Button>
           <Button variant="outline" size="sm" className="gap-2">
             <Settings className="h-4 w-4" />
             Configure
@@ -102,26 +137,42 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
       <div className="grid gap-4 md:grid-cols-4">
         <StatsCard
           title="Total P&L"
-          value={formatCurrency(pnl)}
-          change={formatPercent(strategy.performance?.sharpe_ratio ?? "0") + " Sharpe"}
-          changeType={pnlPositive ? "positive" : "negative"}
+          value={pnl != null ? formatCurrency(pnl) : "—"}
+          change={
+            strategy.performance?.sharpe_ratio != null
+              ? `${strategy.performance.sharpe_ratio} Sharpe`
+              : "—"
+          }
+          changeType={pnlChangeType}
         />
         <StatsCard
           title="Max Drawdown"
-          value={formatPercent(strategy.performance?.max_drawdown ?? "0")}
-          change="From peak"
+          value={
+            strategy.performance?.max_drawdown != null
+              ? formatPercent(strategy.performance.max_drawdown)
+              : "—"
+          }
+          change={strategy.performance?.max_drawdown != null ? "From peak" : "—"}
           changeType="negative"
         />
         <StatsCard
           title="Win Rate"
-          value={`${(parseFloat(strategy.performance?.win_rate ?? "0") * 100).toFixed(0)}%`}
-          change="All time"
+          value={
+            strategy.performance?.win_rate != null
+              ? `${(parseFloat(strategy.performance.win_rate) * 100).toFixed(0)}%`
+              : "—"
+          }
+          change={strategy.performance?.win_rate != null ? "All time" : "—"}
           changeType="neutral"
         />
         <StatsCard
           title="Max Positions"
-          value={strategy.max_positions.toString()}
-          change={`Risk: ${strategy.risk_per_trade_pct}%`}
+          value={strategy.max_positions != null ? strategy.max_positions.toString() : "—"}
+          change={
+            strategy.risk_per_trade_pct != null
+              ? `Risk: ${strategy.risk_per_trade_pct}%`
+              : "—"
+          }
           changeType="neutral"
         />
       </div>
@@ -145,15 +196,21 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
               <CardContent className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Universe Size</span>
-                  <span className="font-mono">{strategy.universe_size}</span>
+                  <span className="font-mono">
+                    {strategy.universe_size != null ? strategy.universe_size : "—"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Max Positions</span>
-                  <span className="font-mono">{strategy.max_positions}</span>
+                  <span className="font-mono">
+                    {strategy.max_positions != null ? strategy.max_positions : "—"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Risk Per Trade</span>
-                  <span className="font-mono">{strategy.risk_per_trade_pct}%</span>
+                  <span className="font-mono">
+                    {strategy.risk_per_trade_pct != null ? `${strategy.risk_per_trade_pct}%` : "—"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Created</span>
@@ -215,15 +272,66 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
               <CardTitle>Open Positions</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground text-center py-8">
-                No open positions for this strategy
-              </p>
+              {positionsError && (
+                <p className="text-sm text-muted-foreground pb-4">
+                  Backend unavailable. Connect `NEXT_PUBLIC_API_URL` to load positions.
+                </p>
+              )}
+              {positions.length === 0 ? (
+                <p className="text-muted-foreground text-center py-8">
+                  No open positions for this strategy
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Instrument</TableHead>
+                      <TableHead>Surface</TableHead>
+                      <TableHead className="text-right">Qty</TableHead>
+                      <TableHead className="text-right">Avg Cost</TableHead>
+                      <TableHead className="text-right">Mark</TableHead>
+                      <TableHead className="text-right">Unrealized P&L</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {positions.map((pos) => {
+                      const pnl = parseFloat(pos.unrealized_pnl ?? "0");
+                      const pnlPositive = pnl >= 0;
+                      return (
+                        <TableRow key={`${pos.surface}:${pos.instrument_id}`}>
+                          <TableCell className="font-medium">{pos.instrument_id}</TableCell>
+                          <TableCell className="text-muted-foreground">{pos.surface}</TableCell>
+                          <TableCell className="text-right font-mono">{pos.quantity}</TableCell>
+                          <TableCell className="text-right font-mono">
+                            ${parseFloat(pos.avg_cost).toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
+                            {pos.mark_price != null ? `$${parseFloat(pos.mark_price).toFixed(2)}` : "—"}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <span
+                              className={cn(
+                                "font-mono",
+                                pnlPositive ? "text-profit" : "text-loss"
+                              )}
+                            >
+                              {pos.unrealized_pnl != null ? formatCurrency(pos.unrealized_pnl) : "—"}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
 
         <TabsContent value="explanations" className="space-y-4">
-          {/* Mock explanation data - in production, fetch from API */}
+          <p className="text-xs text-muted-foreground">
+            Explanations are not wired yet (expected API: `GET /v1/explanations?...`).
+          </p>
           <ExplanationCard
             signal="BUY"
             confidence={0.82}
@@ -305,6 +413,9 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
               <CardTitle>Activity Logs</CardTitle>
             </CardHeader>
             <CardContent>
+              <p className="text-xs text-muted-foreground pb-4">
+                Activity logs are stubbed (needs OMS/strategy event stream + API).
+              </p>
               <div className="space-y-2 font-mono text-sm">
                 <div className="flex gap-4 text-muted-foreground">
                   <span>2026-01-25 14:30:00</span>
@@ -323,6 +434,28 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
           </Card>
         </TabsContent>
       </Tabs>
+
+      <PaperAllocationDialog
+        open={allocationOpen}
+        onOpenChange={setAllocationOpen}
+        strategyId={strategy.strategy_id}
+        strategyName={strategy.name}
+        onSuccess={() => {
+          mutateStrategy();
+          mutatePositions();
+        }}
+      />
+
+      <EquityFillDialog
+        open={equityFillOpen}
+        onOpenChange={setEquityFillOpen}
+        strategyId={strategy.strategy_id}
+        strategyName={strategy.name}
+        onSuccess={() => {
+          mutateStrategy();
+          mutatePositions();
+        }}
+      />
     </div>
   );
 }

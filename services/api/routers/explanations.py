@@ -18,7 +18,7 @@ _explanations_store: dict[str, dict] = {}
 
 
 @router.get(
-    "/v1/explanations/{trade_id}",
+    "/explanations/{trade_id}",
     response_model=TradeExplanationResponse,
     summary="Get explanation for a trade",
     description="Returns SHAP-based explanation showing which features influenced the trade decision.",
@@ -41,7 +41,7 @@ async def get_trade_explanation(trade_id: str) -> TradeExplanationResponse:
 
 
 @router.get(
-    "/v1/explanations",
+    "/explanations",
     response_model=List[TradeExplanationResponse],
     summary="List explanations",
     description="Returns list of explanations, optionally filtered by strategy.",

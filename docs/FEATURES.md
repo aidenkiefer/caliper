@@ -188,6 +188,10 @@ For a concise summary of **Sprints 7–9** (First ML Model, Observability & Safe
   - GET /v1/explanations/{trade_id}
   - GET /v1/baselines/comparison
   - GET/POST /v1/recommendations (HITL queue)
+- **Recommendations scope note (current direction)**
+  - **Action recommendations:** runtime trade/order intents requiring HITL approval (and still must pass risk controls).
+  - **Strategy tuning recommendations:** optimization suggestions (param/config tuning, experiments) to improve bot performance.
+  - Design notes: `docs/system-design/recommendations.md`.
 - **Dashboard Features**
   - Help page with searchable glossary (22 trading terms)
   - Educational tooltips on all metrics

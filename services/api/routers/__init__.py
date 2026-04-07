@@ -5,6 +5,7 @@ Each router handles a specific resource/domain.
 """
 
 from . import (
+    alerts,
     health,
     metrics,
     strategies,
@@ -16,6 +17,8 @@ from . import (
     explanations,
     baselines,
     recommendations,
+    models,
+    paper,
     polymarket,
     features,
     simulation,
@@ -26,6 +29,7 @@ from . import (
 )
 
 __all__ = [
+    "alerts",
     "health",
     "metrics",
     "strategies",
@@ -37,6 +41,8 @@ __all__ = [
     "explanations",
     "baselines",
     "recommendations",
+    "models",
+    "paper",
     "polymarket",
     "features",
     "simulation",

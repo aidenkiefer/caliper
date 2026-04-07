@@ -15,6 +15,7 @@ from typing import List, Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import Session
 
 from packages.common.polymarket_schemas import (
     PolymarketFillResponse,
@@ -26,7 +27,7 @@ from packages.common.polymarket_schemas import (
     PolymarketSnapshotResponse,
     PolymarketToxicFlowResponse,
 )
-from services.api.dependencies import DatabaseSession, get_db
+from services.api.dependencies import get_db
 
 router = APIRouter()
 
@@ -49,7 +50,7 @@ async def list_sessions(
     end_date: Optional[date] = Query(None, description="Session started on or before this date"),
     page: int = Query(1, ge=1, description="Page number (1-based)"),
     page_size: int = Query(20, ge=1, le=500, description="Results per page"),
-    db: DatabaseSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ) -> PolymarketSessionListResponse:
     """
     Return a paginated list of Polymarket market-making sessions.
@@ -102,7 +103,7 @@ async def list_sessions(
 )
 async def get_session(
     session_id: UUID,
-    db: DatabaseSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ) -> PolymarketSessionResponse:
     """
     Fetch a single session from pm.sessions by primary key.
@@ -140,7 +141,7 @@ async def get_session(
 async def list_session_orders(
     session_id: UUID,
     status: Optional[str] = Query(None, description="Filter by order status: open | filled | cancelled"),
-    db: DatabaseSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ) -> List[PolymarketOrderResponse]:
     """
     Fetch orders from pm.orders for the given session.
@@ -183,7 +184,7 @@ async def list_session_orders(
 async def list_session_fills(
     session_id: UUID,
     adverse_only: Optional[bool] = Query(None, description="If true, return only adverse-selection fills"),
-    db: DatabaseSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ) -> List[PolymarketFillResponse]:
     """
     Fetch fills from pm.fills for the given session.
@@ -227,7 +228,7 @@ async def list_session_snapshots(
     session_id: UUID,
     page: int = Query(1, ge=1, description="Page number (1-based)"),
     page_size: int = Query(100, ge=1, le=1000, description="Results per page"),
-    db: DatabaseSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ) -> PolymarketSnapshotListResponse:
     """
     Fetch snapshots from pm.orderbook_snapshots for the given session.
@@ -265,7 +266,7 @@ async def list_session_snapshots(
 )
 async def get_session_pnl(
     session_id: UUID,
-    db: DatabaseSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ) -> PolymarketPnLResponse:
     """
     Fetch the most recent row from pm.pnl_snapshots for the given session.
@@ -306,7 +307,7 @@ async def get_session_pnl(
 )
 async def get_session_toxic_flow(
     session_id: UUID,
-    db: DatabaseSession = Depends(get_db),
+    db: Session = Depends(get_db),
 ) -> List[PolymarketToxicFlowResponse]:
     """
     Fetch rows from pm.toxic_flow_metrics for the given session.

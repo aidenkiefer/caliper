@@ -3,6 +3,7 @@
 import useSWR from "swr";
 import { fetchRankedUniverse } from "../api";
 import type { RankedMarket, RankedUniverse } from "../types/models";
+import { DEMO_MODE } from "../demo";
 
 const now = Date.now();
 
@@ -100,18 +101,15 @@ export function useRankingUniverse() {
     fetchRankedUniverse,
     {
       refreshInterval: 15000,
-      fallbackData: mockRankedUniverse,
-      onError: () => {
-        // Use mock universe when the API is unavailable.
-      },
+      ...(DEMO_MODE ? { fallbackData: mockRankedUniverse } : {}),
     }
   );
 
   return {
-    rankedUniverse: data ?? mockRankedUniverse,
+    rankedUniverse: data ?? (DEMO_MODE ? mockRankedUniverse : null),
     isLoading,
     isError: error,
     mutate,
+    isDemo: DEMO_MODE,
   };
 }
-

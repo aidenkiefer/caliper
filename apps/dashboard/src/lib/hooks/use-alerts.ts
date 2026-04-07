@@ -2,7 +2,8 @@
 
 import useSWR from "swr";
 import type { Alert, PaginatedResponse } from "../types";
-import { fetchAlerts } from "../api";
+import { acknowledgeAlert, fetchAlerts } from "../api";
+import { DEMO_MODE } from "../demo";
 
 // Mock data for development
 const mockAlerts: Alert[] = [
@@ -53,21 +54,27 @@ export function useAlerts(params?: {
     () => fetchAlerts(params),
     {
       refreshInterval: 5000,
-      fallbackData: {
-        data: mockAlerts,
-        meta: { total_count: mockAlerts.length, page: 1, per_page: 20 },
-      },
-      onError: () => {
-        // Silently fail and use mock data
-      },
+      ...(DEMO_MODE
+        ? {
+            fallbackData: {
+              data: mockAlerts,
+              meta: { total_count: mockAlerts.length, page: 1, per_page: 20 },
+            },
+          }
+        : {}),
     }
   );
 
   return {
-    alerts: data?.data ?? mockAlerts,
-    total: data?.meta?.total_count ?? mockAlerts.length,
+    alerts: data?.data ?? (DEMO_MODE ? mockAlerts : []),
+    total: data?.meta?.total_count ?? (DEMO_MODE ? mockAlerts.length : 0),
     isLoading,
     isError: error,
     mutate,
+    isDemo: DEMO_MODE,
+    acknowledge: async (alertId: string) => {
+      await acknowledgeAlert(alertId);
+      await mutate();
+    },
   };
 }

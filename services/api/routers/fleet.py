@@ -1,11 +1,16 @@
 from __future__ import annotations
 
-import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Dict, List, Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
+from services.api.dependencies import get_db
 
 router = APIRouter()
 
@@ -17,20 +22,20 @@ class FleetStrategyStatus(BaseModel):
     name: str
     status: Literal["active", "paused", "cooldown", "abstain"]
     mode: Literal["paper", "live"]
-    current_regime: Literal["R1", "R2", "R3", "R4", "R5"]
-    pnl_24h_usd: float
-    sharpe_7d: float
-    fill_rate: float = Field(..., ge=0, le=1)
-    allocation_weight: float = Field(..., ge=0, le=1)
-    regime_alignment: float = Field(..., ge=0, le=1)
-    signal_count_24h: int
+    current_regime: Optional[str] = None
+    pnl_24h_usd: Optional[float] = None
+    sharpe_7d: Optional[float] = None
+    fill_rate: Optional[float] = Field(None, ge=0, le=1)
+    allocation_weight: Optional[float] = Field(None, ge=0, le=1)
+    regime_alignment: Optional[float] = Field(None, ge=0, le=1)
+    signal_count_24h: Optional[int] = None
 
 
 class RegimeTimelinePoint(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     timestamp: datetime
-    regime: Literal["R1", "R2", "R3", "R4", "R5"]
+    regime: str
     allocation_weights: Dict[str, float]
 
 
@@ -50,7 +55,7 @@ class FleetStatus(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     generated_at: datetime
-    current_regime: Literal["R1", "R2", "R3", "R4", "R5"]
+    current_regime: Optional[str] = None
     current_mode: Literal["paper", "live"]
     strategies: List[FleetStrategyStatus]
     regime_timeline: List[RegimeTimelinePoint]
@@ -69,305 +74,213 @@ class FleetSignal(BaseModel):
     confidence: float = Field(..., ge=0, le=1)
     action_taken: Literal["executed", "rejected", "abstained", "cancelled"]
     fill_price: Optional[float] = None
-    regime: Literal["R1", "R2", "R3", "R4", "R5"]
+    regime: Optional[str] = None
 
 
-class PaperTrade(BaseModel):
+class PaperTradeRow(BaseModel):
+    """
+    Truthful shape backed by pm.paper_trades.
+
+    NOTE: This intentionally does not attempt to fabricate per-trade P&L.
+    """
+
     model_config = ConfigDict(from_attributes=True)
 
     trade_id: str
-    timestamp: datetime
+    executed_at: datetime
     strategy_id: str
     market_id: str
-    side: Literal["BUY", "SELL"]
+    side: Literal["BUY", "SELL", "NONE"]
     price: float
-    size: float
-    pnl_usd: float
-    status: Literal["filled", "simulated", "cancelled"]
-
-
-def _require_db_url() -> str:
-    db_url = os.environ.get("DB_URL")
-    if not db_url:
-        raise HTTPException(status_code=503, detail="Fleet service not available")
-    return db_url
-
-
-def _mock_fleet_status() -> FleetStatus:
-    generated_at = datetime.now(tz=timezone.utc)
-    return FleetStatus(
-        generated_at=generated_at,
-        current_regime="R1",
-        current_mode="paper",
-        strategies=[
-            FleetStrategyStatus(
-                strategy_id="poly_mm_v2",
-                name="Microstructure Maker v2",
-                status="active",
-                mode="paper",
-                current_regime="R1",
-                pnl_24h_usd=184.25,
-                sharpe_7d=1.72,
-                fill_rate=0.61,
-                allocation_weight=0.34,
-                regime_alignment=0.88,
-                signal_count_24h=148,
-            ),
-            FleetStrategyStatus(
-                strategy_id="poly_directional_v1",
-                name="Directional Probability Model",
-                status="active",
-                mode="paper",
-                current_regime="R1",
-                pnl_24h_usd=92.4,
-                sharpe_7d=1.35,
-                fill_rate=0.54,
-                allocation_weight=0.24,
-                regime_alignment=0.79,
-                signal_count_24h=74,
-            ),
-            FleetStrategyStatus(
-                strategy_id="poly_hybrid_v1",
-                name="Hybrid Maker/Directional",
-                status="cooldown",
-                mode="paper",
-                current_regime="R2",
-                pnl_24h_usd=141.75,
-                sharpe_7d=1.51,
-                fill_rate=0.58,
-                allocation_weight=0.24,
-                regime_alignment=0.83,
-                signal_count_24h=112,
-            ),
-            FleetStrategyStatus(
-                strategy_id="poly_regime_v1",
-                name="Regime-Aware Model",
-                status="abstain",
-                mode="paper",
-                current_regime="R3",
-                pnl_24h_usd=-12.8,
-                sharpe_7d=0.84,
-                fill_rate=0.29,
-                allocation_weight=0.18,
-                regime_alignment=0.63,
-                signal_count_24h=34,
-            ),
-        ],
-        regime_timeline=[
-            RegimeTimelinePoint(
-                timestamp=generated_at - timedelta(hours=3),
-                regime="R1",
-                allocation_weights={
-                    "poly_mm_v2": 0.34,
-                    "poly_directional_v1": 0.24,
-                    "poly_hybrid_v1": 0.24,
-                    "poly_regime_v1": 0.18,
-                },
-            ),
-            RegimeTimelinePoint(
-                timestamp=generated_at - timedelta(hours=2),
-                regime="R1",
-                allocation_weights={
-                    "poly_mm_v2": 0.33,
-                    "poly_directional_v1": 0.24,
-                    "poly_hybrid_v1": 0.25,
-                    "poly_regime_v1": 0.18,
-                },
-            ),
-            RegimeTimelinePoint(
-                timestamp=generated_at - timedelta(hours=1),
-                regime="R2",
-                allocation_weights={
-                    "poly_mm_v2": 0.31,
-                    "poly_directional_v1": 0.21,
-                    "poly_hybrid_v1": 0.28,
-                    "poly_regime_v1": 0.20,
-                },
-            ),
-            RegimeTimelinePoint(
-                timestamp=generated_at,
-                regime="R1",
-                allocation_weights={
-                    "poly_mm_v2": 0.34,
-                    "poly_directional_v1": 0.24,
-                    "poly_hybrid_v1": 0.24,
-                    "poly_regime_v1": 0.18,
-                },
-            ),
-        ],
-        comparison=[
-            StrategyComparisonRow(
-                strategy_id="poly_mm_v2",
-                baseline="baseline_mm",
-                sharpe_7d=1.72,
-                sortino_7d=2.08,
-                win_rate=0.59,
-                max_drawdown=-0.062,
-                profit_factor=1.41,
-            ),
-            StrategyComparisonRow(
-                strategy_id="poly_directional_v1",
-                baseline="baseline_directional",
-                sharpe_7d=1.35,
-                sortino_7d=1.87,
-                win_rate=0.56,
-                max_drawdown=-0.071,
-                profit_factor=1.29,
-            ),
-            StrategyComparisonRow(
-                strategy_id="poly_hybrid_v1",
-                baseline="baseline_hybrid",
-                sharpe_7d=1.51,
-                sortino_7d=2.01,
-                win_rate=0.57,
-                max_drawdown=-0.055,
-                profit_factor=1.36,
-            ),
-            StrategyComparisonRow(
-                strategy_id="poly_regime_v1",
-                baseline="baseline_regime",
-                sharpe_7d=0.84,
-                sortino_7d=1.12,
-                win_rate=0.49,
-                max_drawdown=-0.098,
-                profit_factor=0.97,
-            ),
-        ],
-    )
-
-
-def _mock_signals(limit: int) -> List[FleetSignal]:
-    generated_at = datetime.now(tz=timezone.utc)
-    signals: List[FleetSignal] = [
-        FleetSignal(
-            signal_id="sig-001",
-            timestamp=generated_at - timedelta(minutes=4),
-            strategy_id="poly_mm_v2",
-            market_id="btc-hourly-2026-04-06-09",
-            signal_type="MARKET_MAKING",
-            direction="none",
-            confidence=0.91,
-            action_taken="executed",
-            fill_price=None,
-            regime="R1",
-        ),
-        FleetSignal(
-            signal_id="sig-002",
-            timestamp=generated_at - timedelta(minutes=3),
-            strategy_id="poly_directional_v1",
-            market_id="btc-hourly-2026-04-06-10",
-            signal_type="DIRECTIONAL",
-            direction="long",
-            confidence=0.78,
-            action_taken="executed",
-            fill_price=0.54,
-            regime="R1",
-        ),
-        FleetSignal(
-            signal_id="sig-003",
-            timestamp=generated_at - timedelta(minutes=2),
-            strategy_id="poly_hybrid_v1",
-            market_id="btc-hourly-2026-04-06-08",
-            signal_type="HYBRID",
-            direction="long",
-            confidence=0.83,
-            action_taken="cancelled",
-            fill_price=None,
-            regime="R2",
-        ),
-        FleetSignal(
-            signal_id="sig-004",
-            timestamp=generated_at - timedelta(minutes=1),
-            strategy_id="poly_regime_v1",
-            market_id="btc-hourly-2026-04-06-11",
-            signal_type="DIRECTIONAL",
-            direction="abstain",
-            confidence=0.32,
-            action_taken="abstained",
-            fill_price=None,
-            regime="R3",
-        ),
-    ]
-    return signals[: max(limit, 0)]
-
-
-def _mock_paper_trades(
-    limit: int,
-    strategy_id: Optional[str] = None,
-    market_id: Optional[str] = None,
-) -> List[PaperTrade]:
-    generated_at = datetime.now(tz=timezone.utc)
-    trades = [
-        PaperTrade(
-            trade_id="trade-001",
-            timestamp=generated_at - timedelta(minutes=6),
-            strategy_id="poly_mm_v2",
-            market_id="btc-hourly-2026-04-06-09",
-            side="BUY",
-            price=0.53,
-            size=120.0,
-            pnl_usd=12.5,
-            status="filled",
-        ),
-        PaperTrade(
-            trade_id="trade-002",
-            timestamp=generated_at - timedelta(minutes=5),
-            strategy_id="poly_directional_v1",
-            market_id="btc-hourly-2026-04-06-10",
-            side="BUY",
-            price=0.54,
-            size=80.0,
-            pnl_usd=7.2,
-            status="filled",
-        ),
-        PaperTrade(
-            trade_id="trade-003",
-            timestamp=generated_at - timedelta(minutes=4),
-            strategy_id="poly_hybrid_v1",
-            market_id="btc-hourly-2026-04-06-08",
-            side="SELL",
-            price=0.49,
-            size=60.0,
-            pnl_usd=-1.4,
-            status="simulated",
-        ),
-    ]
-    filtered = [
-        trade
-        for trade in trades
-        if (strategy_id is None or trade.strategy_id == strategy_id)
-        and (market_id is None or trade.market_id == market_id)
-    ]
-    return filtered[: max(limit, 0)]
+    quantity: float
+    notional: float
+    confidence: float = Field(..., ge=0, le=1)
+    status: str
+    regime: Optional[str] = None
+    allocation_weight: float = Field(..., ge=0)
 
 
 @router.get("/fleet/status", response_model=FleetStatus, summary="Get fleet status")
-async def get_fleet_status(_db_url: str = Depends(_require_db_url)) -> FleetStatus:
-    return _mock_fleet_status()
+async def get_fleet_status(db: Session = Depends(get_db)) -> FleetStatus:
+    try:
+        row = db.execute(
+            text(
+                """
+                SELECT captured_at, mode, payload
+                FROM pm.fleet_status_snapshots
+                ORDER BY captured_at DESC
+                LIMIT 1
+                """
+            )
+        ).mappings().fetchone()
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Fleet status not available (DB not configured or migrations not applied)",
+        ) from exc
+
+    if row is None:
+        raise HTTPException(status_code=503, detail="Fleet status not available (no snapshots yet)")
+
+    payload = row.get("payload") or {}
+    mode_raw = str(payload.get("mode") or row.get("mode") or "paper").lower()
+    current_mode: Literal["paper", "live"] = "live" if mode_raw == "live" else "paper"
+
+    strategies_payload = payload.get("strategies") or []
+    strategies: List[FleetStrategyStatus] = []
+    for s in strategies_payload:
+        if not isinstance(s, dict):
+            continue
+        lifecycle = str(s.get("status") or "active").lower()
+        status: Literal["active", "paused", "cooldown", "abstain"] = "active"
+        if lifecycle == "paused":
+            status = "paused"
+        elif lifecycle == "cooldown":
+            status = "cooldown"
+        elif lifecycle == "abstain":
+            status = "abstain"
+
+        weight = s.get("current_allocation_weight")
+        try:
+            weight_f = float(weight) if weight is not None else None
+        except Exception:
+            weight_f = None
+
+        sid = str(s.get("strategy_id") or "")
+        if not sid:
+            continue
+        strategies.append(
+            FleetStrategyStatus(
+                strategy_id=sid,
+                name=sid,
+                status=status,
+                mode=current_mode,
+                allocation_weight=weight_f,
+            )
+        )
+
+    return FleetStatus(
+        generated_at=row["captured_at"],
+        current_regime=None,
+        current_mode=current_mode,
+        strategies=strategies,
+        regime_timeline=[],
+        comparison=[],
+    )
 
 
 @router.get("/fleet/signals", response_model=List[FleetSignal], summary="Get fleet signal log")
 async def get_fleet_signals(
     limit: int = Query(50, ge=1, le=200),
-    _db_url: str = Depends(_require_db_url),
+    db: Session = Depends(get_db),
 ) -> List[FleetSignal]:
-    return _mock_signals(limit)
+    try:
+        rows = db.execute(
+            text(
+                """
+                SELECT signal_id, recorded_at, strategy_id, market_id, signal_type, direction,
+                       confidence, action_taken, fill_price, regime
+                FROM pm.fleet_signals
+                ORDER BY recorded_at DESC
+                LIMIT :limit
+                """
+            ),
+            {"limit": limit},
+        ).mappings().all()
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Fleet signals not available (DB not configured or migrations not applied)",
+        ) from exc
+
+    out: List[FleetSignal] = []
+    for r in rows:
+        direction = str(r.get("direction") or "none")
+        if direction not in ("long", "short", "none", "abstain"):
+            direction = "none"
+        action_taken = str(r.get("action_taken") or "executed")
+        if action_taken not in ("executed", "rejected", "abstained", "cancelled"):
+            action_taken = "executed"
+        out.append(
+            FleetSignal(
+                signal_id=str(r["signal_id"]),
+                timestamp=r["recorded_at"],
+                strategy_id=str(r["strategy_id"]),
+                market_id=str(r["market_id"]),
+                signal_type=str(r["signal_type"]),
+                direction=direction,  # type: ignore[arg-type]
+                confidence=float(r.get("confidence") or 0),
+                action_taken=action_taken,  # type: ignore[arg-type]
+                fill_price=float(r["fill_price"]) if r.get("fill_price") is not None else None,
+                regime=str(r["regime"]) if r.get("regime") is not None else None,
+            )
+        )
+    return out
 
 
-@router.get("/fleet/paper-trades", response_model=List[PaperTrade], summary="Get paper trades")
+@router.get("/fleet/paper-trades", response_model=List[PaperTradeRow], summary="Get paper trades")
 async def get_paper_trades(
     start: Optional[datetime] = Query(None),
     end: Optional[datetime] = Query(None),
     strategy_id: Optional[str] = Query(None),
     market_id: Optional[str] = Query(None),
     limit: int = Query(50, ge=1, le=500),
-    _db_url: str = Depends(_require_db_url),
-) -> List[PaperTrade]:
+    db: Session = Depends(get_db),
+) -> List[PaperTradeRow]:
     if start is not None and end is not None and start >= end:
         raise HTTPException(status_code=422, detail="Query parameter 'start' must be before 'end'")
-    trades = _mock_paper_trades(limit=limit, strategy_id=strategy_id, market_id=market_id)
+
+    where: List[str] = []
+    params: dict = {"limit": limit}
     if start is not None:
-        trades = [trade for trade in trades if trade.timestamp >= start]
+        where.append("executed_at >= :start")
+        params["start"] = start
     if end is not None:
-        trades = [trade for trade in trades if trade.timestamp <= end]
-    return trades
+        where.append("executed_at <= :end")
+        params["end"] = end
+    if strategy_id is not None:
+        where.append("strategy_id = :strategy_id")
+        params["strategy_id"] = strategy_id
+    if market_id is not None:
+        where.append("market_id = :market_id")
+        params["market_id"] = market_id
+
+    where_sql = f"WHERE {' AND '.join(where)}" if where else ""
+    sql = text(
+        f"""
+        SELECT trade_id, executed_at, strategy_id, market_id, side, price, quantity, notional,
+               confidence, status, regime, allocation_weight
+        FROM pm.paper_trades
+        {where_sql}
+        ORDER BY executed_at DESC
+        LIMIT :limit
+        """
+    )
+
+    try:
+        rows = db.execute(sql, params).mappings().all()
+    except SQLAlchemyError as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Fleet paper trades not available (DB not configured or migrations not applied)",
+        ) from exc
+
+    out: List[PaperTradeRow] = []
+    for r in rows:
+        out.append(
+            PaperTradeRow(
+                trade_id=str(r["trade_id"]),
+                executed_at=r["executed_at"],
+                strategy_id=str(r["strategy_id"]),
+                market_id=str(r["market_id"]),
+                side=str(r["side"]),
+                price=float(r["price"]),
+                quantity=float(r["quantity"]),
+                notional=float(r["notional"]),
+                confidence=float(r["confidence"]),
+                status=str(r["status"]),
+                regime=str(r["regime"]) if r.get("regime") is not None else None,
+                allocation_weight=float(r.get("allocation_weight") or Decimal("0")),
+            )
+        )
+    return out

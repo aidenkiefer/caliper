@@ -90,7 +90,12 @@ This is a monorepo containing:
 5. **Run database migrations:**
    ```bash
    cd services/data
+   poetry install
    poetry run alembic upgrade head
+
+   # or from repo root:
+   # make db-upgrade
+   # poetry run alembic -c services/data/alembic.ini upgrade head
    ```
 
 6. **Install Node dependencies:**

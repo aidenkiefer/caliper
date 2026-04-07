@@ -8,6 +8,9 @@ from typing import List, Optional
 import asyncpg
 from pydantic import ValidationError
 
+from packages.common.db_url import resolve_db_url
+from services.fleet.schemas import FleetStatus as FleetStatusSnapshot
+from services.fleet.schemas import SignalLogEntry
 from services.fleet.schemas import PaperTrade
 
 logger = logging.getLogger(__name__)
@@ -27,9 +30,8 @@ class PaperTradeStore:
     async def connect(self) -> None:
         if self._pool is not None:
             return
-        if not self._db_url:
-            raise RuntimeError("PaperTradeStore requires db_url or injected pool")
-        self._pool = await asyncpg.create_pool(self._db_url, min_size=1, max_size=5)
+        db_url = self._db_url or resolve_db_url().url
+        self._pool = await asyncpg.create_pool(db_url, min_size=1, max_size=5)
 
     async def close(self) -> None:
         if self._pool is not None and hasattr(self._pool, "close"):
@@ -84,6 +86,54 @@ class PaperTradeStore:
     async def write_fills(self, trades: List[PaperTrade]) -> None:
         for trade in trades:
             await self.write_fill(trade)
+
+    async def write_fleet_status(self, status: FleetStatusSnapshot) -> None:
+        pool = self._require_pool()
+        sql = """
+            INSERT INTO pm.fleet_status_snapshots (captured_at, mode, payload)
+            VALUES ($1, $2, $3::jsonb)
+        """
+        payload = status.model_dump(mode="json")
+        params = (status.captured_at, status.mode.value if hasattr(status.mode, "value") else str(status.mode), json.dumps(payload, default=str))
+        try:
+            async with pool.acquire() as conn:
+                await conn.execute(sql, *params)
+        except asyncpg.PostgresError as exc:
+            logger.error("PaperTradeStore.write_fleet_status failed: %s", exc)
+            raise PaperTradeStoreError(str(exc)) from exc
+
+    async def write_signal_entries(self, entries: List[SignalLogEntry]) -> None:
+        if not entries:
+            return
+        pool = self._require_pool()
+        sql = """
+            INSERT INTO pm.fleet_signals (
+                recorded_at, strategy_id, market_id, signal_type, direction, confidence,
+                action_taken, fill_price, quantity, regime, metadata
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11::jsonb)
+        """
+        try:
+            async with pool.acquire() as conn:
+                for entry in entries:
+                    metadata = json.dumps(entry.metadata or {}, default=str)
+                    await conn.execute(
+                        sql,
+                        entry.recorded_at,
+                        entry.strategy_id,
+                        entry.market_id,
+                        entry.signal_type.value if hasattr(entry.signal_type, "value") else str(entry.signal_type),
+                        entry.direction,
+                        entry.confidence,
+                        entry.action_taken,
+                        entry.fill_price,
+                        entry.quantity,
+                        entry.regime,
+                        metadata,
+                    )
+        except asyncpg.PostgresError as exc:
+            logger.error("PaperTradeStore.write_signal_entries failed: %s", exc)
+            raise PaperTradeStoreError(str(exc)) from exc
 
     async def read_latest(
         self,

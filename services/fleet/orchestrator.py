@@ -254,6 +254,15 @@ class FleetOrchestrator:
         if self._paper_store is not None:
             for trade in paper_trades:
                 await self._paper_store.write_fill(trade)
+            # Best-effort persistence for API consumption (no dummy data).
+            try:
+                await self._paper_store.write_signal_entries(cycle_signals)
+            except Exception:
+                logger.debug("Failed to persist fleet signals (best-effort)", exc_info=True)
+            try:
+                await self._paper_store.write_fleet_status(self._latest_status)
+            except Exception:
+                logger.debug("Failed to persist fleet status snapshot (best-effort)", exc_info=True)
 
         if self._paper_mode and self._execution_adapter is not None:
             logger.debug("Paper mode active; execution adapter is intentionally unused.")

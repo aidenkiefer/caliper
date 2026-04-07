@@ -53,52 +53,24 @@ def get_request_context(
 
 
 # ============================================================================
-# Database Session (Stub)
+# Database Session
 # ============================================================================
 
 
-class DatabaseSession:
+def get_db():
     """
-    Database session stub.
+    Get a SQLAlchemy session dependency.
 
-    TODO: Replace with actual SQLAlchemy async session when database is set up.
+    Uses `services.data.database.get_db`, which reads `DATABASE_URL`.
+
+    Notes
+    -----
+    - This is a synchronous SQLAlchemy session. If/when the API becomes
+      high-throughput, migrate to async SQLAlchemy + async DB drivers.
     """
+    from services.data.database import get_db as _get_db  # local import for startup hygiene
 
-    def __init__(self):
-        self._connected = False
-
-    async def connect(self):
-        """Connect to database."""
-        self._connected = True
-
-    async def disconnect(self):
-        """Disconnect from database."""
-        self._connected = False
-
-    @property
-    def is_connected(self) -> bool:
-        """Check if connected."""
-        return self._connected
-
-
-async def get_db() -> Generator[DatabaseSession, None, None]:
-    """
-    Get database session dependency.
-
-    Usage:
-        @router.get("/items")
-        async def get_items(db: DatabaseSession = Depends(get_db)):
-            ...
-
-    Yields:
-        Database session
-    """
-    db = DatabaseSession()
-    try:
-        await db.connect()
-        yield db
-    finally:
-        await db.disconnect()
+    yield from _get_db()
 
 
 # ============================================================================

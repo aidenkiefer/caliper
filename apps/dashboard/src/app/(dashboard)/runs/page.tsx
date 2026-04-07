@@ -40,7 +40,7 @@ export default function RunsPage() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const { runs } = useRuns({
+  const { runs, isError, isDemo } = useRuns({
     run_type: typeFilter !== "all" ? typeFilter : undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
   });
@@ -70,6 +70,7 @@ export default function RunsPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {isDemo && <Badge variant="secondary">Demo data</Badge>}
           <Select value={typeFilter} onValueChange={setTypeFilter}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Filter type" />
@@ -105,6 +106,11 @@ export default function RunsPage() {
           <CardTitle>Run History</CardTitle>
         </CardHeader>
         <CardContent>
+          {isError && !isDemo && (
+            <p className="text-sm text-muted-foreground pb-4">
+              Backend unavailable. Configure `NEXT_PUBLIC_API_URL` to load run history.
+            </p>
+          )}
           <Table>
             <TableHeader>
               <TableRow>

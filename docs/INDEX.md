@@ -18,6 +18,7 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 | Features overview | `docs/FEATURES.md` | Checking what is implemented vs planned across sprints |
 | User guide | `docs/user-guide.md` | Install, env (incl. `DB_URL`), run API + dashboard, equities vs Polymarket, troubleshooting |
 | Polymarket quick start | `docs/POLYMARKET-QUICKSTART.md` | Running the Polymarket bot (env, migration, dry-run) |
+| Recommendations (HITL) design | `docs/system-design/recommendations.md` | Understanding Recommendations intent, current state, and the split between action vs strategy-tuning recs |
 
 ## Workflow docs
 

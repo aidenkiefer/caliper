@@ -28,7 +28,20 @@ const serviceIcons: Record<string, typeof Database> = {
 };
 
 export default function HealthPage() {
-  const { health } = useHealth();
+  const { health, isLoading, isError, isDemo } = useHealth();
+
+  if (!health) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold">System Health</h2>
+          <p className="text-muted-foreground">
+            {isLoading ? "Loading…" : isError ? "Backend unavailable" : "No data"}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleString("en-US", {
@@ -52,6 +65,11 @@ export default function HealthPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {isDemo && (
+            <Badge variant="secondary" className="mr-2">
+              Demo data
+            </Badge>
+          )}
           <Badge className={cn("text-sm", overallStatus.bg, overallStatus.color)}>
             <OverallIcon className="h-4 w-4 mr-1" />
             System {health.status}
@@ -162,6 +180,9 @@ export default function HealthPage() {
           <CardTitle>API Rate Limits</CardTitle>
         </CardHeader>
         <CardContent>
+          <p className="text-xs text-muted-foreground pb-4">
+            Rate limit telemetry is currently stubbed (needs an API source).
+          </p>
           <div className="space-y-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">

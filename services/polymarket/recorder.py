@@ -367,6 +367,7 @@ class Recorder:
             "best_ask": snapshot.best_ask,
             "midpoint": snapshot.midpoint,
             "spread": snapshot.spread,
+            "last_trade_price": getattr(snapshot, "last_trade_price", None),
             "bid_depth_1pct": snapshot.bid_depth_1pct,
             "ask_depth_1pct": snapshot.ask_depth_1pct,
             "imbalance": snapshot.imbalance,
@@ -487,10 +488,11 @@ class Recorder:
                 best_ask,
                 midpoint,
                 spread,
+                last_trade_price,
                 bid_depth_1pct,
                 ask_depth_1pct,
                 imbalance
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         """
         try:
             async with self._pool.acquire() as conn:
@@ -504,6 +506,7 @@ class Recorder:
                             r.get("best_ask"),
                             r.get("midpoint"),
                             r.get("spread"),
+                            r.get("last_trade_price"),
                             r.get("bid_depth_1pct"),
                             r.get("ask_depth_1pct"),
                             r.get("imbalance"),

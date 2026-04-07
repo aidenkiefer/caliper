@@ -16,7 +16,7 @@ _baseline_comparisons: dict[str, dict] = {}
 
 
 @router.get(
-    "/v1/baselines/comparison",
+    "/baselines/comparison",
     response_model=BaselineComparisonResponse,
     summary="Get baseline comparison for a strategy",
     description="Returns strategy performance vs baselines (hold cash, buy & hold, random) with regret metrics.",

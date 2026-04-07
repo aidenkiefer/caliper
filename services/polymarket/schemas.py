@@ -39,6 +39,7 @@ class OrderbookState(BaseModel):
     best_ask: Optional[Decimal] = None
     midpoint: Optional[Decimal] = None
     spread: Optional[Decimal] = None
+    last_trade_price: Optional[Decimal] = None
     bid_depth_1pct: Optional[Decimal] = None  # USDC depth within 1% of best bid
     ask_depth_1pct: Optional[Decimal] = None  # USDC depth within 1% of best ask
     imbalance: Optional[Decimal] = None       # (bid_depth - ask_depth) / total_depth

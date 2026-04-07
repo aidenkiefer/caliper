@@ -6,44 +6,30 @@ Endpoints:
 - POST /v1/controls/mode-transition - Transition strategy between modes
 """
 
-from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from packages.common.execution_schemas import (
     KillSwitchAction,
     KillSwitchData,
     KillSwitchRequest,
     KillSwitchResponse,
-    ModeTransitionData,
     ModeTransitionRequest,
     ModeTransitionResponse,
     TradingMode,
 )
 
+from services.risk.manager import RiskManager
+from services.api.dependencies import get_db
+from services.api.routers.alerts import emit_alert_db_dedup
+from packages.common.api_schemas import AlertSeverity
+
 router = APIRouter(prefix="/controls", tags=["controls"])
 
-
-# ============================================================================
-# In-memory state (mock for now - would be backed by database in production)
-# ============================================================================
-
-# Kill switch state
-_global_kill_switch_active = False
-_global_kill_switch_reason: Optional[str] = None
-_global_kill_switch_activated_at: Optional[datetime] = None
-
-_strategy_kill_switches: dict[str, bool] = {}
-_strategy_kill_switch_reasons: dict[str, str] = {}
-_strategy_kill_switch_activated_at: dict[str, datetime] = {}
-
-# Strategy modes
-_strategy_modes: dict[str, TradingMode] = {}
-
-# Valid approval codes (would be from secure storage in production)
-VALID_APPROVAL_CODES = {"ABC123", "LIVE_APPROVAL_2026", "EMERGENCY_OVERRIDE_2026"}
-VALID_ADMIN_CODES = {"EMERGENCY_OVERRIDE_2026", "ADMIN_RESET_2026"}
+_risk_manager = RiskManager()
 
 
 # ============================================================================
@@ -67,108 +53,116 @@ VALID_ADMIN_CODES = {"EMERGENCY_OVERRIDE_2026", "ADMIN_RESET_2026"}
     - If `strategy_id` is provided, affects only that strategy
     """,
 )
-async def control_kill_switch(request: KillSwitchRequest) -> KillSwitchResponse:
+async def control_kill_switch(request: KillSwitchRequest, db: Session = Depends(get_db)) -> KillSwitchResponse:
     """Activate or deactivate kill switch."""
-    global _global_kill_switch_active, _global_kill_switch_reason, _global_kill_switch_activated_at
-
-    now = datetime.now(timezone.utc)
-
     if request.action == KillSwitchAction.ACTIVATE:
-        # Activation
-        if request.strategy_id:
-            # Strategy-level
-            _strategy_kill_switches[request.strategy_id] = True
-            _strategy_kill_switch_reasons[request.strategy_id] = request.reason
-            _strategy_kill_switch_activated_at[request.strategy_id] = now
+        _risk_manager.activate_kill_switch(
+            reason=request.reason,
+            strategy_id=request.strategy_id,
+            triggered_by="user",
+        )
 
+        try:
+            emit_alert_db_dedup(
+                db,
+                AlertSeverity.CRITICAL,
+                (
+                    "Kill switch activated"
+                    + (f" for strategy '{request.strategy_id}'" if request.strategy_id else " (global)")
+                    + f": {request.reason}"
+                ),
+                source="risk",
+                category="kill_switch",
+                dedup_key=f"risk:kill_switch:activate:{request.strategy_id or 'global'}",
+                context={
+                    "scope": "strategy" if request.strategy_id else "global",
+                    "strategy_id": request.strategy_id,
+                },
+                window_seconds=60,
+            )
+            db.commit()
+        except SQLAlchemyError:
+            db.rollback()
+        except Exception:
+            db.rollback()
+
+        if request.strategy_id:
+            info = _risk_manager.kill_switch.get_strategy_info(request.strategy_id) or {}
             return KillSwitchResponse(
                 message=f"Kill switch activated for {request.strategy_id}",
                 data=KillSwitchData(
                     kill_switch_active=True,
                     scope="strategy",
                     affected_strategies=[request.strategy_id],
-                    reason=request.reason,
-                    activated_at=now,
-                ),
-            )
-        else:
-            # Global
-            _global_kill_switch_active = True
-            _global_kill_switch_reason = request.reason
-            _global_kill_switch_activated_at = now
-
-            # Get all registered strategies
-            affected = list(_strategy_modes.keys()) or ["all"]
-
-            return KillSwitchResponse(
-                message="Global kill switch activated",
-                data=KillSwitchData(
-                    kill_switch_active=True,
-                    scope="global",
-                    affected_strategies=affected,
-                    reason=request.reason,
-                    activated_at=now,
+                    reason=info.get("reason") or request.reason,
+                    activated_at=info.get("activated_at"),
                 ),
             )
 
-    else:
-        # Deactivation - requires admin code
-        if not request.admin_code:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="admin_code required for kill switch deactivation",
-            )
+        info = _risk_manager.kill_switch.get_global_info() or {}
+        return KillSwitchResponse(
+            message="Global kill switch activated",
+            data=KillSwitchData(
+                kill_switch_active=True,
+                scope="global",
+                affected_strategies=["all"],
+                reason=info.get("reason") or request.reason,
+                activated_at=info.get("activated_at"),
+            ),
+        )
 
-        if request.admin_code not in VALID_ADMIN_CODES:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Invalid admin code",
-            )
+    # Deactivation - requires admin code
+    if not request.admin_code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="admin_code required for kill switch deactivation",
+        )
 
-        if request.strategy_id:
-            # Strategy-level
-            if not _strategy_kill_switches.get(request.strategy_id, False):
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Kill switch for strategy {request.strategy_id} is not active",
-                )
+    try:
+        _risk_manager.deactivate_kill_switch(
+            admin_code=request.admin_code,
+            strategy_id=request.strategy_id,
+            reason=request.reason,
+        )
+    except PermissionError as exc:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
 
-            _strategy_kill_switches[request.strategy_id] = False
-            _strategy_kill_switch_reasons.pop(request.strategy_id, None)
-            _strategy_kill_switch_activated_at.pop(request.strategy_id, None)
+    try:
+        emit_alert_db_dedup(
+            db,
+            AlertSeverity.INFO,
+            (
+                "Kill switch deactivated"
+                + (f" for strategy '{request.strategy_id}'" if request.strategy_id else " (global)")
+                + f": {request.reason}"
+            ),
+            source="risk",
+            category="kill_switch",
+            dedup_key=f"risk:kill_switch:deactivate:{request.strategy_id or 'global'}",
+            context={
+                "scope": "strategy" if request.strategy_id else "global",
+                "strategy_id": request.strategy_id,
+            },
+            window_seconds=60,
+        )
+        db.commit()
+    except SQLAlchemyError:
+        db.rollback()
+    except Exception:
+        db.rollback()
 
-            return KillSwitchResponse(
-                message=f"Kill switch deactivated for {request.strategy_id}",
-                data=KillSwitchData(
-                    kill_switch_active=False,
-                    scope="strategy",
-                    affected_strategies=[request.strategy_id],
-                    reason=request.reason,
-                    activated_at=None,
-                ),
-            )
-        else:
-            # Global
-            if not _global_kill_switch_active:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Global kill switch is not active",
-                )
-
-            _global_kill_switch_active = False
-            _global_kill_switch_reason = None
-            _global_kill_switch_activated_at = None
-
-            return KillSwitchResponse(
-                message="Global kill switch deactivated",
-                data=KillSwitchData(
-                    kill_switch_active=False,
-                    scope="global",
-                    affected_strategies=[],
-                    reason=request.reason,
-                    activated_at=None,
-                ),
-            )
+    return KillSwitchResponse(
+        message="Kill switch deactivated",
+        data=KillSwitchData(
+            kill_switch_active=False,
+            scope="strategy" if request.strategy_id else "global",
+            affected_strategies=[request.strategy_id] if request.strategy_id else [],
+            reason=None,
+            activated_at=None,
+        ),
+    )
 
 
 @router.get(
@@ -179,56 +173,54 @@ async def control_kill_switch(request: KillSwitchRequest) -> KillSwitchResponse:
 async def get_kill_switch_status(strategy_id: Optional[str] = None) -> KillSwitchResponse:
     """Get current kill switch status."""
     if strategy_id:
-        is_active = _strategy_kill_switches.get(strategy_id, False) or _global_kill_switch_active
-
-        if _global_kill_switch_active:
-            # Global takes precedence
+        if _risk_manager.kill_switch.is_active():
+            info = _risk_manager.kill_switch.get_global_info() or {}
             return KillSwitchResponse(
                 message="Kill switch status",
                 data=KillSwitchData(
                     kill_switch_active=True,
                     scope="global",
                     affected_strategies=[strategy_id],
-                    reason=_global_kill_switch_reason,
-                    activated_at=_global_kill_switch_activated_at,
+                    reason=info.get("reason"),
+                    activated_at=info.get("activated_at"),
                 ),
             )
-        elif _strategy_kill_switches.get(strategy_id, False):
+
+        if _risk_manager.kill_switch.is_active(strategy_id):
+            info = _risk_manager.kill_switch.get_strategy_info(strategy_id) or {}
             return KillSwitchResponse(
                 message="Kill switch status",
                 data=KillSwitchData(
                     kill_switch_active=True,
                     scope="strategy",
                     affected_strategies=[strategy_id],
-                    reason=_strategy_kill_switch_reasons.get(strategy_id),
-                    activated_at=_strategy_kill_switch_activated_at.get(strategy_id),
+                    reason=info.get("reason"),
+                    activated_at=info.get("activated_at"),
                 ),
             )
-        else:
-            return KillSwitchResponse(
-                message="Kill switch status",
-                data=KillSwitchData(
-                    kill_switch_active=False,
-                    scope="strategy",
-                    affected_strategies=[],
-                    reason=None,
-                    activated_at=None,
-                ),
-            )
-    else:
-        # Global status
-        active_strategies = [s for s, active in _strategy_kill_switches.items() if active]
 
         return KillSwitchResponse(
             message="Kill switch status",
             data=KillSwitchData(
-                kill_switch_active=_global_kill_switch_active,
+                kill_switch_active=False,
+                scope="strategy",
+                affected_strategies=[],
+                reason=None,
+                activated_at=None,
+            ),
+        )
+    else:
+        # Global status
+        active_strategies = _risk_manager.kill_switch.get_active_strategies()
+        global_info = _risk_manager.kill_switch.get_global_info() or {}
+        return KillSwitchResponse(
+            message="Kill switch status",
+            data=KillSwitchData(
+                kill_switch_active=_risk_manager.kill_switch.is_active(),
                 scope="global",
-                affected_strategies=active_strategies
-                if not _global_kill_switch_active
-                else ["all"],
-                reason=_global_kill_switch_reason,
-                activated_at=_global_kill_switch_activated_at,
+                affected_strategies=active_strategies if not _risk_manager.kill_switch.is_active() else ["all"],
+                reason=global_info.get("reason"),
+                activated_at=global_info.get("activated_at"),
             ),
         )
 
@@ -258,50 +250,9 @@ async def get_kill_switch_status(strategy_id: Optional[str] = None) -> KillSwitc
 )
 async def transition_mode(request: ModeTransitionRequest) -> ModeTransitionResponse:
     """Transition strategy between modes."""
-    # Validate approval code
-    if request.approval_code not in VALID_APPROVAL_CODES:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Invalid approval code",
-        )
-
-    # Check kill switch
-    if _global_kill_switch_active or _strategy_kill_switches.get(request.strategy_id, False):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Cannot transition mode while kill switch is active",
-        )
-
-    # Get current mode (default to PAPER for new strategies)
-    current_mode = _strategy_modes.get(request.strategy_id, TradingMode.PAPER)
-
-    # Validate from_mode matches current
-    if current_mode != request.from_mode:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Strategy is in {current_mode.value} mode, not {request.from_mode.value}",
-        )
-
-    # Additional validation for LIVE transition
-    if request.to_mode == TradingMode.LIVE:
-        # In production, would check:
-        # - Paper trading history (duration, performance)
-        # - Risk parameters configured
-        # - Backtesting results
-        # For now, just require approval code
-        pass
-
-    # Perform transition
-    now = datetime.now(timezone.utc)
-    _strategy_modes[request.strategy_id] = request.to_mode
-
-    return ModeTransitionResponse(
-        message=f"Strategy transitioned to {request.to_mode.value} mode",
-        data=ModeTransitionData(
-            strategy_id=request.strategy_id,
-            mode=request.to_mode,
-            transitioned_at=now,
-        ),
+    raise HTTPException(
+        status_code=501,
+        detail="Mode transitions are not wired yet (PAPER-only Phase 1)",
     )
 
 
@@ -311,7 +262,7 @@ async def transition_mode(request: ModeTransitionRequest) -> ModeTransitionRespo
 )
 async def get_strategy_mode(strategy_id: str) -> dict:
     """Get current trading mode for a strategy."""
-    mode = _strategy_modes.get(strategy_id, TradingMode.PAPER)
+    mode = TradingMode.PAPER
     return {
         "strategy_id": strategy_id,
         "mode": mode.value,

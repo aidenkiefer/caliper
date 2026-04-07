@@ -3,6 +3,7 @@
 import useSWR from "swr";
 import type { MetricsSummary, ApiResponse } from "../types";
 import { fetchMetricsSummary } from "../api";
+import { DEMO_MODE } from "../demo";
 
 // Mock data for development
 const mockMetrics: MetricsSummary = {
@@ -29,17 +30,15 @@ export function useMetrics(period: string = "1m") {
     () => fetchMetricsSummary(period),
     {
       refreshInterval: 5000,
-      fallbackData: { data: mockMetrics },
-      onError: () => {
-        // Silently fail and use mock data
-      },
+      ...(DEMO_MODE ? { fallbackData: { data: mockMetrics } } : {}),
     }
   );
 
   return {
-    metrics: data?.data ?? mockMetrics,
+    metrics: data?.data ?? (DEMO_MODE ? mockMetrics : null),
     isLoading,
     isError: error,
     mutate,
+    isDemo: DEMO_MODE,
   };
 }

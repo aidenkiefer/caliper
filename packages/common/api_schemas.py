@@ -134,6 +134,9 @@ class StrategyListItem(BaseModel):
     risk_per_trade_pct: Optional[str] = Field(None, description="Risk per trade")
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
+    performance: Optional[StrategyPerformance] = Field(
+        None, description="Optional performance summary (when available)"
+    )
 
 
 class StrategyListMeta(BaseModel):
@@ -157,6 +160,12 @@ class StrategyDetailData(BaseModel):
     name: str = Field(..., description="Strategy name")
     description: Optional[str] = Field(None, description="Strategy description")
     status: StrategyStatus = Field(..., description="Active or inactive")
+    mode: Optional[StrategyMode] = Field(None, description="Trading mode")
+    universe_size: Optional[int] = Field(None, description="Number of symbols in universe")
+    max_positions: Optional[int] = Field(None, description="Maximum positions")
+    risk_per_trade_pct: Optional[str] = Field(None, description="Risk per trade percentage")
+    created_at: Optional[datetime] = Field(None, description="Creation timestamp")
+    updated_at: Optional[datetime] = Field(None, description="Last update timestamp")
     config: Optional[StrategyConfig] = Field(None, description="Configuration")
     performance: Optional[StrategyPerformance] = Field(None, description="Performance metrics")
 
@@ -328,13 +337,14 @@ class RunTrade(BaseModel):
 
     trade_id: str = Field(..., description="Trade identifier")
     symbol: str = Field(..., description="Symbol")
+    side: str = Field(..., description="BUY or SELL")
     entry_time: datetime = Field(..., description="Entry timestamp")
     exit_time: datetime = Field(..., description="Exit timestamp")
     entry_price: str = Field(..., description="Entry price")
     exit_price: str = Field(..., description="Exit price")
     quantity: str = Field(..., description="Quantity")
     pnl: str = Field(..., description="P&L")
-    return_pct: str = Field(..., description="Return percentage")
+    pnl_pct: str = Field(..., description="P&L percentage")
 
 
 class RunDetailData(BaseModel):
@@ -342,6 +352,17 @@ class RunDetailData(BaseModel):
 
     run_id: str = Field(..., description="Run identifier")
     strategy_id: str = Field(..., description="Strategy identifier")
+    run_type: RunType = Field(..., description="Run type")
+    start_date: str = Field(..., description="Start date (YYYY-MM-DD)")
+    end_date: str = Field(..., description="End date (YYYY-MM-DD)")
+    total_return: Optional[str] = Field(None, description="Total return percentage")
+    sharpe_ratio: Optional[str] = Field(None, description="Sharpe ratio")
+    max_drawdown: Optional[str] = Field(None, description="Maximum drawdown")
+    total_trades: Optional[int] = Field(None, description="Total trades")
+    status: RunStatus = Field(..., description="Run status")
+    report_url: Optional[str] = Field(None, description="Report URL")
+    created_at: datetime = Field(..., description="Creation timestamp")
+    completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
     metrics: RunMetrics = Field(..., description="Performance metrics")
     equity_curve: List[EquityCurvePoint] = Field(default_factory=list, description="Equity curve")
     trades: List[RunTrade] = Field(default_factory=list, description="Trade history")
@@ -399,3 +420,49 @@ class HealthResponse(BaseModel):
     status: str = Field(..., description="Overall status: healthy, degraded, unhealthy")
     services: Dict[str, ServiceHealth] = Field(..., description="Per-service health")
     timestamp: datetime = Field(..., description="Health check timestamp")
+
+
+# ============================================================================
+# Alert Schemas
+# ============================================================================
+
+
+class AlertSeverity(str, Enum):
+    """Alert severity levels."""
+
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
+
+
+class AlertItem(BaseModel):
+    """Alert item for dashboard notifications."""
+
+    alert_id: str = Field(..., description="Alert identifier")
+    severity: AlertSeverity = Field(..., description="Severity level")
+    message: str = Field(..., description="Human-readable alert message")
+    context: Optional[Dict[str, Any]] = Field(None, description="Optional structured context")
+    acknowledged: bool = Field(False, description="Whether the alert has been acknowledged")
+    created_at: datetime = Field(..., description="Alert creation timestamp")
+
+
+class AlertListMeta(BaseModel):
+    """Metadata for paginated alert list response."""
+
+    total_count: int = Field(..., description="Total alert count")
+    page: int = Field(..., description="Current page")
+    per_page: int = Field(..., description="Items per page")
+
+
+class AlertListResponse(BaseModel):
+    """Response for GET /v1/alerts."""
+
+    data: List[AlertItem]
+    meta: AlertListMeta
+
+
+class AlertResponse(BaseModel):
+    """Response for single alert operations."""
+
+    data: AlertItem

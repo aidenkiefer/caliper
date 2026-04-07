@@ -5,3 +5,4 @@ export { useAlerts } from "./use-alerts";
 export { useHealth } from "./use-health";
 export { useRankingUniverse } from "./use-ranking";
 export { useFleetStatus, useFleetSignals, usePaperTrades } from "./use-fleet";
+export { usePositions } from "./use-positions";

@@ -9,73 +9,27 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from packages.common.api_schemas import HealthResponse, ServiceHealth
+from services.api.dependencies import get_db
 
 router = APIRouter()
 
 
-# ============================================================================
-# Health Check State (would be wired to actual services in production)
-# ============================================================================
-
-# Broker connection state (mock)
-_broker_connected = True
-_broker_mode = os.getenv("TRADING_MODE", "PAPER")
-_broker_name = "alpaca"
-_last_broker_check: Optional[datetime] = None
-
-# Risk manager state (mock)
-_kill_switch_active = False
-_circuit_breaker_state = "closed"
-_daily_drawdown_pct = "0.50"
-_total_drawdown_pct = "2.30"
-
-
-def _check_broker_health() -> ServiceHealth:
-    """Check broker connection health."""
-    global _last_broker_check
+def _check_database_health(db: Session) -> ServiceHealth:
     now = datetime.now(timezone.utc)
-    _last_broker_check = now
-
-    # In production, would actually ping broker API
-    if _broker_connected:
-        return ServiceHealth(
-            status="healthy",
-            broker=_broker_name,
-            mode=_broker_mode,
-            latency_ms=45,  # Mock latency
-            last_update=now,
-        )
-    else:
-        return ServiceHealth(
-            status="unhealthy",
-            broker=_broker_name,
-            mode=_broker_mode,
-            latency_ms=None,
-            last_update=now,
-        )
-
-
-def _check_risk_health() -> ServiceHealth:
-    """Check risk manager health."""
-    now = datetime.now(timezone.utc)
-
-    # Determine status based on kill switch and circuit breaker
-    if _kill_switch_active:
-        status = "unhealthy"
-    elif _circuit_breaker_state == "open":
-        status = "unhealthy"
-    elif _circuit_breaker_state == "half_open":
-        status = "degraded"
-    else:
-        status = "healthy"
-
-    return ServiceHealth(
-        status=status,
-        last_update=now,
-    )
+    start = datetime.now(timezone.utc)
+    try:
+        db.execute(text("SELECT 1")).fetchone()
+        end = datetime.now(timezone.utc)
+        latency_ms = int((end - start).total_seconds() * 1000)
+        return ServiceHealth(status="healthy", latency_ms=latency_ms, last_update=now)
+    except SQLAlchemyError:
+        return ServiceHealth(status="unhealthy", latency_ms=None, last_update=now)
 
 
 @router.get(
@@ -98,7 +52,7 @@ def _check_risk_health() -> ServiceHealth:
     - `unhealthy`: Critical service failure
     """,
 )
-async def get_health() -> HealthResponse:
+async def get_health(db: Session = Depends(get_db)) -> HealthResponse:
     """
     Get system health status.
 
@@ -107,22 +61,27 @@ async def get_health() -> HealthResponse:
     """
     now = datetime.now(timezone.utc)
 
-    # Build service health checks
+    # NOTE: Only report a service as "healthy" if we actually check it.
+    broker_mode = os.getenv("TRADING_MODE", "PAPER")
+    broker_name = os.getenv("BROKER_NAME", "alpaca")
+
+    # Build service health checks (minimal real checks today).
+    # - database is real (SELECT 1)
+    # - other services are marked degraded until wired to real probes
+    def _degraded() -> ServiceHealth:
+        return ServiceHealth(status="degraded", last_update=now)
+
     services = {
-        "database": ServiceHealth(
-            status="healthy",
-            latency_ms=12,
-        ),
-        "data_feed": ServiceHealth(
-            status="healthy",
+        "database": _check_database_health(db),
+        "data_feed": _degraded(),
+        "broker_connection": ServiceHealth(
+            status="degraded",
+            broker=broker_name,
+            mode=broker_mode,
             last_update=now,
-            staleness_seconds=10,
         ),
-        "broker_connection": _check_broker_health(),
-        "risk_manager": _check_risk_health(),
-        "redis": ServiceHealth(
-            status="healthy",
-        ),
+        "risk_manager": _degraded(),
+        "redis": _degraded(),
     }
 
     # Determine overall status
@@ -148,7 +107,10 @@ async def get_health() -> HealthResponse:
 )
 async def get_broker_health() -> dict:
     """Get detailed broker connection health."""
-    health = _check_broker_health()
+    now = datetime.now(timezone.utc)
+    broker_mode = os.getenv("TRADING_MODE", "PAPER")
+    broker_name = os.getenv("BROKER_NAME", "alpaca")
+    health = ServiceHealth(status="degraded", broker=broker_name, mode=broker_mode, last_update=now)
 
     return {
         "status": health.status,
@@ -171,21 +133,22 @@ async def get_broker_health() -> dict:
 )
 async def get_risk_health() -> dict:
     """Get detailed risk manager health."""
-    health = _check_risk_health()
+    now = datetime.now(timezone.utc)
+    health = ServiceHealth(status="degraded", last_update=now)
 
     return {
         "status": health.status,
         "kill_switch": {
-            "active": _kill_switch_active,
-            "scope": "global" if _kill_switch_active else None,
+            "active": None,
+            "scope": None,
         },
         "circuit_breaker": {
-            "state": _circuit_breaker_state,
-            "tripped": _circuit_breaker_state == "open",
+            "state": None,
+            "tripped": None,
         },
         "drawdown": {
-            "daily_pct": _daily_drawdown_pct,
-            "total_pct": _total_drawdown_pct,
+            "daily_pct": None,
+            "total_pct": None,
         },
         "thresholds": {
             "daily_halt_pct": "3.0",

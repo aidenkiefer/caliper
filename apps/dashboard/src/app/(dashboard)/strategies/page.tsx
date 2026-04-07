@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PaperAllocationDialog } from "@/components/paper-allocation-dialog";
 import {
   Select,
   SelectContent,
@@ -20,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Settings, Eye, Pause, Play } from "lucide-react";
+import { Settings, Eye, Pause, Play, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 
@@ -37,9 +38,14 @@ const modeConfig = {
 
 export default function StrategiesPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const { strategies } = useStrategies(
+  const { strategies, isError, isDemo, mutate } = useStrategies(
     statusFilter !== "all" ? { status: statusFilter } : undefined
   );
+  const [allocationOpen, setAllocationOpen] = useState(false);
+  const [allocationStrategy, setAllocationStrategy] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const formatCurrency = (value: string) => {
     const num = parseFloat(value);
@@ -66,6 +72,7 @@ export default function StrategiesPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          {isDemo && <Badge variant="secondary">Demo data</Badge>}
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Filter status" />
@@ -85,6 +92,11 @@ export default function StrategiesPage() {
           <CardTitle>Strategy Fleet</CardTitle>
         </CardHeader>
         <CardContent>
+          {isError && !isDemo && (
+            <p className="text-sm text-muted-foreground pb-4">
+              Backend unavailable. Configure `NEXT_PUBLIC_API_URL` to load strategies.
+            </p>
+          )}
           <Table>
             <TableHeader>
               <TableRow>
@@ -101,9 +113,10 @@ export default function StrategiesPage() {
               {strategies.map((strategy) => {
                 const status = statusConfig[strategy.status];
                 const mode = modeConfig[strategy.mode];
-                const pnl = strategy.performance?.total_pnl ?? "0";
-                const pnlPositive = parseFloat(pnl) >= 0;
-                const drawdown = strategy.performance?.max_drawdown ?? "0";
+                const pnl = strategy.performance?.total_pnl;
+                const pnlPositive = pnl != null ? parseFloat(pnl) >= 0 : true;
+                const drawdown = strategy.performance?.max_drawdown;
+                const winRate = strategy.performance?.win_rate;
 
                 return (
                   <TableRow key={strategy.strategy_id}>
@@ -116,7 +129,9 @@ export default function StrategiesPage() {
                       <div>
                         <div className="font-medium">{strategy.name}</div>
                         <div className="text-xs text-muted-foreground">
-                          {strategy.description.slice(0, 50)}...
+                          {strategy.description
+                            ? `${strategy.description.slice(0, 50)}...`
+                            : "No description"}
                         </div>
                       </div>
                     </TableCell>
@@ -129,24 +144,45 @@ export default function StrategiesPage() {
                       <span
                         className={cn(
                           "font-mono",
-                          pnlPositive ? "text-profit" : "text-loss"
+                          pnl != null && pnlPositive ? "text-profit" : pnl != null ? "text-loss" : ""
                         )}
                       >
-                        {formatCurrency(pnl)}
+                        {pnl != null ? formatCurrency(pnl) : "—"}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">
-                      <span className="font-mono text-loss">
-                        {formatPercent(drawdown)}
-                      </span>
+                      {drawdown != null ? (
+                        <span className="font-mono text-loss">{formatPercent(drawdown)}</span>
+                      ) : (
+                        <span className="font-mono text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
-                      <span className="font-mono">
-                        {((parseFloat(strategy.performance?.win_rate ?? "0") * 100).toFixed(0))}%
-                      </span>
+                      {winRate != null ? (
+                        <span className="font-mono">
+                          {(parseFloat(winRate) * 100).toFixed(0)}%
+                        </span>
+                      ) : (
+                        <span className="font-mono text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Allocate paper capital"
+                          onClick={() => {
+                            setAllocationStrategy({
+                              id: strategy.strategy_id,
+                              name: strategy.name,
+                            });
+                            setAllocationOpen(true);
+                          }}
+                        >
+                          <DollarSign className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -186,6 +222,14 @@ export default function StrategiesPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <PaperAllocationDialog
+        open={allocationOpen}
+        onOpenChange={setAllocationOpen}
+        strategyId={allocationStrategy?.id}
+        strategyName={allocationStrategy?.name}
+        onSuccess={() => mutate()}
+      />
     </div>
   );
 }

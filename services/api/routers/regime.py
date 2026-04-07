@@ -13,13 +13,13 @@ stores only weights/method/confidence (+ optional regime_id).
 from __future__ import annotations
 
 import logging
-import os
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from packages.common.db_url import DbUrlMismatchError, resolve_db_url
 from services.allocation.schemas import AllocationDecision, CapitalBudgetModel, PerformanceMatrix
 from services.allocation.store import AllocationDecisionStore, PerformanceMatrixStore
 from services.regime.schemas import RegimeQualityReport, RegimeState
@@ -33,10 +33,12 @@ _MAX_LIMIT = 5000
 
 
 def _require_db_url() -> str:
-    db_url = os.environ.get("DB_URL")
-    if not db_url:
-        raise HTTPException(status_code=503, detail="DB not configured")
-    return db_url
+    try:
+        return resolve_db_url().url
+    except DbUrlMismatchError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail="DB not configured") from exc
 
 
 def _get_regime_store() -> RegimeStore:
@@ -227,4 +229,3 @@ async def get_latest_performance_matrix(
     if m is None:
         raise HTTPException(status_code=404, detail="No performance matrices found")
     return m
-

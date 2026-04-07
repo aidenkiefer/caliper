@@ -112,6 +112,7 @@ class HealthScoreResponse(BaseModel):
     model_id: str
     health_score: float = Field(ge=0, le=100, description="Health score 0-100")
     components: dict = Field(description="Component scores (feature, confidence, error, staleness)")
+    alerts: List[str] = Field(default_factory=list, description="Human-readable health alerts")
     timestamp: str
 
 

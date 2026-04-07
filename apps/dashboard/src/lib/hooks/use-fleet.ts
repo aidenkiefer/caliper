@@ -7,6 +7,7 @@ import type {
   FleetStatus,
   PaperTrade,
 } from "../types/models";
+import { DEMO_MODE } from "../demo";
 
 const now = Date.now();
 
@@ -204,36 +205,45 @@ const mockSignals: FleetSignal[] = [
 const mockPaperTrades: PaperTrade[] = [
   {
     trade_id: "trade-001",
-    timestamp: new Date(now - 6 * 60 * 1000).toISOString(),
+    executed_at: new Date(now - 6 * 60 * 1000).toISOString(),
     strategy_id: "poly_mm_v2",
     market_id: "btc-hourly-2026-04-06-09",
     side: "BUY",
     price: 0.53,
-    size: 120,
-    pnl_usd: 12.5,
-    status: "filled",
+    quantity: 120,
+    notional: 63.6,
+    confidence: 0.91,
+    status: "paper_filled",
+    regime: "R1",
+    allocation_weight: 0.34,
   },
   {
     trade_id: "trade-002",
-    timestamp: new Date(now - 5 * 60 * 1000).toISOString(),
+    executed_at: new Date(now - 5 * 60 * 1000).toISOString(),
     strategy_id: "poly_directional_v1",
     market_id: "btc-hourly-2026-04-06-10",
     side: "BUY",
     price: 0.54,
-    size: 80,
-    pnl_usd: 7.2,
-    status: "filled",
+    quantity: 80,
+    notional: 43.2,
+    confidence: 0.78,
+    status: "paper_filled",
+    regime: "R1",
+    allocation_weight: 0.24,
   },
   {
     trade_id: "trade-003",
-    timestamp: new Date(now - 4 * 60 * 1000).toISOString(),
+    executed_at: new Date(now - 4 * 60 * 1000).toISOString(),
     strategy_id: "poly_hybrid_v1",
     market_id: "btc-hourly-2026-04-06-08",
     side: "SELL",
     price: 0.49,
-    size: 60,
-    pnl_usd: -1.4,
-    status: "simulated",
+    quantity: 60,
+    notional: 29.4,
+    confidence: 0.83,
+    status: "paper_filled",
+    regime: "R2",
+    allocation_weight: 0.24,
   },
 ];
 
@@ -243,18 +253,16 @@ export function useFleetStatus() {
     fetchFleetStatus,
     {
       refreshInterval: 15000,
-      fallbackData: mockFleetStatus,
-      onError: () => {
-        // Use the mock fleet view when the API is unavailable.
-      },
+      ...(DEMO_MODE ? { fallbackData: mockFleetStatus } : {}),
     }
   );
 
   return {
-    fleetStatus: data ?? mockFleetStatus,
+    fleetStatus: data ?? (DEMO_MODE ? mockFleetStatus : null),
     isLoading,
     isError: error,
     mutate,
+    isDemo: DEMO_MODE,
   };
 }
 
@@ -264,18 +272,16 @@ export function useFleetSignals(limit: number = 50) {
     () => fetchFleetSignals({ limit }),
     {
       refreshInterval: 10000,
-      fallbackData: mockSignals.slice(0, limit),
-      onError: () => {
-        // Use the mock signal log when the API is unavailable.
-      },
+      ...(DEMO_MODE ? { fallbackData: mockSignals.slice(0, limit) } : {}),
     }
   );
 
   return {
-    signals: data ?? mockSignals.slice(0, limit),
+    signals: data ?? (DEMO_MODE ? mockSignals.slice(0, limit) : []),
     isLoading,
     isError: error,
     mutate,
+    isDemo: DEMO_MODE,
   };
 }
 
@@ -285,18 +291,15 @@ export function usePaperTrades(limit: number = 50) {
     () => fetchPaperTrades({ limit }),
     {
       refreshInterval: 15000,
-      fallbackData: mockPaperTrades.slice(0, limit),
-      onError: () => {
-        // Use the mock trade log when the API is unavailable.
-      },
+      ...(DEMO_MODE ? { fallbackData: mockPaperTrades.slice(0, limit) } : {}),
     }
   );
 
   return {
-    paperTrades: data ?? mockPaperTrades.slice(0, limit),
+    paperTrades: data ?? (DEMO_MODE ? mockPaperTrades.slice(0, limit) : []),
     isLoading,
     isError: error,
     mutate,
+    isDemo: DEMO_MODE,
   };
 }
-

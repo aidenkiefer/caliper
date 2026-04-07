@@ -14,13 +14,12 @@ from services.ml.drift import DriftDetector, HealthScore, DriftAlertManager
 
 router = APIRouter()
 
-# Mock storage (in production, would use database)
+# In-memory storage (in production, would use database)
 _drift_metrics_store: dict[str, dict] = {}
-_health_scores: dict[str, float] = {}
 
 
 @router.get(
-    "/v1/drift/metrics/{model_id}",
+    "/drift/metrics/{model_id}",
     response_model=DriftMetricsResponse,
     summary="Get drift metrics for a model",
     description="Returns drift metrics (PSI, KL divergence, mean shift) for a model.",
@@ -49,7 +48,7 @@ async def get_drift_metrics(model_id: str) -> DriftMetricsResponse:
 
 
 @router.get(
-    "/v1/drift/health/{model_id}",
+    "/drift/health/{model_id}",
     response_model=HealthScoreResponse,
     summary="Get model health score",
     description="Returns composite health score (0-100) based on drift metrics.",
@@ -81,21 +80,40 @@ async def get_health_score(
         except ValueError:
             pass
 
-    # Calculate health score (mock - would use actual metrics)
+    # Calculate health score from stored drift metrics
     health_calculator = HealthScore(last_retraining_date=retraining_date)
 
-    # In production, would use actual metrics from store
-    # For now, return mock score
-    score = _health_scores.get(model_id, 75.0)
+    metrics = _drift_metrics_store[model_id]
+    feature_metrics = metrics.get("feature_metrics", []) or []
+    confidence_metric = metrics.get("confidence_metric")
+    error_metric = metrics.get("error_metric")
+
+    try:
+        score = health_calculator.calculate(
+            feature_metrics=feature_metrics,
+            confidence_metric=confidence_metric,
+            error_metric=error_metric,
+        )
+
+        feature_score = health_calculator._calculate_feature_score(feature_metrics)  # noqa: SLF001
+        confidence_score = health_calculator._calculate_confidence_score(confidence_metric)  # noqa: SLF001
+        error_score = health_calculator._calculate_error_score(error_metric)  # noqa: SLF001
+        staleness_score = health_calculator._calculate_staleness_score()  # noqa: SLF001
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="Health score computation failed (drift metrics store not in expected shape)",
+        ) from exc
 
     return HealthScoreResponse(
         model_id=model_id,
         health_score=score,
         components={
-            "feature_drift": 80.0,
-            "confidence_drift": 70.0,
-            "error_drift": 75.0,
-            "staleness": 80.0,
+            "feature_drift": feature_score,
+            "confidence_drift": confidence_score,
+            "error_drift": error_score,
+            "staleness": staleness_score,
         },
+        alerts=[],
         timestamp=datetime.now(timezone.utc).isoformat(),
     )

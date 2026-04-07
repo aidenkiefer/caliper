@@ -108,6 +108,36 @@ export async function updateStrategy(
   });
 }
 
+// Paper portfolio (Phase 1 MTM wiring)
+export async function createPaperAllocation(data: {
+  strategy_id: string;
+  amount_usd: string;
+  note?: string;
+}): Promise<{ allocation_id: number }> {
+  return fetchApi("/paper/allocations", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function createEquityFill(data: {
+  strategy_id: string;
+  symbol: string;
+  side: "BUY" | "SELL";
+  quantity: string;
+  price: string;
+  fees_usd?: string;
+  venue?: string;
+  client_order_id?: string;
+  broker_order_id?: string;
+  metadata?: Record<string, unknown>;
+}): Promise<{ fill_id: string }> {
+  return fetchApi("/paper/equity-fills", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
 // Positions
 export async function fetchPositions(params?: {
   strategy_id?: string;

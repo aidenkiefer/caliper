@@ -3,6 +3,7 @@
 import useSWR from "swr";
 import type { Strategy, PaginatedResponse, ApiResponse } from "../types";
 import { fetchStrategies, fetchStrategy } from "../api";
+import { DEMO_MODE } from "../demo";
 
 // Mock data for development
 const mockStrategies: Strategy[] = [
@@ -68,22 +69,24 @@ export function useStrategies(params?: { status?: string; mode?: string }) {
     () => fetchStrategies(params),
     {
       refreshInterval: 10000,
-      fallbackData: {
-        data: mockStrategies,
-        meta: { total_count: mockStrategies.length, page: 1, per_page: 20 },
-      },
-      onError: () => {
-        // Silently fail and use mock data
-      },
+      ...(DEMO_MODE
+        ? {
+            fallbackData: {
+              data: mockStrategies,
+              meta: { total_count: mockStrategies.length, page: 1, per_page: 20 },
+            },
+          }
+        : {}),
     }
   );
 
   return {
-    strategies: data?.data ?? mockStrategies,
-    total: data?.meta?.total_count ?? mockStrategies.length,
+    strategies: data?.data ?? (DEMO_MODE ? mockStrategies : []),
+    total: data?.meta?.total_count ?? (DEMO_MODE ? mockStrategies.length : 0),
     isLoading,
     isError: error,
     mutate,
+    isDemo: DEMO_MODE,
   };
 }
 
@@ -92,19 +95,23 @@ export function useStrategy(strategyId: string) {
     strategyId ? `/strategies/${strategyId}` : null,
     () => fetchStrategy(strategyId),
     {
-      fallbackData: {
-        data: mockStrategies.find((s) => s.strategy_id === strategyId) ?? mockStrategies[0],
-      },
-      onError: () => {
-        // Silently fail and use mock data
-      },
+      ...(DEMO_MODE
+        ? {
+            fallbackData: {
+              data:
+                mockStrategies.find((s) => s.strategy_id === strategyId) ??
+                mockStrategies[0],
+            },
+          }
+        : {}),
     }
   );
 
   return {
-    strategy: data?.data ?? mockStrategies.find((s) => s.strategy_id === strategyId),
+    strategy: data?.data ?? (DEMO_MODE ? mockStrategies.find((s) => s.strategy_id === strategyId) : null),
     isLoading,
     isError: error,
     mutate,
+    isDemo: DEMO_MODE,
   };
 }

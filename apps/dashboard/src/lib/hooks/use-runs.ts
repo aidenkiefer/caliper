@@ -3,6 +3,7 @@
 import useSWR from "swr";
 import type { Run, RunDetail, PaginatedResponse, ApiResponse } from "../types";
 import { fetchRuns, fetchRun } from "../api";
+import { DEMO_MODE } from "../demo";
 
 // Mock data for development
 const mockRuns: Run[] = [
@@ -132,22 +133,24 @@ export function useRuns(params?: {
     () => fetchRuns(params),
     {
       refreshInterval: 10000,
-      fallbackData: {
-        data: mockRuns,
-        meta: { total_count: mockRuns.length, page: 1, per_page: 20 },
-      },
-      onError: () => {
-        // Silently fail and use mock data
-      },
+      ...(DEMO_MODE
+        ? {
+            fallbackData: {
+              data: mockRuns,
+              meta: { total_count: mockRuns.length, page: 1, per_page: 20 },
+            },
+          }
+        : {}),
     }
   );
 
   return {
-    runs: data?.data ?? mockRuns,
-    total: data?.meta?.total_count ?? mockRuns.length,
+    runs: data?.data ?? (DEMO_MODE ? mockRuns : []),
+    total: data?.meta?.total_count ?? (DEMO_MODE ? mockRuns.length : 0),
     isLoading,
     isError: error,
     mutate,
+    isDemo: DEMO_MODE,
   };
 }
 
@@ -156,17 +159,15 @@ export function useRun(runId: string) {
     runId ? `/runs/${runId}` : null,
     () => fetchRun(runId),
     {
-      fallbackData: { data: mockRunDetail },
-      onError: () => {
-        // Silently fail and use mock data
-      },
+      ...(DEMO_MODE ? { fallbackData: { data: mockRunDetail } } : {}),
     }
   );
 
   return {
-    run: data?.data ?? mockRunDetail,
+    run: data?.data ?? (DEMO_MODE ? mockRunDetail : null),
     isLoading,
     isError: error,
     mutate,
+    isDemo: DEMO_MODE,
   };
 }

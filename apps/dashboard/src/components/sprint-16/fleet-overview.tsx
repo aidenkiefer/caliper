@@ -32,7 +32,7 @@ export function FleetOverview({ fleetStatus }: { fleetStatus: FleetStatus }) {
           <Badge variant="outline">{fleetStatus.current_mode.toUpperCase()}</Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          Current regime {fleetStatus.current_regime} • {fleetStatus.strategies.length} strategies
+          Current regime {fleetStatus.current_regime ?? "—"} • {fleetStatus.strategies.length} strategies
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -50,17 +50,35 @@ export function FleetOverview({ fleetStatus }: { fleetStatus: FleetStatus }) {
                   </Badge>
                 </div>
                 <div className="space-y-2 text-sm">
-                  <Row label="PnL 24h" value={formatCurrency(strategy.pnl_24h_usd)} />
-                  <Row label="Sharpe 7d" value={strategy.sharpe_7d.toFixed(2)} />
-                  <Row label="Fill rate" value={formatPercent(strategy.fill_rate)} />
-                  <Row label="Allocation" value={formatPercent(strategy.allocation_weight)} />
-                  <Row label="Alignment" value={formatPercent(strategy.regime_alignment)} />
-                  <Row label="Signals 24h" value={strategy.signal_count_24h.toString()} />
+                  <Row
+                    label="PnL 24h"
+                    value={strategy.pnl_24h_usd == null ? "—" : formatCurrency(strategy.pnl_24h_usd)}
+                  />
+                  <Row
+                    label="Sharpe 7d"
+                    value={strategy.sharpe_7d == null ? "—" : strategy.sharpe_7d.toFixed(2)}
+                  />
+                  <Row
+                    label="Fill rate"
+                    value={strategy.fill_rate == null ? "—" : formatPercent(strategy.fill_rate)}
+                  />
+                  <Row
+                    label="Allocation"
+                    value={strategy.allocation_weight == null ? "—" : formatPercent(strategy.allocation_weight)}
+                  />
+                  <Row
+                    label="Alignment"
+                    value={strategy.regime_alignment == null ? "—" : formatPercent(strategy.regime_alignment)}
+                  />
+                  <Row
+                    label="Signals 24h"
+                    value={strategy.signal_count_24h == null ? "—" : strategy.signal_count_24h.toString()}
+                  />
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-muted">
                   <div
                     className={`h-full rounded-full ${statusTone(strategy.status)}`}
-                    style={{ width: `${Math.max(4, strategy.allocation_weight * 100)}%` }}
+                    style={{ width: `${Math.max(4, (strategy.allocation_weight ?? 0) * 100)}%` }}
                   />
                 </div>
               </CardContent>
@@ -80,4 +98,3 @@ function Row({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-

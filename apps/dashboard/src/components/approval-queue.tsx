@@ -9,7 +9,7 @@ import { TooltipWrapper } from '@/components/ui/tooltip-wrapper';
 interface Recommendation {
   recommendation_id: string;
   strategy_id: string;
-  signal: 'BUY' | 'SELL';
+  signal: 'BUY' | 'SELL' | 'ABSTAIN';
   symbol: string;
   confidence: number;
   uncertainty: number;
@@ -73,11 +73,17 @@ function RecommendationCard({
   onReject: () => void;
   isLoading: boolean;
 }) {
+  const badgeVariant =
+    recommendation.signal === "BUY"
+      ? "default"
+      : recommendation.signal === "SELL"
+        ? "destructive"
+        : "outline";
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
       <div className="flex-1">
         <div className="flex items-center gap-2 mb-1">
-          <Badge variant={recommendation.signal === 'BUY' ? 'default' : 'destructive'}>
+          <Badge variant={badgeVariant}>
             {recommendation.signal}
           </Badge>
           <span className="font-medium">{recommendation.symbol}</span>

@@ -97,7 +97,7 @@ export type FleetMode = "paper" | "live";
 export type FleetSignalDirection = "long" | "short" | "none" | "abstain";
 export type FleetSignalAction = "executed" | "rejected" | "abstained" | "cancelled";
 export type FleetStrategyStatus = "active" | "paused" | "cooldown" | "abstain";
-export type PaperTradeStatus = "filled" | "simulated" | "cancelled";
+export type PaperTradeStatus = string;
 
 export interface RankedMarket {
   market_id: string;
@@ -130,13 +130,13 @@ export interface FleetStrategyCard {
   name: string;
   status: FleetStrategyStatus;
   mode: FleetMode;
-  current_regime: FleetRegime;
-  pnl_24h_usd: number;
-  sharpe_7d: number;
-  fill_rate: number;
-  allocation_weight: number;
-  regime_alignment: number;
-  signal_count_24h: number;
+  current_regime?: FleetRegime | string | null;
+  pnl_24h_usd?: number | null;
+  sharpe_7d?: number | null;
+  fill_rate?: number | null;
+  allocation_weight?: number | null;
+  regime_alignment?: number | null;
+  signal_count_24h?: number | null;
 }
 
 export interface RegimeTimelinePoint {
@@ -157,7 +157,7 @@ export interface StrategyComparisonRow {
 
 export interface FleetStatus {
   generated_at: string;
-  current_regime: FleetRegime;
+  current_regime?: FleetRegime | string | null;
   current_mode: FleetMode;
   strategies: FleetStrategyCard[];
   regime_timeline: RegimeTimelinePoint[];
@@ -174,17 +174,20 @@ export interface FleetSignal {
   confidence: number;
   action_taken: FleetSignalAction;
   fill_price?: number | null;
-  regime: FleetRegime;
+  regime?: FleetRegime | string | null;
 }
 
 export interface PaperTrade {
   trade_id: string;
-  timestamp: string;
+  executed_at: string;
   strategy_id: string;
   market_id: string;
-  side: "BUY" | "SELL";
+  side: "BUY" | "SELL" | "NONE";
   price: number;
-  size: number;
-  pnl_usd: number;
+  quantity: number;
+  notional: number;
+  confidence: number;
   status: PaperTradeStatus;
+  regime?: string | null;
+  allocation_weight: number;
 }
