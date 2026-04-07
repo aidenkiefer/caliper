@@ -5,17 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Check, X, Clock } from 'lucide-react';
 import { TooltipWrapper } from '@/components/ui/tooltip-wrapper';
-
-interface Recommendation {
-  recommendation_id: string;
-  strategy_id: string;
-  signal: 'BUY' | 'SELL' | 'ABSTAIN';
-  symbol: string;
-  confidence: number;
-  uncertainty: number;
-  timestamp: string;
-  explanation_id?: string;
-}
+import type { Recommendation } from "@/lib/types/models";
 
 interface ApprovalQueueProps {
   recommendations: Recommendation[];

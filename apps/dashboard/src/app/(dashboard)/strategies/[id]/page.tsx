@@ -237,10 +237,14 @@ export default function StrategyDetailPage({ params }: StrategyDetailPageProps) 
                   <span
                     className={cn(
                       "font-mono",
-                      pnlPositive ? "text-profit" : "text-loss"
+                      pnl == null
+                        ? "text-muted-foreground"
+                        : pnlPositive
+                          ? "text-profit"
+                          : "text-loss"
                     )}
                   >
-                    {formatCurrency(pnl)}
+                    {pnl != null ? formatCurrency(pnl) : "—"}
                   </span>
                 </div>
                 <div className="flex justify-between">
