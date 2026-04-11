@@ -90,3 +90,32 @@ def test_ranker_top_wallets() -> None:
     daily_pnls = [base + Decimal(str(i * 10)) for i in range(7)]
     score = ranker.compute_wallet_score(daily_pnls_7d=daily_pnls, active_days_7d=7)
     assert score > Decimal("0")
+
+
+from services.wallet_intelligence.clustering import WalletClusterer
+
+
+def test_clustering_stable_with_same_seed() -> None:
+    """AC-5: same seed → identical cluster assignments."""
+    import numpy as np
+
+    clusterer = WalletClusterer(n_clusters=4, random_state=42)
+    np.random.seed(99)
+    feature_matrix = np.random.rand(12, 5).tolist()
+    wallet_ids = [f"0x{i:02X}" for i in range(12)]
+
+    assignments_1 = clusterer.fit_predict(feature_matrix, wallet_ids)
+    assignments_2 = clusterer.fit_predict(feature_matrix, wallet_ids)
+    assert assignments_1 == assignments_2
+
+
+def test_clustering_produces_four_clusters() -> None:
+    import numpy as np
+
+    clusterer = WalletClusterer(n_clusters=4, random_state=42)
+    np.random.seed(0)
+    features = np.random.rand(20, 5).tolist()
+    wallet_ids = [f"0x{i:02X}" for i in range(20)]
+    assignments = clusterer.fit_predict(features, wallet_ids)
+    cluster_ids = set(assignments.values())
+    assert len(cluster_ids) == 4
