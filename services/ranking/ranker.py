@@ -38,7 +38,11 @@ class MarketRanker:
         self._cooldown_counts: dict[str, int] = {}
         self._running = False
 
-    def score_candidate(self, candidate: CandidateMarket) -> MarketScore:
+    def score_candidate(
+        self,
+        candidate: CandidateMarket,
+        reward_density: float = 0.0,
+    ) -> MarketScore:
         edge = self._edge_estimator.estimate(candidate)
         feasibility = self._feasibility_scorer.score(candidate)
         sigma = float(candidate.sigma)
@@ -48,6 +52,7 @@ class MarketRanker:
             sigma=sigma,
             feasibility=feasibility.feasibility_score,
             confidence=confidence,
+            reward_density=reward_density,
             weights=self._weights,
         )
         excluded = feasibility.exclude or edge.ev_adj < 0
@@ -61,6 +66,7 @@ class MarketRanker:
             sigma=sigma,
             confidence=confidence,
             score=score,
+            reward_density_score=reward_density,
             selected=False,
             excluded=excluded,
             exclusion_reason=exclusion_reason,

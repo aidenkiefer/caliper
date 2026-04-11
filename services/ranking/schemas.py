@@ -94,6 +94,7 @@ class MarketScore(BaseModel):
     sigma: float
     confidence: float
     score: float
+    reward_density_score: float = 0.0
     selected: bool = False
     excluded: bool = False
     exclusion_reason: Optional[str] = None

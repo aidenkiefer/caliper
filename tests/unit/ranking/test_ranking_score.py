@@ -21,3 +21,25 @@ def test_composite_score_matches_weighted_formula() -> None:
     expected = 0.4 * 0.25 + 0.3 * (0.25 / 2.0) + 0.2 * 0.5 + 0.1 * 0.8
     assert abs(score - expected) < 1e-12
 
+
+def test_composite_score_includes_reward_density() -> None:
+    from services.ranking.score import RankingWeights, composite_score
+    weights = RankingWeights()
+    score_with = composite_score(
+        ev_adj=Decimal("0.25"),
+        sigma=Decimal("2"),
+        feasibility=0.5,
+        confidence=0.8,
+        reward_density=1.0,
+        weights=weights,
+    )
+    score_without = composite_score(
+        ev_adj=Decimal("0.25"),
+        sigma=Decimal("2"),
+        feasibility=0.5,
+        confidence=0.8,
+        reward_density=0.0,
+        weights=weights,
+    )
+    assert score_with > score_without
+
