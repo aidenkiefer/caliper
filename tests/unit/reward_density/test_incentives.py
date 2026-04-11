@@ -42,3 +42,58 @@ def test_competition_metric_is_estimate_flag() -> None:
     )
     assert m.hhi == Decimal("1.0")
     assert m.n_eff == Decimal("1.0")
+
+
+from services.reward_density.incentives import IncentiveEstimator, effective_fee_rate
+
+
+def test_effective_fee_rate_formula() -> None:
+    # effective_fee_rate = price * 0.072 * (price * (1 - price))^1
+    price = Decimal("0.5")
+    expected = price * Decimal("0.072") * (price * (Decimal("1") - price))
+    result = effective_fee_rate(price)
+    assert float(result) == pytest.approx(float(expected), rel=1e-6)
+
+
+def test_fee_rate_at_extreme_price() -> None:
+    result = effective_fee_rate(Decimal("0.01"))
+    assert result > 0
+
+
+def test_rebate_pool_is_20pct_of_fee_pool() -> None:
+    estimator = IncentiveEstimator()
+    volume = Decimal("1000")
+    price = Decimal("0.5")
+    fee_pool = estimator.compute_fee_pool(volume, price)
+    rebate = estimator.compute_maker_rebate_pool(fee_pool)
+    assert float(rebate) == pytest.approx(float(fee_pool) * 0.20, rel=1e-6)
+
+
+def test_rebate_pool_within_1pct() -> None:
+    """AC-1: rebate_pool_i = 0.20 * fee_pool_i within 1%."""
+    estimator = IncentiveEstimator()
+    volume = Decimal("10000")
+    price = Decimal("0.6")
+    fee_pool = estimator.compute_fee_pool(volume, price)
+    rebate = estimator.compute_maker_rebate_pool(fee_pool)
+    direct = Decimal("0.20") * fee_pool
+    assert abs(float(rebate) - float(direct)) / float(direct) < 0.01
+
+
+def test_estimate_total_no_lr() -> None:
+    """When market is not reward-eligible, LR contribution is 0."""
+    estimator = IncentiveEstimator()
+    result = estimator.estimate(
+        market_id="mkt1",
+        volume_7d_avg=Decimal("5000"),
+        avg_price=Decimal("0.5"),
+        n_eff=Decimal("5"),
+        historical_fill_rate=Decimal("0.1"),
+        lr_pool_per_day=Decimal("0"),
+        lr_max_spread=None,
+        lr_min_size=None,
+        our_spread=Decimal("0.02"),
+        our_size=Decimal("50"),
+    )
+    assert float(result.liquidity_reward_pool_usd) == 0.0
+    assert float(result.expected_total_usd) > 0
