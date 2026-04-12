@@ -40,6 +40,10 @@ from .routers import (
     regime,
     ranking,
     fleet,
+    reward_density,
+    wallet_intelligence,
+    signal_aggregation as signal_aggregation_router,
+    lifecycle,
 )
 
 
@@ -269,6 +273,30 @@ app.include_router(
     fleet.router,
     prefix=API_V1_PREFIX,
     tags=["fleet"],
+)
+
+app.include_router(
+    reward_density.router,
+    prefix=API_V1_PREFIX,
+    tags=["reward-density"],
+)
+
+app.include_router(
+    wallet_intelligence.router,
+    prefix=API_V1_PREFIX,
+    tags=["wallet-intelligence"],
+)
+
+app.include_router(
+    signal_aggregation_router.router,
+    prefix=API_V1_PREFIX,
+    tags=["signal-aggregation"],
+)
+
+app.include_router(
+    lifecycle.router,
+    prefix=API_V1_PREFIX,
+    tags=["lifecycle"],
 )
 
 
