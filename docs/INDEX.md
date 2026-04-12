@@ -53,6 +53,7 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 | Sprint 14 spec | `docs/plans/specs/sprint-14-probability-model-spec.md` | BTC hourly probability model, calibration, lead-lag tests, fee-aware backtest |
 | Sprint 15 spec | `docs/plans/specs/sprint-15-regime-allocation-spec.md` | Regime detection, performance matrix, dynamic allocation (HRP); **`/v1/regime/*`**, **`/v1/allocation/*`** |
 | Sprint 16 spec | `docs/plans/specs/sprint-16-cross-sectional-fleet-spec.md` | Cross-sectional ranker, paper fleet, strategies, **`pm.paper_trades`**; **`/v1/ranking/*`**, **`/v1/fleet/*`** (mock HTTP until wired) |
+| Sprint 17 spec | `docs/plans/specs/sprint-17-reward-density-wallet-spec.md` | Reward density (on-chain HHI, incentives, risk scorer), wallet intelligence (profiling, clustering, signals), signal aggregation (z-score + weight learning), lifecycle manager; migration `014`; **`/v1/reward-density/*`**, **`/v1/wallet-intelligence/*`**, **`/v1/signal-aggregation/*`**, **`/v1/lifecycle/*`** |
 | Sprint tickets | `docs/plans/tickets/` | Bounded tasks (`10-*`, `12-*`, `13-*`, `14-00-INDEX`, `15-*`, `16-*`, …) |
 
 ## Summaries and milestone docs
@@ -68,6 +69,7 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 | Sprint 14 complete | `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md` | Probability model package, migration `005`, `/v1/probability/*`, AC-9 tests deferred |
 | Sprint 15 complete | `docs/plans/summaries/SPRINT-15-REGIME-ALLOCATION.md` | Regime + allocation services, migration `006`, live `/v1/regime/*` + `/v1/allocation/*` when `DB_URL` set |
 | Sprint 16 complete | `docs/plans/summaries/SPRINT-16-CROSS-SECTIONAL-FLEET.md` | Ranking + fleet, migration `007`, mock `/v1/ranking/*` + `/v1/fleet/*` until wired; dashboard `sprint-16` |
+| Sprint 17 complete | `docs/plans/summaries/SPRINT-17-REWARD-DENSITY-WALLET-INTELLIGENCE.md` | Reward density, wallet intelligence, signal aggregation, lifecycle manager; migration `014`; 4 DB-backed API routers; `AggregatedSignal` in fleet strategies; 36 tests |
 | Dashboard UI overhaul | `docs/plans/summaries/DASHBOARD-UI-OVERHAUL-2026-04.md` | Phase 1 (`v2.6.0-p2`): `/start`, `/platform`, `/platform/features`, HelpHint, badges. Phase 2 (`v2.6.0-p3`): `/platform/polymarket`, regime-allocation, probability, simulation, ranking-fleet, equities hub. Design: `docs/superpowers/specs/2026-04-06-dashboard-ui-overhaul-design.md` |
 | Polymarket tickets 1–5 notes | `docs/plans/POLYMARKET-TICKETS-1-5-SUMMARY.md` | Early Sprint 10 implementation notes (superseded by full summary for overview) |
 
@@ -98,7 +100,10 @@ This is the primary doc map for agent and human navigation in the `quant/` repo.
 | Regime service | `services/regime/` | Regime state models and detection helpers (Sprint 15); API reads `pm.regime_states` |
 | Allocation service | `services/allocation/` | Performance matrix + HRP-style allocation (Sprint 15); API reads `pm.allocation_decisions` |
 | Ranking service | `services/ranking/` | Cross-sectional universe, edge, feasibility, scoring, selection (Sprint 16); HTTP layer still mock |
-| Fleet service | `services/fleet/` | Paper-mode orchestrator, paper-trade store, `pm.paper_trades` (Sprint 16); HTTP layer still mock |
+| Fleet service | `services/fleet/` | Paper-mode orchestrator, paper-trade store, `pm.paper_trades` (Sprint 16); HTTP layer still mock; Sprint 17 adds `lifecycle.py` (PAUSE/PROMOTE/DEMOTE/RETIRE rules) |
+| Reward density service | `services/reward_density/` | On-chain maker HHI competition, incentive model (post-Mar-30 fee formula), cross-sectional risk scorer, density analyzer (Sprint 17); Polygon RPC client |
+| Wallet intelligence service | `services/wallet_intelligence/` | Wallet profiling, KMeans clustering (k=4), smart-money signal extraction (Sprint 17) |
+| Signal aggregation service | `services/signal_aggregation/` | Z-scored weighted composite of model + wallet + microstructure signals with weight learning (Sprint 17) |
 | Features service | `services/features/` | Indicators, equity + Polymarket feature pipeline (`FeatureSnapshot`, store) |
 | ML service | `services/ml/` | Training, inference, confidence, drift, explainability, HITL, baselines; **`probability_model/`** (Sprint 14 BTC forecaster) |
 | Risk service | `services/risk/` | Risk manager, kill switch, circuit breaker |

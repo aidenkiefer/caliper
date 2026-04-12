@@ -12,7 +12,7 @@ This file provides guidance to Claude when working with the **Caliper (quant)** 
 - **Learning and correctness** over profit maximization: interpretability, baselines, human-in-the-loop
 - **Paper trading first**, then live with strict safeguards
 
-**Current state:** Core platform **Sprints 1–9** are complete (including first ML model loop, observability, and model observatory dashboard). **Sprint 10** adds an optional **Polymarket** hourly BTC market-making service (`services/polymarket/`). **Sprints 11–14** add a **unified pipeline** (`services/portfolio/`, execution adapters), a **Polymarket feature layer** (`FeatureSnapshot`, `pm.features`), **offline CLOB simulation + evaluation** (`services/simulation/`, `services/evaluation/`, `/v1/simulation/*`, `/v1/evaluation/*`), and the **BTC probability model** (`services/ml/probability_model/`, `/v1/probability/*` — several handlers stub/mock until wired to DB). **Sprint 15** adds **regime detection + dynamic allocation** (`services/regime/`, `services/allocation/`, migration `006`, `/v1/regime/*`, `/v1/allocation/*` — **live `pm.*` reads** when `DB_URL` is set). **Sprint 16** adds **cross-sectional ranking + paper fleet** (`services/ranking/`, `services/fleet/`, migration `007`, fleet strategies under `packages/strategies/`, dashboard `sprint-16` panels); **`/v1/ranking/*`** and **`/v1/fleet/*`** return **mock** HTTP payloads until wired to ranker/orchestrator/DB reads — see **`docs/api-contracts.md`** (Sprint 15 vs 16 note). Shared TimescaleDB **`pm.*`** schema covers sessions, features, simulation/evaluation, probability (`005`), regime/allocation (`006`), and paper trades (`007`). Sprint 14 spec **AC-9** tests are **deferred** (`docs/plans/tickets/14-00-INDEX.md`). See `docs/plans/PROGRESS.md`, `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md`, `docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md`, `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md`, and `docs/runbooks/polymarket-operations.md`. Doc map: **`docs/INDEX.md`**.
+**Current state:** Core platform **Sprints 1–9** are complete (including first ML model loop, observability, and model observatory dashboard). **Sprint 10** adds an optional **Polymarket** hourly BTC market-making service (`services/polymarket/`). **Sprints 11–14** add a **unified pipeline** (`services/portfolio/`, execution adapters), a **Polymarket feature layer** (`FeatureSnapshot`, `pm.features`), **offline CLOB simulation + evaluation** (`services/simulation/`, `services/evaluation/`, `/v1/simulation/*`, `/v1/evaluation/*`), and the **BTC probability model** (`services/ml/probability_model/`, `/v1/probability/*` — several handlers stub/mock until wired to DB). **Sprint 15** adds **regime detection + dynamic allocation** (`services/regime/`, `services/allocation/`, migration `006`, `/v1/regime/*`, `/v1/allocation/*` — **live `pm.*` reads** when `DB_URL` is set). **Sprint 16** adds **cross-sectional ranking + paper fleet** (`services/ranking/`, `services/fleet/`, migration `007`, fleet strategies under `packages/strategies/`, dashboard `sprint-16` panels); **`/v1/ranking/*`** and **`/v1/fleet/*`** return **mock** HTTP payloads until wired to ranker/orchestrator/DB reads — see **`docs/api-contracts.md`** (Sprint 15 vs 16 note). **Sprint 17** adds **reward density scoring** (`services/reward_density/` — on-chain HHI, incentive model, risk scorer, density analyzer; 5th weight term in ranker), **wallet intelligence** (`services/wallet_intelligence/` — profiling, KMeans clustering k=4, smart-money signal extraction), **composite signal aggregation** (`services/signal_aggregation/` — z-scored weighted combination, weight learning, `AggregatedSignal` in fleet strategies), and **model lifecycle management** (`services/fleet/lifecycle.py` — PAUSE/PROMOTE/DEMOTE/RETIRE rules); migration `014`; **`/v1/reward-density/*`**, **`/v1/wallet-intelligence/*`**, **`/v1/signal-aggregation/*`**, **`/v1/lifecycle/*`** are DB-backed (tables populated when scorer pipelines are driven). Shared TimescaleDB **`pm.*`** schema covers sessions, features, simulation/evaluation, probability (`005`), regime/allocation (`006`), paper trades (`007`), and Sprint 17 tables (`014`). Sprint 14 spec **AC-9** tests are **deferred** (`docs/plans/tickets/14-00-INDEX.md`). See `docs/plans/PROGRESS.md`, `docs/plans/summaries/SPRINT-10-POLYMARKET-COMPLETE.md`, `docs/plans/summaries/SPRINT-13-SIMULATION-EVALUATION.md`, `docs/plans/summaries/SPRINT-14-PROBABILITY-MODEL.md`, `docs/plans/summaries/SPRINT-17-REWARD-DENSITY-WALLET-INTELLIGENCE.md`, and `docs/runbooks/polymarket-operations.md`. Doc map: **`docs/INDEX.md`**.
 
 **Codebase:** Monorepo with Python services (Poetry), shared packages (common schemas, strategies), and a Next.js dashboard (npm). Trading services run separately from the dashboard; the dashboard talks to the FastAPI backend via REST.
 
@@ -25,21 +25,24 @@ quant/
 ├── apps/
 │   └── dashboard/           # Next.js 14 (App Router), TypeScript, Shadcn/UI
 ├── services/                # Python microservices
-│   ├── api/                 # FastAPI backend (REST; polymarket, features, simulation, probability, regime, ranking, fleet routers)
+│   ├── api/                 # FastAPI backend (REST; polymarket, features, simulation, probability, regime, ranking, fleet, reward_density, wallet_intelligence, signal_aggregation, lifecycle routers)
 │   ├── allocation/          # Sprint 15: performance matrix + allocation (pm.allocation_decisions, pm.performance_matrices)
 │   ├── backtest/            # Equity backtesting engine, report generator, walk-forward
-│   ├── data/                # Data layer, Alembic migrations (incl. pm.* through 007)
+│   ├── data/                # Data layer, Alembic migrations (incl. pm.* through 014)
 │   ├── evaluation/          # Sprint 13: metrics, baselines, regime matrix, evaluation reports
 │   ├── execution/           # OMS, broker adapter (Alpaca), position reconciliation
 │   ├── features/            # Feature pipeline (equity + Polymarket FeatureSnapshot / store)
-│   ├── fleet/               # Sprint 16: paper orchestrator, paper_trade store (pm.paper_trades)
+│   ├── fleet/               # Sprint 16: paper orchestrator, paper_trade store (pm.paper_trades); Sprint 17: lifecycle.py
 │   ├── ml/                  # Drift, confidence gating, explainability, baselines, HITL; probability_model/ (Sprint 14)
 │   ├── polymarket/          # Optional Polymarket CLOB bot (Sprint 10); not equity OMS
 │   ├── portfolio/           # Sprint 11: allocator utilities for unified pipeline
-│   ├── ranking/             # Sprint 16: cross-sectional ranker (universe, edge, feasibility, selection)
+│   ├── ranking/             # Sprint 16: cross-sectional ranker (universe, edge, feasibility, selection); Sprint 17: reward_density_score 5th weight term
 │   ├── regime/              # Sprint 15: regime state (pm.regime_states)
+│   ├── reward_density/      # Sprint 17: on-chain HHI competition, incentive model, risk scorer, density analyzer (pm.reward_density_scores)
 │   ├── risk/                # RiskManager, kill switch, circuit breaker
-│   └── simulation/          # Sprint 13: CLOB replay, order book, fees, execution sim, runner
+│   ├── signal_aggregation/  # Sprint 17: z-scored composite signal aggregator with weight learning (pm.aggregated_signals)
+│   ├── simulation/          # Sprint 13: CLOB replay, order book, fees, execution sim, runner
+│   └── wallet_intelligence/ # Sprint 17: wallet profiling, KMeans clustering, smart-money signal extraction (pm.wallet_profiles, pm.wallet_signals)
 ├── packages/
 │   ├── common/              # Pydantic schemas (PriceBar, Order, Signal, api_schemas, ml_schemas, execution_schemas, polymarket_schemas)
 │   └── strategies/          # Strategy base, SMA Crossover, Polymarket plugins (incl. Sprint 16 fleet strategies)
@@ -162,9 +165,17 @@ cd services/data && poetry run alembic upgrade head   # Migrations
 | 4 | Dashboard & API | ✅ Complete |
 | 5 | Execution & Risk | ✅ Complete |
 | 6 | ML Safety & Interpretability | ✅ Complete |
-| 7 | First ML Model (End-to-End Loop) | Not Started |
-| 8 | ML Observability, Safety & Evaluation | Not Started |
-| 9 | Model Observatory Dashboard | Not Started |
+| 7 | First ML Model (End-to-End Loop) | ✅ Complete |
+| 8 | ML Observability, Safety & Evaluation | ✅ Complete |
+| 9 | Model Observatory Dashboard | ✅ Complete |
+| 10 | Polymarket BTC Market-Making | ✅ Complete |
+| 11 | Unified Pipeline Architecture | ✅ Complete |
+| 12 | Polymarket Feature Layer | ✅ Complete |
+| 13 | CLOB Simulation + Evaluation Engine | ✅ Complete |
+| 14 | BTC Probability Model | ✅ Complete (AC-9 tests deferred) |
+| 15 | Regime Detection + Dynamic Allocation | ✅ Complete |
+| 16 | Cross-Sectional Ranking + Paper Fleet | ✅ Complete |
+| 17 | Reward Density + Wallet Intelligence + Signal Aggregation | ✅ Complete |
 
 Detailed tasks and verification criteria: `docs/plans/task_plan.md` and `docs/plans/DETAILED-SPRINT-PROGRESS.md`.
 
