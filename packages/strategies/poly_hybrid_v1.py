@@ -7,6 +7,7 @@ from packages.common.market_schemas import SignalType, UnifiedSignal
 from packages.common.polymarket_schemas import FeatureSnapshot
 from services.ml.probability_model.schemas import PredictionRecord
 from services.regime.schemas import RegimeState
+from services.signal_aggregation.schemas import AggregatedSignal
 
 from ._sprint16_base import Sprint16PredictionStrategyBase
 from ._sprint16_utils import (
@@ -42,12 +43,14 @@ class PolyHybridStrategyV1(Sprint16PredictionStrategyBase):
         self._latest_snapshot: Optional[FeatureSnapshot] = None
         self._latest_prediction: Optional[PredictionRecord] = None
         self._regime_state: Optional[RegimeState] = None
+        self._aggregated_signal: Optional[AggregatedSignal] = None
 
     def initialize(self, mode) -> None:
         super().initialize(mode)
         self._latest_snapshot = None
         self._latest_prediction = None
         self._regime_state = None
+        self._aggregated_signal = None
 
     def on_market_data(self, snapshot: FeatureSnapshot) -> None:
         self._latest_snapshot = snapshot
@@ -57,6 +60,9 @@ class PolyHybridStrategyV1(Sprint16PredictionStrategyBase):
 
     def on_regime_state(self, regime_state: RegimeState) -> None:
         self._regime_state = regime_state
+
+    def on_aggregated_signal(self, signal: AggregatedSignal) -> None:
+        self._aggregated_signal = signal
 
     def generate_signals(self, portfolio: PortfolioState) -> List[UnifiedSignal]:
         snapshot = self._latest_snapshot
@@ -96,6 +102,14 @@ class PolyHybridStrategyV1(Sprint16PredictionStrategyBase):
                 unfavorable_side = "bid"
                 bid_factor = Decimal("1.5")
                 ask_factor = Decimal("0.5")
+
+        # Lean on aggregated signal for directional confirmation
+        if self._aggregated_signal is not None and self._aggregated_signal.threshold_met:
+            agg_final = float(self._aggregated_signal.final_signal)
+            # Positive final_signal biases toward bullish lean (tighten bid, widen ask)
+            lean_factor = Decimal(str(round(agg_final * 0.1, 4)))
+            bid_factor = bid_factor - lean_factor
+            ask_factor = ask_factor + lean_factor
 
         bid_price, ask_price, _, actual_spread = make_maker_quotes(
             midpoint=midpoint,

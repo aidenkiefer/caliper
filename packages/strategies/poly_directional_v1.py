@@ -9,6 +9,7 @@ from packages.common.polymarket_schemas import FeatureSnapshot
 from packages.common.schemas import Order
 from services.ml.probability_model.schemas import PredictionRecord
 from services.regime.schemas import RegimeState
+from services.signal_aggregation.schemas import AggregatedSignal
 
 from ._sprint16_base import Sprint16PredictionStrategyBase
 from ._sprint16_utils import (
@@ -33,6 +34,7 @@ class PolyDirectionalStrategyV1(Sprint16PredictionStrategyBase):
         self._latest_prediction: Optional[PredictionRecord] = None
         self._latest_snapshot: Optional[FeatureSnapshot] = None
         self._regime_state: Optional[RegimeState] = None
+        self._aggregated_signal: Optional[AggregatedSignal] = None
         self._last_emitted_direction: Optional[str] = None
         self._last_emitted_at: Optional[datetime] = None
 
@@ -41,6 +43,7 @@ class PolyDirectionalStrategyV1(Sprint16PredictionStrategyBase):
         self._latest_prediction = None
         self._latest_snapshot = None
         self._regime_state = None
+        self._aggregated_signal = None
         self._last_emitted_direction = None
         self._last_emitted_at = None
 
@@ -56,6 +59,9 @@ class PolyDirectionalStrategyV1(Sprint16PredictionStrategyBase):
     def on_regime_state(self, regime_state: RegimeState) -> None:
         self._regime_state = regime_state
 
+    def on_aggregated_signal(self, signal: AggregatedSignal) -> None:
+        self._aggregated_signal = signal
+
     def generate_signals(self, portfolio: PortfolioState) -> List[UnifiedSignal]:
         prediction = self._latest_prediction
         if prediction is None:
@@ -67,6 +73,10 @@ class PolyDirectionalStrategyV1(Sprint16PredictionStrategyBase):
 
         mispricing, threshold = get_prediction_edge(prediction)
         if mispricing is None or threshold is None or abs(mispricing) <= threshold:
+            return []
+
+        # If an aggregated signal is present and its threshold is not met, suppress
+        if self._aggregated_signal is not None and not self._aggregated_signal.threshold_met:
             return []
 
         direction = "long" if mispricing > 0 else "short"
